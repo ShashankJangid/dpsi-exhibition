@@ -217,6 +217,10 @@ export default function TwoDFallbackGrid() {
             );
           })}
         </div>
+
+        <div className="mt-8 mb-4 text-center text-[10px] font-mono text-slate-400 dark:text-slate-500">
+          Co-Engineered by Ojas Singh dpsi&apos;&apos;30
+        </div>
       </div>
     </div>
   );

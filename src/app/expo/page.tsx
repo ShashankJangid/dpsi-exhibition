@@ -131,6 +131,10 @@ export default function ExpoFloorPlanPage() {
               <ZoomIn className={`w-3.5 h-3.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`} />
               <span>Pinch / Scroll to Zoom</span>
             </div>
+            <div className={`w-1 h-1 rounded-full ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`} />
+            <span className={`text-[10px] ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+              Co-Engineered by Ojas Singh dpsi&apos;&apos;30
+            </span>
           </div>
         </div>
       ) : (

@@ -376,6 +376,9 @@ export default function ProjectDetailDrawer() {
                     {selectedProject.vote_count}
                   </span>
                 </div>
+                <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 mt-0.5 hidden xs:inline">
+                  Co-Engineered by Ojas Singh dpsi&apos;&apos;30
+                </span>
               </div>
 
               {hasVoted ? (
