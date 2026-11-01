@@ -53,7 +53,7 @@ export default function RootLayout({
       <body className="min-h-screen w-full bg-[#dfe3e8] dark:bg-[#000000] text-[#1e293b] dark:text-[#f1f5f9] font-sans selection:bg-amber-500 selection:text-black relative transition-colors duration-300" suppressHydrationWarning>
         <ThemeSync />
 
-        {/* [ ELEMENT 04 ] :: REFRACTIVE GLASS AERO-SHARDS SIMULATION in the background of landing page */}
+        {/* Ambient refractive glass background simulation */}
         <AmbientBackground />
 
         {/* Dynamic BlobCursor liquid chrome pointer element that renders behind text */}
