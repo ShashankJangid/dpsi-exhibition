@@ -486,8 +486,8 @@ export default function LandingPage() {
               width: '100%',
               height: isMobile ? '380px' : '600px',
               position: 'relative',
-              maskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)'
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 75%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 75%, transparent 100%)'
             }}
           >
             <GradientASCII
@@ -504,6 +504,13 @@ export default function LandingPage() {
               gradientOpacity={0.85}
               lightMode={isLight}
             />
+
+            {/* Seamless Top Gradient dissolve into background */}
+            <div className={`absolute inset-x-0 top-0 h-24 pointer-events-none z-10 bg-gradient-to-t ${
+              isLight
+                ? 'from-transparent to-[#dfe3e8]'
+                : 'from-transparent to-[#000000]'
+            }`} />
 
             {/* Seamless Bottom Gradient dissolve into background */}
             <div className={`absolute inset-x-0 bottom-0 h-48 pointer-events-none z-10 bg-gradient-to-b ${
@@ -1074,12 +1081,17 @@ export default function LandingPage() {
           : 'bg-[#000000] border-[#21262d] text-[#8b949e]'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-6 px-1.5 py-0.5 rounded bg-white flex items-center justify-center border border-slate-200">
-              <img src="/dps_shield.png" alt="DPS Indirapuram" className="h-full w-auto object-contain" />
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-6 px-1.5 py-0.5 rounded bg-white flex items-center justify-center border border-slate-200">
+                <img src="/dps_shield.png" alt="DPS Indirapuram" className="h-full w-auto object-contain" />
+              </div>
+              <span className={isLight ? 'text-slate-700' : 'text-[#8b949e]'}>
+                © 2026 Delhi Public School Indirapuram.
+              </span>
             </div>
-            <span className={isLight ? 'text-slate-700' : 'text-[#8b949e]'}>
-              © 2026 Delhi Public School Indirapuram.
+            <span className={`text-[11px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              • Co-Engineered by Ojas Singh dpsi&apos;&apos;30
             </span>
           </div>
 
