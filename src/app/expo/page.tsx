@@ -133,7 +133,7 @@ export default function ExpoFloorPlanPage() {
             </div>
             <div className={`w-1 h-1 rounded-full ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`} />
             <span className={`text-[10px] ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
-              Co-Engineered by Ojas Singh dpsi&apos;&apos;30
+              Co-Engineered by Ojas Singh dpsi&apos;30
             </span>
           </div>
         </div>

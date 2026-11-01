@@ -1091,7 +1091,7 @@ export default function LandingPage() {
               </span>
             </div>
             <span className={`text-[11px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-              • Co-Engineered by Ojas Singh dpsi&apos;&apos;30
+              • Co-Engineered by Ojas Singh dpsi&apos;30
             </span>
           </div>
 
