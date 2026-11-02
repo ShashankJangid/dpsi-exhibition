@@ -9,6 +9,7 @@ import { subscribeToProjects, onFirebaseAuthStateChange, checkRedirectResult } f
 import TopNavHUD from '@/components/ui/TopNavHUD';
 import MobileBottomDock from '@/components/ui/MobileBottomDock';
 import ProjectDetailDrawer from '@/components/ui/ProjectDetailDrawer';
+import SegmentInspector from '@/components/ui/SegmentInspector';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
 import TwoDFallbackGrid from '@/components/ui/TwoDFallbackGrid';
 import AuthModal from '@/components/ui/AuthModal';
@@ -91,21 +92,6 @@ export default function ExpoFloorPlanPage() {
       {/* Top HUD Navigation Bar */}
       <TopNavHUD />
 
-      {/* Back to Landing Page floating button */}
-      <div className="fixed top-20 left-4 sm:left-6 z-40 pointer-events-auto">
-        <Link
-          href="/"
-          className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shadow-xl backdrop-blur-md transition-all group border ${
-            isLight
-              ? 'bg-white/90 hover:bg-slate-100 text-slate-700 hover:text-slate-950 border-slate-200'
-              : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-800/90'
-          }`}
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-amber-500 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Event Info & Overview</span>
-        </Link>
-      </div>
-
       {/* Main Exhibition Floor (3D WebGL Hall or 2D Bento Directory) */}
       {viewMode === '3d' ? (
         <div className="relative isolate w-full h-full">
@@ -133,7 +119,7 @@ export default function ExpoFloorPlanPage() {
             </div>
             <div className={`w-1 h-1 rounded-full ${isLight ? 'bg-slate-300' : 'bg-slate-700'}`} />
             <span className={`text-[10px] ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
-              Co-Engineered by Ojas Singh dpsi&apos;30
+              DPS Indirapuram Tech Expo 2026
             </span>
           </div>
         </div>
@@ -148,6 +134,9 @@ export default function ExpoFloorPlanPage() {
 
       {/* Floating 3D Navigation Controls Widget */}
       <CameraControlsWidget />
+
+      {/* Segment Inspector Drawer (Opens when a segment is selected to show what's inside!) */}
+      <SegmentInspector />
 
       {/* Slide-out Drawers & Modals */}
       <ProjectDetailDrawer />
