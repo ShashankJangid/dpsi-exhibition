@@ -246,14 +246,14 @@ export default function LandingPage() {
             isLight ? 'border-slate-200/80' : 'border-[#30363d]'
           }`}>
             <div className={`flex items-center justify-between font-mono text-[11px] sm:text-xs mb-3 ${
-              isLight ? 'text-slate-500' : 'text-[#8b949e]'
+              isLight ? 'text-slate-600' : 'text-[#8b949e]'
             }`}>
-              <span className="flex items-center gap-2 text-[#3fb950]">
-                <span>november 14–15_2026{"}"}</span>
-                <span className="inline-block w-2.5 h-2.5 bg-[#3fb950]" />
+              <span className="flex items-center gap-2 text-[#3fb950] font-bold">
+                <span>NOVEMBER 14–15, 2026</span>
+                <span className="inline-block w-2 h-2 bg-[#3fb950] rounded-xs" />
               </span>
-              <span className="hidden sm:inline">
-                in-person &amp; 3d-hall % |35-booths
+              <span className="hidden sm:inline font-medium">
+                IN-PERSON &amp; 3D VIRTUAL HALL • 35 RESEARCH BOOTHS
               </span>
             </div>
 
@@ -282,19 +282,16 @@ export default function LandingPage() {
               }`}
             />
 
-            {/* Technical Sub-Header with Telemetry */}
+            {/* Technical Sub-Header with Venue Metadata */}
             <div className={`relative z-10 px-4 py-2 border-b flex items-center justify-between text-[10px] sm:text-[11px] font-mono ${
               isLight ? 'border-slate-200/80 text-slate-600' : 'border-[#21262d] text-[#8b949e]'
             }`}>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shrink-0" />
-                <span className="truncate">{'[ ELEMENT 02 ] :: INTERACTIVE PHYSICS WORDMARK'}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="truncate font-bold tracking-tight">DELHI PUBLIC SCHOOL INDIRAPURAM</span>
               </div>
-              <span className="hidden md:inline text-[10px] text-slate-400 font-mono tracking-widest">
-                COORDINATES: 28.6479° N, 77.3764° E // AUDITORIUM MAIN
-              </span>
-              <span className={`shrink-0 ${isLight ? 'text-blue-600 font-semibold' : 'text-[#58a6ff]'}`}>
-                SPRING DYNAMICS
+              <span className="text-[10px] text-slate-400 font-mono tracking-wider">
+                MAIN AUDITORIUM • 28.6479° N, 77.3764° E
               </span>
             </div>
 
@@ -319,14 +316,6 @@ export default function LandingPage() {
                 reach={isMobile ? 120 : 180}
                 bounce={0.4}
               />
-            </div>
-
-            {/* Blueprint Micro-instruction Footer */}
-            <div className={`relative z-10 px-4 py-1.5 border-t flex items-center justify-between text-[10px] font-mono ${
-              isLight ? 'border-slate-200/60 bg-slate-100/50 text-slate-500' : 'border-[#21262d] bg-[#0d1117]/50 text-[#8b949e]'
-            }`}>
-              <span>{'// INTERACTION GUIDE: DRAG CHARACTERS • HOVER TO DISASSEMBLE VECTORS'}</span>
-              <span className="hidden sm:inline">{'PHYSICS ENGINE: VERLET-SPRING'}</span>
             </div>
           </div>
 
@@ -441,16 +430,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── ELEMENT 5: <TextLoop /> ─── */}
-      <section className={`border-b transition-colors duration-300 ${
+      {/* ─── LIVE EXHIBITION MARQUEE RIBBON ─── */}
+      <section className={`border-b transition-colors duration-300 py-1 overflow-hidden ${
         isLight ? 'border-slate-200/80 bg-white/35 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
       }`}>
-        <div className={`px-4 py-2 border-b flex items-center justify-between text-[11px] font-mono max-w-7xl mx-auto ${
-          isLight ? 'border-slate-200 text-slate-600' : 'border-[#21262d] text-[#8b949e]'
-        }`}>
-          <span>{'[ ELEMENT 05 ] :: SVG CURVED LOOP RIBBON'}</span>
-          <span className="text-[#a855f7] font-semibold">LIVE STREAM MARQUEE</span>
-        </div>
         <div className="py-2 overflow-hidden">
           <TextLoop
             text="DPSI TECH & INNOVATION EXPO 2026 ✦ 35 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ ANTI-CHEAT COMMUNITY BALLOT"
@@ -519,14 +502,14 @@ export default function LandingPage() {
                 : 'from-transparent via-[#000000]/60 to-[#000000]'
             }`} />
 
-            {/* GitHub Universe Terminal Overlay in Center */}
+            {/* Exhibition Horizon Headline Overlay */}
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
               <span className={`px-3 py-1 rounded font-mono text-xs mb-4 backdrop-blur-sm ${
                 isLight
                   ? 'bg-white/80 border border-slate-300/80 text-blue-700 shadow-xs'
                   : 'bg-black/80 border border-slate-700 text-[#38bdf8]'
               }`}>
-                {'STAGE_A // COMPUTATIONAL ASCII CANVAS'}
+                {'DPS INDIRAPURAM // ANNUAL INNOVATION SUMMIT'}
               </span>
               <h2 className={`text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight max-w-2xl ${
                 isLight ? 'text-slate-800 drop-shadow-xs' : 'text-white drop-shadow-md'
@@ -536,8 +519,7 @@ export default function LandingPage() {
               <p className={`mt-3 text-xs sm:text-sm font-mono max-w-lg ${
                 isLight ? 'text-slate-600' : 'text-slate-300'
               }`}>
-                Move your cursor to warp the ASCII matrix field. Real-time dual-pass fragment shader
-                computing character density.
+                Explore 35 breakthrough inventions engineered across physical computing, artificial intelligence, and sustainable enterprise.
               </p>
             </div>
           </div>
@@ -896,13 +878,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── ELEMENT 3: <BellToggle /> IN VIP PASS & ALERTS ─── */}
+      {/* ─── REAL-TIME NOTIFICATIONS & VIP PASS ─── */}
       <section className={`border-b py-14 transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-[#f1f5f9]/50 backdrop-blur-sm' : 'border-[#30363d] bg-[#000000]'
       }`}>
         <div className="max-w-3xl mx-auto px-4 text-center">
           <span className="text-xs font-mono text-[#3fb950] font-bold block mb-2">
-            {'// ELEMENT 03 // REAL-TIME ALERTS'}
+            {'// REAL-TIME EVENT ALERTS'}
           </span>
           <h2 className={`text-2xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
             isLight ? 'text-slate-800' : 'text-white'
