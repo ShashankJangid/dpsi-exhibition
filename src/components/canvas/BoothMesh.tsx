@@ -122,23 +122,23 @@ export default function BoothMesh({ project }: BoothMeshProps) {
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      {/* 1. Base Platform */}
-      <mesh position={[0, 0.06, 0]} receiveShadow castShadow>
-        <boxGeometry args={[2.2, 0.12, 1.4]} />
+      {/* 1. Base Platform (Low-profile presentation dais with category glow) */}
+      <mesh position={[0, 0.04, 0]} receiveShadow castShadow>
+        <boxGeometry args={[2.3, 0.08, 1.5]} />
         <meshStandardMaterial
           color={
             isSelected
               ? (isLight ? '#475569' : '#334155')
-              : (isLight ? '#64748b' : '#0f172a')
+              : (isLight ? '#e2e8f0' : '#111827')
           }
-          metalness={isLight ? 0.2 : 0.7}
-          roughness={isLight ? 0.5 : 0.3}
+          metalness={isLight ? 0.1 : 0.6}
+          roughness={isLight ? 0.6 : 0.35}
         />
       </mesh>
 
-      {/* Glowing Category Base Accent Line */}
-      <mesh position={[0, 0.125, 0]}>
-        <boxGeometry args={[2.1, 0.02, 1.3]} />
+      {/* Glowing Category Perimeter Accent Inlay */}
+      <mesh position={[0, 0.082, 0]}>
+        <boxGeometry args={[2.22, 0.015, 1.42]} />
         <meshStandardMaterial
           color={style.glow}
           emissive={style.color}
@@ -146,65 +146,177 @@ export default function BoothMesh({ project }: BoothMeshProps) {
         />
       </mesh>
 
-      {/* 2. Exhibition Counter Desk */}
-      <mesh position={[0, 0.55, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.8, 0.75, 0.8]} />
+      {/* 2. Executive Seminar / Conference Desk (Inspired by modern conference halls) */}
+      {/* Desk Top Slab (Warm polished oak in light mode, sleek conference slate in dark mode) */}
+      <mesh position={[0, 0.72, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.9, 0.05, 0.75]} />
         <meshStandardMaterial
-          color={isLight ? '#cbd5e1' : '#1e293b'}
-          metalness={isLight ? 0.15 : 0.5}
-          roughness={isLight ? 0.5 : 0.25}
+          color={isLight ? '#c69862' : '#1e2638'}
+          metalness={isLight ? 0.08 : 0.4}
+          roughness={isLight ? 0.35 : 0.3}
         />
       </mesh>
 
-      {/* Front Glowing Light Strip */}
-      <mesh position={[0, 0.75, 0.41]}>
-        <boxGeometry args={[1.7, 0.05, 0.02]} />
+      {/* Modesty Panel (recessed dark partition below desk) */}
+      <mesh position={[0, 0.42, -0.18]} castShadow receiveShadow>
+        <boxGeometry args={[1.75, 0.55, 0.03]} />
         <meshStandardMaterial
-          color={style.glow}
-          emissive={style.glow}
-          emissiveIntensity={hovered || isSelected ? 2.0 : 0.9}
+          color={isLight ? '#334155' : '#090d16'}
+          roughness={0.4}
         />
       </mesh>
 
-      {/* 3. Display Screen Backboard */}
-      <mesh position={[0, 1.45, -0.32]} rotation={[-0.05, 0, 0]} castShadow>
-        <boxGeometry args={[1.5, 0.85, 0.06]} />
+      {/* Chrome / Black Metal Cantilever Legs (Left & Right) */}
+      <mesh position={[-0.88, 0.36, 0]} castShadow>
+        <boxGeometry args={[0.04, 0.68, 0.68]} />
         <meshStandardMaterial
-          color={isLight ? '#334155' : '#0b101c'}
-          metalness={isLight ? 0.4 : 0.9}
+          color={isLight ? '#64748b' : '#334155'}
+          metalness={0.85}
+          roughness={0.2}
+        />
+      </mesh>
+      <mesh position={[0.88, 0.36, 0]} castShadow>
+        <boxGeometry args={[0.04, 0.68, 0.68]} />
+        <meshStandardMaterial
+          color={isLight ? '#64748b' : '#334155'}
+          metalness={0.85}
           roughness={0.2}
         />
       </mesh>
 
-      {/* Screen Face */}
-      <mesh position={[0, 1.45, -0.28]}>
-        <planeGeometry args={[1.4, 0.75]} />
+      {/* Front Edge Glowing Accent Strip */}
+      <mesh position={[0, 0.70, 0.38]}>
+        <boxGeometry args={[1.88, 0.02, 0.02]} />
         <meshStandardMaterial
-          color={isLight ? '#1e293b' : '#111827'}
-          emissive={style.color}
-          emissiveIntensity={hovered || isSelected ? 0.8 : 0.3}
+          color={style.glow}
+          emissive={style.glow}
+          emissiveIntensity={hovered || isSelected ? 2.2 : 1.0}
         />
       </mesh>
 
-      {/* 4. Two Exhibitor Stools */}
-      <group position={[0, 0, 0.85]}>
-        <mesh position={[-0.5, 0.35, 0]} castShadow>
-          <boxGeometry args={[0.4, 0.08, 0.4]} />
-          <meshStandardMaterial color="#dc2626" roughness={0.4} />
+      {/* 3. Desk Accessories (Open Laptop & Water Bottle / Folio as in Image 1 & 2) */}
+      {/* Laptop Base on desk */}
+      <group position={[0.32, 0.75, 0.06]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.3, 0.015, 0.22]} />
+          <meshStandardMaterial color={isLight ? '#64748b' : '#0f172a'} metalness={0.8} roughness={0.25} />
         </mesh>
-        <mesh position={[-0.5, 0.17, 0]}>
-          <cylinderGeometry args={[0.04, 0.04, 0.35, 12]} />
-          <meshStandardMaterial color={isLight ? '#94a3b8' : '#475569'} metalness={0.8} />
+        {/* Laptop Open Screen Lid (angled 20 deg back) */}
+        <mesh position={[0, 0.11, -0.1]} rotation={[-0.35, 0, 0]} castShadow>
+          <boxGeometry args={[0.3, 0.22, 0.012]} />
+          <meshStandardMaterial color={isLight ? '#475569' : '#0f172a'} metalness={0.8} roughness={0.2} />
         </mesh>
+        {/* Laptop Glowing Display Face */}
+        <mesh position={[0, 0.11, -0.092]} rotation={[-0.35, 0, 0]}>
+          <planeGeometry args={[0.27, 0.19]} />
+          <meshStandardMaterial
+            color={style.color}
+            emissive={style.glow}
+            emissiveIntensity={1.2}
+          />
+        </mesh>
+      </group>
 
-        <mesh position={[0.5, 0.35, 0]} castShadow>
-          <boxGeometry args={[0.4, 0.08, 0.4]} />
-          <meshStandardMaterial color="#dc2626" roughness={0.4} />
+      {/* Conference Water Bottle & Seminar Notepad on desk */}
+      <group position={[-0.45, 0.75, 0.1]}>
+        {/* Water bottle */}
+        <mesh position={[-0.15, 0.08, 0]} castShadow>
+          <cylinderGeometry args={[0.03, 0.03, 0.16, 8]} />
+          <meshStandardMaterial color="#93c5fd" transparent opacity={0.7} roughness={0.1} />
         </mesh>
-        <mesh position={[0.5, 0.17, 0]}>
-          <cylinderGeometry args={[0.04, 0.04, 0.35, 12]} />
-          <meshStandardMaterial color={isLight ? '#94a3b8' : '#475569'} metalness={0.8} />
+        <mesh position={[-0.15, 0.17, 0]}>
+          <cylinderGeometry args={[0.018, 0.018, 0.03, 8]} />
+          <meshStandardMaterial color="#0284c7" roughness={0.3} />
         </mesh>
+        {/* Presentation Notepad */}
+        <mesh position={[0.12, 0.005, 0]} castShadow>
+          <boxGeometry args={[0.18, 0.01, 0.24]} />
+          <meshStandardMaterial color="#f8fafc" roughness={0.8} />
+        </mesh>
+      </group>
+
+      {/* 4. Display Screen Backboard on Chrome Stand */}
+      <mesh position={[0, 1.48, -0.32]} rotation={[-0.05, 0, 0]} castShadow>
+        <boxGeometry args={[1.5, 0.82, 0.05]} />
+        <meshStandardMaterial
+          color={isLight ? '#334155' : '#0b101c'}
+          metalness={isLight ? 0.3 : 0.9}
+          roughness={0.2}
+        />
+      </mesh>
+      {/* Screen Face */}
+      <mesh position={[0, 1.48, -0.29]}>
+        <planeGeometry args={[1.42, 0.74]} />
+        <meshStandardMaterial
+          color={isLight ? '#1e293b' : '#0f172a'}
+          emissive={style.color}
+          emissiveIntensity={hovered || isSelected ? 0.85 : 0.35}
+        />
+      </mesh>
+      {/* Back Screen Chrome Support Mast */}
+      <mesh position={[0, 0.98, -0.32]}>
+        <cylinderGeometry args={[0.025, 0.025, 0.48, 8]} />
+        <meshStandardMaterial color="#94a3b8" metalness={0.9} roughness={0.15} />
+      </mesh>
+
+      {/* 5. Modern Executive Conference Chairs (Inspired by Image 1 & 2) */}
+      {/* Two ergonomic conference chairs positioned behind the desk */}
+      <group position={[0, 0, 0.72]}>
+        {/* Left Chair */}
+        <group position={[-0.45, 0, 0]} rotation={[0, 0.12, 0]}>
+          {/* Chrome 5-star swivel base */}
+          <mesh position={[0, 0.025, 0]}>
+            <cylinderGeometry args={[0.22, 0.22, 0.025, 10]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Chrome central column */}
+          <mesh position={[0, 0.19, 0]}>
+            <cylinderGeometry args={[0.025, 0.025, 0.32, 8]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Seat cushion */}
+          <mesh position={[0, 0.37, 0]} castShadow>
+            <boxGeometry args={[0.38, 0.05, 0.38]} />
+            <meshStandardMaterial color={isLight ? '#334155' : '#111827'} roughness={0.4} />
+          </mesh>
+          {/* Dual-tone Contoured Backrest Shell (White shell back, dark front cushion as in Image 1) */}
+          <mesh position={[0, 0.62, 0.18]} rotation={[-0.12, 0, 0]} castShadow>
+            <boxGeometry args={[0.38, 0.44, 0.035]} />
+            <meshStandardMaterial color="#f1f5f9" roughness={0.3} metalness={0.1} />
+          </mesh>
+          <mesh position={[0, 0.62, 0.165]} rotation={[-0.12, 0, 0]}>
+            <boxGeometry args={[0.34, 0.4, 0.015]} />
+            <meshStandardMaterial color={isLight ? '#1e293b' : '#030712'} roughness={0.5} />
+          </mesh>
+        </group>
+
+        {/* Right Chair */}
+        <group position={[0.45, 0, 0]} rotation={[0, -0.12, 0]}>
+          {/* Chrome 5-star swivel base */}
+          <mesh position={[0, 0.025, 0]}>
+            <cylinderGeometry args={[0.22, 0.22, 0.025, 10]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Chrome central column */}
+          <mesh position={[0, 0.19, 0]}>
+            <cylinderGeometry args={[0.025, 0.025, 0.32, 8]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Seat cushion */}
+          <mesh position={[0, 0.37, 0]} castShadow>
+            <boxGeometry args={[0.38, 0.05, 0.38]} />
+            <meshStandardMaterial color={isLight ? '#334155' : '#111827'} roughness={0.4} />
+          </mesh>
+          {/* Dual-tone Contoured Backrest Shell */}
+          <mesh position={[0, 0.62, 0.18]} rotation={[-0.12, 0, 0]} castShadow>
+            <boxGeometry args={[0.38, 0.44, 0.035]} />
+            <meshStandardMaterial color="#f1f5f9" roughness={0.3} metalness={0.1} />
+          </mesh>
+          <mesh position={[0, 0.62, 0.165]} rotation={[-0.12, 0, 0]}>
+            <boxGeometry args={[0.34, 0.4, 0.015]} />
+            <meshStandardMaterial color={isLight ? '#1e293b' : '#030712'} roughness={0.5} />
+          </mesh>
+        </group>
       </group>
 
       {/* 5. Pure WebGL Selection Floor Halo & Accent Light */}
