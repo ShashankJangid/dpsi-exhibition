@@ -50,11 +50,19 @@ export default function MobileNavMenu() {
   }[] = [
     {
       id: 'overview',
-      title: 'Full Floor Overview',
-      subtitle: theme === 'light' ? 'Daylight Aerial View' : 'Zoom out into Milky Way',
+      title: '3D Hall Perspective',
+      subtitle: theme === 'light' ? 'Daylight 3D Hall' : 'Night Atmosphere 3D Hall',
       badge: 'All 35',
       icon: Compass,
       color: 'from-amber-500/20 to-amber-600/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
+    },
+    {
+      id: 'blueprint',
+      title: 'Official Floor Plan',
+      subtitle: 'Top-down architectural blueprint view',
+      badge: 'Layout',
+      icon: LayoutGrid,
+      color: 'from-blue-500/20 to-blue-600/10 text-blue-700 dark:text-blue-400 border-blue-500/30',
     },
     {
       id: 'zone-1',

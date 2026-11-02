@@ -51,7 +51,7 @@ export default function ExhibitionCanvas() {
         <Canvas
           shadows={!isMobile}
           camera={{
-            position: isMobile ? [-12, 54, 52] : [-12, 40, 44],
+            position: isMobile ? [7, 46, 40] : [7, 36, 30],
             fov: isMobile ? 48 : 38,
             near: 0.1,
             far: 2200,

@@ -4,6 +4,7 @@ import { SEED_PROJECTS } from '@/data/seedProjects';
 
 export type NavZoneId =
   | 'overview'
+  | 'blueprint'
   | 'zone-1'
   | 'zone-2'
   | 'zone-3'
@@ -16,69 +17,78 @@ export type ThemeMode = 'light' | 'dark';
 export const CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
   // Balanced isometric perspective capturing Show & Tell, Main Hall, and Robotics with clear depth
   overview: {
-    position: [-12, 40, 44],
-    target: [-12, 0.5, -12],
+    position: [7, 36, 30],
+    target: [7, 0.5, -6],
+  },
+  blueprint: {
+    // True architectural top-down floor plan view matching the uploaded blueprint
+    position: [7, 48, -6.001],
+    target: [7, 0.0, -6],
   },
   'zone-1': {
-    // Show & Tell angled pavilion
-    position: [-36, 18, 12],
-    target: [-36, 1.0, -6],
+    // Show & Tell angled pavilion (eye-level close-up showcasing the desks and kiosks)
+    position: [-16, 7.5, 4.5],
+    target: [-16, 0.8, -3.5],
   },
   'zone-2': {
     // Main Hall comprehensive view
-    position: [-1, 24, 26],
-    target: [-1, 1.0, 0],
+    position: [8.5, 13.5, 14],
+    target: [8.5, 0.8, -4],
   },
   'zone-3': {
-    // Robotics arenas
-    position: [-1, 22, -14],
-    target: [-1, 1.0, -36],
+    // Robotics arenas & top concourse (angled downward into the speedway and soccer pitch)
+    position: [8.5, 9.0, -13],
+    target: [8.5, 0.8, -24.5],
   },
   physical: {
-    // Physical Booths P01-P12
-    position: [-10, 16, 6],
-    target: [-10, 1.0, -8],
+    // Physical Booths P01-P12 close-in aisle view looking directly at the booths
+    position: [8.5, 5.5, -3.5],
+    target: [8.5, 0.8, -10.5],
   },
   digital: {
-    // Digital Booths D01-D12
-    position: [0, 16, 6],
-    target: [0, 1.0, 0],
+    // Digital Booths D01-D12 close-in aisle view
+    position: [8.5, 5.5, 2.5],
+    target: [8.5, 0.8, -4.5],
   },
   business: {
-    // Business Booths B01-B07
-    position: [10, 16, 6],
-    target: [10, 1.0, 0],
+    // Business Booths B01-B07 close-in aisle view
+    position: [8.5, 5.5, 8.5],
+    target: [8.5, 0.8, 1.5],
   },
 };
 
 export const MOBILE_CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
   overview: {
-    position: [-12, 54, 52],
-    target: [-12, 0.5, -12],
+    position: [7, 46, 40],
+    target: [7, 0.5, -6],
+  },
+  blueprint: {
+    position: [7, 60, -6.001],
+    target: [7, 0.0, -6],
   },
   'zone-1': {
-    position: [-36, 26, 18],
-    target: [-36, 1.0, -6],
+    position: [-16, 11, 7],
+    target: [-16, 0.8, -3.5],
   },
   'zone-2': {
-    position: [-1, 32, 32],
-    target: [-1, 1.0, 0],
+    position: [8.5, 18, 17],
+    target: [8.5, 0.8, -4],
   },
   'zone-3': {
-    position: [-1, 30, -8],
-    target: [-1, 1.0, -36],
+    position: [8.5, 13, -11],
+    target: [8.5, 0.8, -24.5],
   },
   physical: {
-    position: [-10, 22, 10],
-    target: [-10, 1.0, -8],
+    position: [8.5, 8.5, -1],
+    target: [8.5, 0.8, -10.5],
   },
   digital: {
-    position: [0, 22, 10],
-    target: [0, 1.0, 0],
+    position: [8.5, 8.5, 5],
+    target: [8.5, 0.8, -4.5],
   },
   business: {
-    position: [10, 22, 10],
-    target: [10, 1.0, 0],
+    position: [8.5, 8.5, 11],
+    target: [8.5, 0.8, 1.5],
   },
 };
 
@@ -99,6 +109,7 @@ interface ExhibitionState {
   viewMode: '3d' | '2d';
   isLeaderboardOpen: boolean;
   isDrawerOpen: boolean;
+  isSegmentInspectorOpen: boolean;
   isAuthModalOpen: boolean;
   isSearchOpen: boolean;
   isSearchModalOpen: boolean;
@@ -116,6 +127,7 @@ interface ExhibitionState {
   toggleTheme: () => void;
   setIsMobile: (isMobile: boolean) => void;
   setActiveZone: (zone: NavZoneId) => void;
+  setSegmentInspectorOpen: (open: boolean) => void;
   selectProject: (project: Project | null) => void;
   selectNextProject: () => void;
   selectPrevProject: () => void;
@@ -146,6 +158,7 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
   viewMode: '3d',
   isLeaderboardOpen: false,
   isDrawerOpen: false,
+  isSegmentInspectorOpen: false,
   isAuthModalOpen: false,
   isSearchOpen: false,
   isSearchModalOpen: false,
@@ -165,13 +178,19 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
     const isMobile = get().isMobile;
     const presets = isMobile ? MOBILE_CAMERA_PRESETS : CAMERA_PRESETS;
     const config = presets[zone] || presets.overview;
+    const shouldOpenInspector = zone !== 'overview' && zone !== 'blueprint';
     set({
       activeZone: zone,
       cameraConfig: config,
       selectedProject: null,
       isDrawerOpen: false,
+      isSegmentInspectorOpen: shouldOpenInspector,
       isMobileMenuOpen: false,
     });
+  },
+
+  setSegmentInspectorOpen: (open) => {
+    set({ isSegmentInspectorOpen: open });
   },
 
   selectProject: (project) => {
@@ -186,8 +205,8 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
     const isMobile = get().isMobile;
     const rotY = project.rotation_y || 0;
     // Dynamic trigonometry camera placement: always positions camera directly in front of the outward-facing counter desk!
-    const camDist = isMobile ? 6.5 : 5.4;
-    const camHeight = isMobile ? 3.6 : 2.8;
+    const camDist = isMobile ? 6.2 : 5.2;
+    const camHeight = isMobile ? 3.2 : 2.6;
 
     const boothCamera: CameraViewConfig = {
       position: [
@@ -207,6 +226,7 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
       activeZone: project.zone,
       cameraConfig: boothCamera,
       isDrawerOpen: true,
+      isSegmentInspectorOpen: false,
       isSearchOpen: false,
       isMobileMenuOpen: false,
     });
@@ -293,16 +313,25 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
 
   setProjects: (incoming) => {
     if (!incoming || incoming.length === 0) return;
-    if (incoming.length < SEED_PROJECTS.length) {
-      const map = new Map(incoming.map((p) => [p.id.toLowerCase(), p]));
-      const complete = SEED_PROJECTS.map((sp) => {
-        const found = map.get(sp.id.toLowerCase());
-        return found ? { ...sp, ...found } : sp;
-      });
-      set({ projects: complete });
-      return;
-    }
-    set({ projects: incoming });
+    const seedMap = new Map(SEED_PROJECTS.map((sp) => [sp.id.toLowerCase(), sp]));
+    const complete = incoming.map((inc) => {
+      const sp = seedMap.get(inc.id.toLowerCase());
+      if (sp) {
+        return {
+          ...sp,
+          ...inc,
+          position_x: sp.position_x,
+          position_y: sp.position_y,
+          position_z: sp.position_z,
+          rotation_y: sp.rotation_y,
+          zone: sp.zone,
+        };
+      }
+      return inc;
+    });
+    const incMap = new Map(complete.map((p) => [p.id.toLowerCase(), p]));
+    const fullList = SEED_PROJECTS.map((sp) => incMap.get(sp.id.toLowerCase()) || sp);
+    set({ projects: fullList });
   },
 
   zoomIn: () => {
