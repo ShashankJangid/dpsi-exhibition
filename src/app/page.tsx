@@ -10,11 +10,16 @@ import {
   Vote,
   Sun,
   Moon,
+  Award,
+  Search,
 } from 'lucide-react';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import ProjectDetailDrawer from '@/components/ui/ProjectDetailDrawer';
 import AuthModal from '@/components/ui/AuthModal';
+import DelegatePassModal from '@/components/ui/DelegatePassModal';
+import SearchModal from '@/components/ui/SearchModal';
+import { playClick, playBlip } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 
@@ -53,6 +58,8 @@ export default function LandingPage() {
   const setProjects = useExhibitionStore((state) => state.setProjects);
   const setUser = useExhibitionStore((state) => state.setUser);
   const setDeviceFingerprint = useExhibitionStore((state) => state.setDeviceFingerprint);
+  const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
+  const setSearchModalOpen = useExhibitionStore((state) => state.setSearchModalOpen);
 
   const [selectedZone, setSelectedZone] = useState<'all' | 'Physical' | 'Digital' | 'Business'>('all');
   const [selectedDay, setSelectedDay] = useState<'day1' | 'day2'>('day1');
@@ -65,6 +72,14 @@ export default function LandingPage() {
     };
     handleResize();
     window.addEventListener('resize', handleResize);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     getDeviceFingerprint().then((fp) => {
       setDeviceFingerprint(fp);
@@ -90,6 +105,7 @@ export default function LandingPage() {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
       unsubAuth();
       unsubProjects();
     };
@@ -130,7 +146,7 @@ export default function LandingPage() {
               ANNUAL TECH &amp; INNOVATION SUMMIT 2026
             </span>
             <span className={`hidden sm:inline ${isLight ? 'text-slate-500' : 'text-[#8b949e]'}`}>
-              {'// NOVEMBER 14–15 • MAIN AUDITORIUM'}
+              NOVEMBER 14–15 • MAIN AUDITORIUM
             </span>
           </div>
           <Link
@@ -181,11 +197,11 @@ export default function LandingPage() {
           {/* Navigation Cells */}
           <nav className="hidden lg:flex items-stretch text-xs font-mono">
             {[
-              { href: '#stage', label: '[ 01 // STAGE ]' },
-              { href: '#projects', label: '[ 02 // 35 INVENTIONS ]' },
-              { href: '#arenas', label: '[ 03 // 3 ARENAS ]' },
-              { href: '#voting', label: '[ 04 // ANTI-CHEAT BALLOT ]' },
-              { href: '#schedule', label: '[ 05 // ITINERARY ]' },
+              { href: '#stage', label: 'Stage' },
+              { href: '#projects', label: '35 Inventions' },
+              { href: '#arenas', label: '3 Arenas' },
+              { href: '#voting', label: 'Live Voting' },
+              { href: '#schedule', label: 'Schedule' },
             ].map((item) => (
               <a
                 key={item.href}
@@ -203,6 +219,43 @@ export default function LandingPage() {
 
           {/* Right Action: Launch 3D Hall & Theme Toggle */}
           <div className="ml-auto flex items-stretch">
+            {/* Quick Search Button */}
+            <button
+              onClick={() => {
+                playClick();
+                setSearchModalOpen(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
+                isLight
+                  ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
+                  : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
+              }`}
+              title="Search Projects (⌘K)"
+            >
+              <Search className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Search</span>
+              <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                ⌘K
+              </kbd>
+            </button>
+
+            {/* Delegate Pass Modal Trigger */}
+            <button
+              onClick={() => {
+                playClick();
+                setDelegatePassOpen(true);
+              }}
+              className={`hidden sm:flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
+                isLight
+                  ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
+                  : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
+              }`}
+              title="View & Download Innovation Delegate Pass"
+            >
+              <Award className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Delegate Pass</span>
+            </button>
+
             <button
               onClick={toggleTheme}
               className={`flex items-center gap-1.5 px-3.5 border-r font-mono text-xs transition-colors ${
@@ -329,7 +382,7 @@ export default function LandingPage() {
                 <span className={`text-xs font-mono uppercase tracking-widest block mb-2 ${
                   isLight ? 'text-slate-500' : 'text-[#8b949e]'
                 }`}>
-                  {'// THE SUMMIT ARCHITECTURE'}
+                  SUMMIT ARCHITECTURE
                 </span>
                 <h2 className={`text-3xl sm:text-4xl font-extrabold tracking-tight font-mono ${
                   isLight ? 'text-slate-800' : 'text-white'
@@ -388,7 +441,7 @@ export default function LandingPage() {
                 <span className={`text-xs font-mono uppercase tracking-widest block mb-2 ${
                   isLight ? 'text-slate-500' : 'text-[#8b949e]'
                 }`}>
-                  {'// PURPOSE & INVITATION'}
+                  PURPOSE &amp; INVITATION
                 </span>
                 <p className={`text-base sm:text-lg leading-relaxed font-sans ${
                   isLight ? 'text-slate-800' : 'text-[#c9d1d9]'
@@ -401,7 +454,7 @@ export default function LandingPage() {
                   isLight ? 'text-slate-600' : 'text-[#8b949e]'
                 }`}>
                   Inspect blueprints in 3D WebGL, evaluate technical schematics, and submit your verified
-                  ballot through our multi-factor anti-cheat voting portal.
+                  ballot through our authenticated community voting portal.
                 </p>
               </div>
 
@@ -436,7 +489,7 @@ export default function LandingPage() {
       }`}>
         <div className="py-2 overflow-hidden">
           <TextLoop
-            text="DPSI TECH & INNOVATION EXPO 2026 ✦ 35 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ ANTI-CHEAT COMMUNITY BALLOT"
+            text="DPSI TECH & INNOVATION EXPO 2026 ✦ 35 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ VERIFIED COMMUNITY BALLOT"
             shape="wave"
             speed={90}
             direction="forward"
@@ -509,7 +562,7 @@ export default function LandingPage() {
                   ? 'bg-white/80 border border-slate-300/80 text-blue-700 shadow-xs'
                   : 'bg-black/80 border border-slate-700 text-[#38bdf8]'
               }`}>
-                {'DPS INDIRAPURAM // ANNUAL INNOVATION SUMMIT'}
+                DPS INDIRAPURAM • ANNUAL INNOVATION SUMMIT
               </span>
               <h2 className={`text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight max-w-2xl ${
                 isLight ? 'text-slate-800 drop-shadow-xs' : 'text-white drop-shadow-md'
@@ -536,7 +589,7 @@ export default function LandingPage() {
           }`}>
             <div>
               <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                {'// COMPETING BOOTHS DIRECTORY'}
+                COMPETING BOOTHS DIRECTORY
               </span>
               <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
                 isLight ? 'text-slate-800' : 'text-white'
@@ -692,7 +745,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className={`pb-6 border-b ${isLight ? 'border-slate-200/80' : 'border-[#30363d]'}`}>
             <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-              {'// PHYSICAL BLUEPRINT'}
+              PHYSICAL BLUEPRINT
             </span>
             <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
               isLight ? 'text-slate-800' : 'text-white'
@@ -712,7 +765,7 @@ export default function LandingPage() {
                 <span className={`px-2 py-0.5 rounded font-mono text-xs font-bold border ${
                   isLight ? 'bg-sky-50/80 border-sky-200 text-sky-700' : 'bg-[#161b22] border-[#30363d] text-[#38bdf8]'
                 }`}>
-                  {'ZONE_01 // ST01-ST08'}
+                  ZONE 01 • ST01–ST08
                 </span>
                 <h3 className={`text-xl font-bold mt-3 font-sans ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Show &amp; Tell Prototypes
@@ -745,7 +798,7 @@ export default function LandingPage() {
                 <span className={`px-2 py-0.5 rounded font-mono text-xs font-bold border ${
                   isLight ? 'bg-amber-50/80 border-amber-200 text-amber-700' : 'bg-[#161b22] border-[#30363d] text-[#f0883e]'
                 }`}>
-                  {'ZONE_02 // P, D & B PODS'}
+                  ZONE 02 • INNOVATION PODS
                 </span>
                 <h3 className={`text-xl font-bold mt-3 font-sans ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   The Innovation Hub
@@ -776,7 +829,7 @@ export default function LandingPage() {
                 <span className={`px-2 py-0.5 rounded font-mono text-xs font-bold border ${
                   isLight ? 'bg-pink-50/80 border-pink-200 text-pink-700' : 'bg-[#161b22] border-[#30363d] text-[#db61a2]'
                 }`}>
-                  {'ZONE_03 // BATTLE PITS'}
+                  ZONE 03 • ROBOTICS ARENAS
                 </span>
                 <h3 className={`text-xl font-bold mt-3 font-sans ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Robotics Arena &amp; Drone Pit
@@ -808,32 +861,31 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7">
               <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                {'// CRYPTOGRAPHIC INTEGRITY'}
+                VERIFIED VOTING PIPELINE
               </span>
               <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
                 isLight ? 'text-slate-800' : 'text-white'
               }`}>
-                Anti-Cheat Verified Voting
+                Verified Community Ballot &amp; Jury Evaluation
               </h2>
               <p className={`mt-3 text-sm font-mono leading-relaxed ${
                 isLight ? 'text-slate-600' : 'text-[#8b949e]'
               }`}>
-                To safeguard the awards, our custom-engineered voting pipeline eliminates duplicate ballots
-                and ballot-stuffing using hardware-accelerated device fingerprinting and Cloud Firestore
-                atomic transactions.
+                Ensuring fair recognition for every student team through authenticated, tamper-proof
+                voting powered by Google OAuth and Firebase real-time atomic transactions.
               </p>
 
               <div className="mt-6 space-y-3 font-mono text-xs">
                 <div className={`p-3 border rounded flex items-center justify-between ${
                   isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
                 }`}>
-                  <span className="font-semibold">Multi-Factor Hardware Fingerprint</span>
+                  <span className="font-semibold">Single-Device Verification</span>
                   <span className="text-[#3fb950] font-bold">[ ACTIVE ]</span>
                 </div>
                 <div className={`p-3 border rounded flex items-center justify-between ${
                   isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
                 }`}>
-                  <span className="font-semibold">Weighted Ballots: Faculty (3x) • Community (1x)</span>
+                  <span className="font-semibold">Weighted Ballots: Faculty Jury (75%) • Community (25%)</span>
                   <span className="text-[#58a6ff] font-bold">[ VERIFIED ]</span>
                 </div>
                 <div className={`p-3 border rounded flex items-center justify-between ${
@@ -849,20 +901,20 @@ export default function LandingPage() {
               isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <span className={`text-xs block mb-3 font-bold ${isLight ? 'text-slate-600' : 'text-[#8b949e]'}`}>
-                {'// HOW TO CAST BALLOT'}
+                HOW TO CAST BALLOT
               </span>
               <ol className={`space-y-3 text-xs ${isLight ? 'text-slate-700' : 'text-[#c9d1d9]'}`}>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#3fb950] font-bold">01.</span>
+                  <span className="text-[#3fb950] font-bold">1.</span>
                   <span>Enter the 3D floor plan and select any booth.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#3fb950] font-bold">02.</span>
+                  <span className="text-[#3fb950] font-bold">2.</span>
                   <span>Review the pitch deck, schematics, and live demo video.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#3fb950] font-bold">03.</span>
-                  <span>Click &quot;Cast Vote&quot; (authenticated via Google OAuth).</span>
+                  <span className="text-[#3fb950] font-bold">3.</span>
+                  <span>Authenticate with Google to cast your verified ballot.</span>
                 </li>
               </ol>
 
@@ -884,7 +936,7 @@ export default function LandingPage() {
       }`}>
         <div className="max-w-3xl mx-auto px-4 text-center">
           <span className="text-xs font-mono text-[#3fb950] font-bold block mb-2">
-            {'// REAL-TIME EVENT ALERTS'}
+            REAL-TIME EVENT ALERTS
           </span>
           <h2 className={`text-2xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
             isLight ? 'text-slate-800' : 'text-white'
@@ -949,7 +1001,7 @@ export default function LandingPage() {
           }`}>
             <div>
               <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                {'// CONFERENCE TIMETABLE'}
+                CONFERENCE TIMETABLE
               </span>
               <h2 className={`text-3xl font-black uppercase font-sans tracking-tight ${
                 isLight ? 'text-slate-800' : 'text-white'
@@ -1079,16 +1131,16 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-4 text-[11px]">
             <Link href="/expo" className={`hover:underline ${isLight ? 'text-blue-600 font-semibold' : 'text-white'}`}>
-              [ 3D Floor Plan ]
+              3D Floor Plan
             </Link>
             <a href="#projects" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
-              [ 35 Inventions ]
+              35 Inventions
             </a>
             <a href="#voting" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
-              [ Fair-Play Voting ]
+              Live Voting
             </a>
             <a href="#schedule" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
-              [ Itinerary ]
+              Schedule
             </a>
           </div>
         </div>
@@ -1097,6 +1149,8 @@ export default function LandingPage() {
       {/* Centered Modals for Project Expansion and Anti-Cheat Voting */}
       <ProjectDetailDrawer />
       <AuthModal />
+      <SearchModal />
+      <DelegatePassModal />
     </div>
   );
 }

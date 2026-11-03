@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
+import { playChime, triggerHaptic, playClick, playBlip } from '@/lib/sound';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -20,6 +21,7 @@ import {
   Maximize2,
   ChevronLeft,
   ChevronRight,
+  Award,
 } from 'lucide-react';
 import { CategoryType } from '@/types';
 
@@ -70,6 +72,7 @@ export default function ProjectDetailDrawer() {
   const incrementProjectVote = useExhibitionStore((state) => state.incrementProjectVote);
   const user = useExhibitionStore((state) => state.user);
   const setAuthModalOpen = useExhibitionStore((state) => state.setAuthModalOpen);
+  const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
   const isMobile = useExhibitionStore((state) => state.isMobile);
 
   const [isVoting, setIsVoting] = useState(false);
@@ -114,7 +117,7 @@ export default function ProjectDetailDrawer() {
         markProjectVoted(selectedProject.id);
         setVoteError(
           data.message ||
-            'Anti-Cheat Alert: A vote has already been recorded for this project from this device or account.'
+            'A vote has already been recorded for this project from this device or account.'
         );
         return;
       }
@@ -134,6 +137,9 @@ export default function ProjectDetailDrawer() {
       markProjectVoted(selectedProject.id);
       incrementProjectVote(selectedProject.id);
       setVoteSuccessMessage(data.message || 'Vote successfully verified and recorded!');
+
+      playChime();
+      triggerHaptic(30);
 
       confetti({
         particleCount: 80,
@@ -333,11 +339,11 @@ export default function ProjectDetailDrawer() {
                 </div>
               </div>
 
-              {/* Anti-Cheat Voting Notice */}
+              {/* Verified Ballot Notice */}
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <p>
-                  <strong>Verified Anti-Cheat Voting:</strong> Ballots are cryptographically bound to hardware canvas fingerprints and Google OAuth signatures to prevent duplicate submissions.
+                  <strong>Verified Ballot:</strong> Ballots are authenticated via Google OAuth and single-device verification to prevent duplicate submissions.
                 </p>
               </div>
 
@@ -382,9 +388,22 @@ export default function ProjectDetailDrawer() {
               </div>
 
               {hasVoted ? (
-                <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold font-mono">
-                  <CheckCircle2 className="w-4 h-4 text-amber-500" />
-                  <span>Voted ✓</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500" />
+                    <span>Voted ✓</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      playClick();
+                      setDelegatePassOpen(true);
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 text-slate-950 text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    title="View & Download Innovation Delegate Pass"
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    <span>Delegate Pass</span>
+                  </button>
                 </div>
               ) : (
                 <button

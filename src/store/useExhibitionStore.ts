@@ -99,6 +99,84 @@ export interface ExhibitionUser {
   avatar?: string;
 }
 
+export interface TourStop {
+  id: string;
+  title: string;
+  subtitle: string;
+  zone: NavZoneId;
+  camera: CameraViewConfig;
+  durationMs: number;
+}
+
+export const TOUR_STOPS: TourStop[] = [
+  {
+    id: 'welcome',
+    title: 'Executive Grand Concourse',
+    subtitle: 'Panoramic skyline windows, attendee check-in desks, and architectural oak flooring.',
+    zone: 'overview',
+    camera: {
+      position: [-16, 12, 18],
+      target: [-1, 1, 0],
+    },
+    durationMs: 8000,
+  },
+  {
+    id: 'stage',
+    title: 'Summit Keynote Stage',
+    subtitle: 'Central 16:9 presentation board, speaker podium, and dual telemetry repeater screens.',
+    zone: 'overview',
+    camera: {
+      position: [-1, 7.5, -9],
+      target: [-1, 3.5, -20.5],
+    },
+    durationMs: 8000,
+  },
+  {
+    id: 'physical',
+    title: 'Physical Tech & IoT Aisle',
+    subtitle: 'Hardware engineering prototypes, clean energy systems, and smart embedded sensors (P01–P12).',
+    zone: 'physical',
+    camera: {
+      position: [9.5, 6.0, -4.5],
+      target: [9.5, 0.9, -12.5],
+    },
+    durationMs: 8500,
+  },
+  {
+    id: 'digital',
+    title: 'Digital Solutions Aisle',
+    subtitle: 'AI software, mobile apps, computer vision models, and cloud-native applications (D01–D12).',
+    zone: 'digital',
+    camera: {
+      position: [9.5, 6.0, 2.0],
+      target: [9.5, 0.9, -4.5],
+    },
+    durationMs: 8500,
+  },
+  {
+    id: 'business',
+    title: 'Business Ventures & EdTech',
+    subtitle: 'Student startups, commercial enterprise models, and sustainable venture solutions (B01–B07).',
+    zone: 'business',
+    camera: {
+      position: [9.5, 6.0, 9.0],
+      target: [9.5, 0.9, 2.5],
+    },
+    durationMs: 8000,
+  },
+  {
+    id: 'robotics',
+    title: 'Robotics Speedway & Stadium',
+    subtitle: 'Autonomous high-speed racing circuit and competitive robotic soccer stadium.',
+    zone: 'zone-3',
+    camera: {
+      position: [0, 11.5, -18],
+      target: [0, 0.8, -36],
+    },
+    durationMs: 8500,
+  },
+];
+
 interface ExhibitionState {
   // Navigation & 3D view
   theme: ThemeMode;
@@ -115,6 +193,12 @@ interface ExhibitionState {
   isSearchModalOpen: boolean;
   isMobileMenuOpen: boolean;
   activeLeaderboardTab: CategoryType | 'All';
+
+  // Guided Tour & Sound
+  isTourActive: boolean;
+  tourStepIndex: number;
+  isSoundMuted: boolean;
+  isDelegatePassOpen: boolean;
 
   // Projects & Live Data
   projects: Project[];
@@ -147,6 +231,14 @@ interface ExhibitionState {
   zoomIn: () => void;
   zoomOut: () => void;
   resetToOverview: () => void;
+
+  // Tour & Sound Actions
+  startTour: () => void;
+  stopTour: () => void;
+  nextTourStep: () => void;
+  prevTourStep: () => void;
+  setDelegatePassOpen: (open: boolean) => void;
+  toggleSoundMute: () => void;
 }
 
 export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
@@ -164,6 +256,11 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
   isSearchModalOpen: false,
   isMobileMenuOpen: false,
   activeLeaderboardTab: 'All',
+
+  isTourActive: false,
+  tourStepIndex: 0,
+  isSoundMuted: false,
+  isDelegatePassOpen: false,
 
   projects: SEED_PROJECTS,
   votedProjectIds: [],
@@ -360,4 +457,50 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
   resetToOverview: () => {
     get().setActiveZone('overview');
   },
+
+  startTour: () => {
+    const firstStop = TOUR_STOPS[0];
+    set({
+      isTourActive: true,
+      tourStepIndex: 0,
+      activeZone: firstStop.zone,
+      cameraConfig: firstStop.camera,
+      selectedProject: null,
+      isDrawerOpen: false,
+      isLeaderboardOpen: false,
+      isSearchOpen: false,
+      isMobileMenuOpen: false,
+    });
+  },
+
+  stopTour: () => {
+    set({
+      isTourActive: false,
+      activeZone: 'overview',
+      cameraConfig: CAMERA_PRESETS.overview,
+    });
+  },
+
+  nextTourStep: () => {
+    const nextIdx = (get().tourStepIndex + 1) % TOUR_STOPS.length;
+    const stop = TOUR_STOPS[nextIdx];
+    set({
+      tourStepIndex: nextIdx,
+      activeZone: stop.zone,
+      cameraConfig: stop.camera,
+    });
+  },
+
+  prevTourStep: () => {
+    const prevIdx = (get().tourStepIndex - 1 + TOUR_STOPS.length) % TOUR_STOPS.length;
+    const stop = TOUR_STOPS[prevIdx];
+    set({
+      tourStepIndex: prevIdx,
+      activeZone: stop.zone,
+      cameraConfig: stop.camera,
+    });
+  },
+
+  setDelegatePassOpen: (open) => set({ isDelegatePassOpen: open }),
+  toggleSoundMute: () => set((state) => ({ isSoundMuted: !state.isSoundMuted })),
 }));

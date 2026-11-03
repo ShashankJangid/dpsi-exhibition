@@ -2,6 +2,7 @@
 
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { signOutFromFirebase } from '@/lib/firebase';
+import { playClick, playBlip } from '@/lib/sound';
 import {
   Trophy,
   Box,
@@ -12,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Compass,
 } from 'lucide-react';
 
 export default function MobileBottomDock() {
@@ -33,6 +35,9 @@ export default function MobileBottomDock() {
   const selectedProject = useExhibitionStore((state) => state.selectedProject);
   const selectNextProject = useExhibitionStore((state) => state.selectNextProject);
   const selectPrevProject = useExhibitionStore((state) => state.selectPrevProject);
+  const isTourActive = useExhibitionStore((state) => state.isTourActive);
+  const startTour = useExhibitionStore((state) => state.startTour);
+  const stopTour = useExhibitionStore((state) => state.stopTour);
 
   const zones: { id: NavZoneId; short: string; title: string }[] = [
     { id: 'overview', short: 'Hall', title: '3D Hall Entrance' },
@@ -66,10 +71,22 @@ export default function MobileBottomDock() {
             </button>
             
             <button
-              onClick={selectNextProject}
-              className="px-2 py-0.5 text-slate-600 dark:text-slate-300 hover:text-amber-500 font-semibold truncate max-w-[140px]"
+              onClick={() => {
+                playClick();
+                if (isTourActive) {
+                  stopTour();
+                } else {
+                  startTour();
+                }
+              }}
+              className={`px-2.5 py-0.5 rounded-full flex items-center gap-1 transition-all ${
+                isTourActive
+                  ? 'bg-amber-500 text-slate-950 font-bold animate-pulse'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-amber-500 font-semibold truncate max-w-[170px]'
+              }`}
             >
-              {selectedProject ? `Booth ${selectedProject.booth_code}` : '✦ Tour Booths'}
+              <Compass className={`w-3 h-3 ${isTourActive ? 'animate-spin' : 'text-amber-500'}`} />
+              <span>{isTourActive ? 'Tour Active' : selectedProject ? `Booth ${selectedProject.booth_code}` : '✦ Guided Tour'}</span>
             </button>
 
             <button
