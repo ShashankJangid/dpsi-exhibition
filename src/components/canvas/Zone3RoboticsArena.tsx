@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
-import { getStageMediaWallTexture } from '@/lib/screenTextures';
+import { getStageMediaWallTexture, getGroundPosterTexture } from '@/lib/screenTextures';
 import BoothMesh from './BoothMesh';
 
 /**
@@ -360,6 +360,11 @@ export default function Zone3RoboticsArena() {
     return getStageMediaWallTexture();
   }, []);
 
+  const roboticsGroundTexture = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return getGroundPosterTexture('robotics');
+  }, []);
+
   const handleArenaClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     setActiveZone('zone-3');
@@ -367,6 +372,43 @@ export default function Zone3RoboticsArena() {
 
   return (
     <group position={[0, 0, 0]}>
+      {/* ======================================================== */}
+      {/* GROUND POSTER - ROBOTICS ARENAS                          */}
+      {/* Placed flat on the concourse floor (y = 0.02)            */}
+      {/* Ultra-crisp canvas decal, 100% visible, zero overlap      */}
+      {/* ======================================================== */}
+      <group
+        position={[8.5, 0.02, -16.5]}
+        onClick={handleArenaClick}
+        onPointerOver={() => {
+          if (!isMobile) document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          if (!isMobile) document.body.style.cursor = 'auto';
+        }}
+      >
+        <mesh receiveShadow>
+          <boxGeometry args={[9.4, 0.015, 2.3]} />
+          <meshStandardMaterial color="#0b101c" metalness={0.9} roughness={0.25} />
+        </mesh>
+        <mesh position={[0, 0.008, 0]}>
+          <boxGeometry args={[9.48, 0.01, 2.38]} />
+          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={1.8} />
+        </mesh>
+        <mesh position={[0, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[9.2, 2.15]} />
+          {roboticsGroundTexture && (
+            <meshStandardMaterial
+              map={roboticsGroundTexture}
+              emissive="#ffffff"
+              emissiveMap={roboticsGroundTexture}
+              emissiveIntensity={1.2}
+              roughness={0.2}
+              toneMapped={false}
+            />
+          )}
+        </mesh>
+      </group>
       {/* ======================================================== */}
       {/* 1. LEFT ARENA: ROBO SPEEDWAY CIRCUIT WITH REAL RAMPS     */}
       {/* (x = 2.5, z = -25.5)                                     */}
@@ -537,13 +579,13 @@ export default function Zone3RoboticsArena() {
           <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
         </mesh>
 
-        {/* Clean Integrated Perimeter Ribbon (No Midair Collision with Stage!) */}
-        <group position={[0, 0.55, 5.54]}>
+        {/* Flat Arena Floor Plaque (Zero Vertical Midair Collision with Stage!) */}
+        <group position={[0, 0.325, 5.2]} rotation={[-Math.PI / 2, 0, 0]}>
           <mesh>
-            <planeGeometry args={[7.2, 0.26]} />
+            <planeGeometry args={[7.2, 0.32]} />
             <meshStandardMaterial color="#0b101c" roughness={0.2} />
           </mesh>
-          <Text position={[0, 0, 0.02]} fontSize={0.15} color="#f87171" anchorX="center" anchorY="middle" letterSpacing={0.06}>
+          <Text position={[0, 0, 0.01]} fontSize={0.16} color="#f87171" anchorX="center" anchorY="middle" letterSpacing={0.06}>
             ARENA 1 • ROBO SPEEDWAY & RAMP CIRCUIT
           </Text>
         </group>
@@ -662,13 +704,13 @@ export default function Zone3RoboticsArena() {
           <meshStandardMaterial color="#10b981" transparent opacity={0.35} />
         </mesh>
 
-        {/* Clean Integrated Perimeter Ribbon (No Midair Collision with Stage!) */}
-        <group position={[0, 0.55, 5.54]}>
+        {/* Flat Arena Floor Plaque (Zero Vertical Midair Collision with Stage!) */}
+        <group position={[0, 0.325, 5.2]} rotation={[-Math.PI / 2, 0, 0]}>
           <mesh>
-            <planeGeometry args={[7.2, 0.26]} />
+            <planeGeometry args={[7.2, 0.32]} />
             <meshStandardMaterial color="#0b101c" roughness={0.2} />
           </mesh>
-          <Text position={[0, 0, 0.02]} fontSize={0.15} color="#34d399" anchorX="center" anchorY="middle" letterSpacing={0.06}>
+          <Text position={[0, 0, 0.01]} fontSize={0.16} color="#34d399" anchorX="center" anchorY="middle" letterSpacing={0.06}>
             ARENA 2 • ROBO SOCCER PITCH • 2v2 MATCH
           </Text>
         </group>

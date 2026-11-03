@@ -377,7 +377,7 @@ export default function ProjectDetailDrawer() {
                   </span>
                 </div>
                 <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 mt-0.5 hidden xs:inline">
-                  Co-Engineered by Ojas Singh dpsi&apos;30
+                  Co-Engineered by Devansh Grover (Class 7-H, dpsi&apos;31) &amp; Ojas Singh (dpsi&apos;30)
                 </span>
               </div>
 

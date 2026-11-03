@@ -1,7 +1,8 @@
 'use client';
 
-import { Float, Text } from '@react-three/drei';
+import { useMemo } from 'react';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
+import { getGroundPosterTexture } from '@/lib/screenTextures';
 import BoothMesh from './BoothMesh';
 
 export default function Zone1ShowAndTell() {
@@ -12,6 +13,11 @@ export default function Zone1ShowAndTell() {
   const isLight = theme === 'light';
   const isMobile = useExhibitionStore((state) => state.isMobile);
 
+  const showAndTellTexture = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return getGroundPosterTexture('show-and-tell');
+  }, []);
+
   const handlePavilionClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     setActiveZone('zone-1');
@@ -19,49 +25,44 @@ export default function Zone1ShowAndTell() {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Overhead Angled Pavilion Signage (Clickable) */}
-      <Float speed={1.0} rotationIntensity={0.01} floatIntensity={0.1}>
-        <group
-          position={[-18.5, 6.2, -3.0]}
-          rotation={[0, -0.38, 0]}
-          onClick={handlePavilionClick}
-          onPointerOver={() => {
-            if (!isMobile) document.body.style.cursor = 'pointer';
-          }}
-          onPointerOut={() => {
-            if (!isMobile) document.body.style.cursor = 'auto';
-          }}
-        >
-          <mesh position={[0, 0, -0.1]}>
-            <boxGeometry args={[16, 1.8, 0.15]} />
-            <meshStandardMaterial color="#0f1422" metalness={0.8} roughness={0.2} />
-          </mesh>
-          <mesh position={[0, 0, -0.05]}>
-            <boxGeometry args={[16.2, 1.95, 0.05]} />
-            <meshStandardMaterial color="#8b5cf6" emissive="#7c3aed" emissiveIntensity={0.9} />
-          </mesh>
-          <Text
-            position={[0, 0.3, 0.08]}
-            fontSize={0.65}
-            color="#ffffff"
-            anchorX="center"
-            anchorY="middle"
-            letterSpacing={0.08}
-          >
-            SHOW & TELL PAVILION
-          </Text>
-          <Text
-            position={[0, -0.35, 0.08]}
-            fontSize={0.3}
-            color="#c084fc"
-            anchorX="center"
-            anchorY="middle"
-            letterSpacing={0.15}
-          >
-            • JUNIOR & SENIOR INNOVATION SHOWCASE (ST01 - ST08) •
-          </Text>
-        </group>
-      </Float>
+      {/* 
+        GROUND POSTER - SHOW & TELL PAVILION
+        Placed flat on the entrance walkway into Show & Tell (y = 0.02)
+        Ultra-crisp high-contrast canvas decal, zero blur, 100% readable.
+      */}
+      <group
+        position={[-14.5, 0.02, 1.2]}
+        rotation={[-Math.PI / 2, 0, -0.38]}
+        onClick={handlePavilionClick}
+        onPointerOver={() => {
+          if (!isMobile) document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          if (!isMobile) document.body.style.cursor = 'auto';
+        }}
+      >
+        <mesh receiveShadow>
+          <boxGeometry args={[9.4, 0.015, 2.3]} />
+          <meshStandardMaterial color="#0b0814" metalness={0.9} roughness={0.25} />
+        </mesh>
+        <mesh position={[0, 0.008, 0]}>
+          <boxGeometry args={[9.48, 0.01, 2.38]} />
+          <meshStandardMaterial color="#a855f7" emissive="#7c3aed" emissiveIntensity={1.8} />
+        </mesh>
+        <mesh position={[0, 0.016, 0]}>
+          <planeGeometry args={[9.2, 2.15]} />
+          {showAndTellTexture && (
+            <meshStandardMaterial
+              map={showAndTellTexture}
+              emissive="#ffffff"
+              emissiveMap={showAndTellTexture}
+              emissiveIntensity={1.2}
+              roughness={0.2}
+              toneMapped={false}
+            />
+          )}
+        </mesh>
+      </group>
 
       {/* 
         WELCOME & REGISTRATION WORKSTATIONS (Left angled pavilion in blueprint):

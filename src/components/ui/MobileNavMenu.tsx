@@ -341,7 +341,7 @@ export default function MobileNavMenu() {
         </div>
 
         <div className="pt-2 pb-4 text-center text-[10px] font-mono text-slate-400 dark:text-slate-500">
-          Co-Engineered by Ojas Singh dpsi&apos;30
+          Co-Engineered by Devansh Grover (Class 7-H, dpsi&apos;31) &amp; Ojas Singh (dpsi&apos;30)
         </div>
       </div>
     </div>

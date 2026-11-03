@@ -1,7 +1,8 @@
 'use client';
 
-import { Text } from '@react-three/drei';
+import { useMemo } from 'react';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
+import { getGroundPosterTexture } from '@/lib/screenTextures';
 import BoothMesh from './BoothMesh';
 
 export default function Zone2InnovationHub() {
@@ -10,13 +11,36 @@ export default function Zone2InnovationHub() {
   const setActiveZone = useExhibitionStore((state) => state.setActiveZone);
   const isMobile = useExhibitionStore((state) => state.isMobile);
 
+  const physicalTexture = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return getGroundPosterTexture('physical');
+  }, []);
+
+  const digitalTexture = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return getGroundPosterTexture('digital');
+  }, []);
+
+  const businessTexture = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return getGroundPosterTexture('business');
+  }, []);
+
+  const verticalTexture = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return getGroundPosterTexture('vertical');
+  }, []);
+
   return (
     <group position={[0, 0, 0]}>
-      {/* Overhead Aisle Indicator Plates - Sleek Hanging Signage with Clickable Nav */}
+      {/* ======================================================== */}
+      {/* GROUND POSTERS - ULTRA-CRISP HIGH-CONTRAST CANVAS DECALS */}
+      {/* Perfectly aligned with aisles, zero blur, 100% readable  */}
+      {/* ======================================================== */}
 
-      {/* Aisle 1: Physical Computing (P01 - P12) */}
+      {/* 1. Physical Solutions Ground Poster (Centered in Aisle 1 between Row 1 & Row 2) */}
       <group
-        position={[8.5, 5.8, -10.75]}
+        position={[6.4, 0.02, -11.25]}
         onClick={(e) => {
           e.stopPropagation();
           setActiveZone('physical');
@@ -28,29 +52,35 @@ export default function Zone2InnovationHub() {
           if (!isMobile) document.body.style.cursor = 'auto';
         }}
       >
-        {/* Suspension Steel Cables */}
-        {[-5.0, 5.0].map((cableX, i) => (
-          <mesh key={i} position={[cableX, 2.2, 0]}>
-            <cylinderGeometry args={[0.008, 0.008, 4.4, 6]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.95} />
-          </mesh>
-        ))}
-        <mesh castShadow>
-          <boxGeometry args={[12, 0.72, 0.08]} />
-          <meshStandardMaterial color="#0b101c" metalness={0.88} roughness={0.2} />
+        {/* Dark Titanium Base Plaque */}
+        <mesh receiveShadow>
+          <boxGeometry args={[8.8, 0.015, 2.2]} />
+          <meshStandardMaterial color="#0b101c" metalness={0.9} roughness={0.25} />
         </mesh>
-        <mesh position={[0, -0.37, 0]}>
-          <boxGeometry args={[12.1, 0.05, 0.1]} />
+        {/* Glowing Amber Perimeter Inlay Trim */}
+        <mesh position={[0, 0.008, 0]}>
+          <boxGeometry args={[8.88, 0.01, 2.28]} />
           <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={1.8} />
         </mesh>
-        <Text position={[0, 0, 0.05]} fontSize={0.32} color="#fbbf24" anchorX="center" anchorY="middle" letterSpacing={0.08}>
-          PHYSICAL COMPUTING • BOOTHS P01 - P12
-        </Text>
+        {/* Ultra-Crisp Canvas Ground Poster Face */}
+        <mesh position={[0, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[8.6, 2.05]} />
+          {physicalTexture && (
+            <meshStandardMaterial
+              map={physicalTexture}
+              emissive="#ffffff"
+              emissiveMap={physicalTexture}
+              emissiveIntensity={1.2}
+              roughness={0.2}
+              toneMapped={false}
+            />
+          )}
+        </mesh>
       </group>
 
-      {/* Aisle 2: Digital Innovations (D01 - D12) */}
+      {/* 2. Digital Solutions Ground Poster (Centered in Aisle 2 between Row 2 & Row 3) */}
       <group
-        position={[8.5, 5.8, -5.5]}
+        position={[6.4, 0.02, -6.0]}
         onClick={(e) => {
           e.stopPropagation();
           setActiveZone('digital');
@@ -62,28 +92,32 @@ export default function Zone2InnovationHub() {
           if (!isMobile) document.body.style.cursor = 'auto';
         }}
       >
-        {[-5.0, 5.0].map((cableX, i) => (
-          <mesh key={i} position={[cableX, 2.2, 0]}>
-            <cylinderGeometry args={[0.008, 0.008, 4.4, 6]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.95} />
-          </mesh>
-        ))}
-        <mesh castShadow>
-          <boxGeometry args={[12, 0.72, 0.08]} />
-          <meshStandardMaterial color="#0b101c" metalness={0.88} roughness={0.2} />
+        <mesh receiveShadow>
+          <boxGeometry args={[8.8, 0.015, 2.2]} />
+          <meshStandardMaterial color="#0b101c" metalness={0.9} roughness={0.25} />
         </mesh>
-        <mesh position={[0, -0.37, 0]}>
-          <boxGeometry args={[12.1, 0.05, 0.1]} />
+        <mesh position={[0, 0.008, 0]}>
+          <boxGeometry args={[8.88, 0.01, 2.28]} />
           <meshStandardMaterial color="#0284c7" emissive="#0369a1" emissiveIntensity={1.8} />
         </mesh>
-        <Text position={[0, 0, 0.05]} fontSize={0.32} color="#38bdf8" anchorX="center" anchorY="middle" letterSpacing={0.08}>
-          DIGITAL SOLUTIONS • BOOTHS D01 - D12
-        </Text>
+        <mesh position={[0, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[8.6, 2.05]} />
+          {digitalTexture && (
+            <meshStandardMaterial
+              map={digitalTexture}
+              emissive="#ffffff"
+              emissiveMap={digitalTexture}
+              emissiveIntensity={1.2}
+              roughness={0.2}
+              toneMapped={false}
+            />
+          )}
+        </mesh>
       </group>
 
-      {/* Aisle 3: Business & Startups (B01 - B07) */}
+      {/* 3. Business Solutions Ground Poster (Centered in Aisle 3 between Row 3 & Row 4) */}
       <group
-        position={[8.5, 5.8, 0.5]}
+        position={[6.4, 0.02, -0.75]}
         onClick={(e) => {
           e.stopPropagation();
           setActiveZone('business');
@@ -95,26 +129,68 @@ export default function Zone2InnovationHub() {
           if (!isMobile) document.body.style.cursor = 'auto';
         }}
       >
-        {[-5.0, 5.0].map((cableX, i) => (
-          <mesh key={i} position={[cableX, 2.2, 0]}>
-            <cylinderGeometry args={[0.008, 0.008, 4.4, 6]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.95} />
-          </mesh>
-        ))}
-        <mesh castShadow>
-          <boxGeometry args={[12, 0.72, 0.08]} />
-          <meshStandardMaterial color="#0b101c" metalness={0.88} roughness={0.2} />
+        <mesh receiveShadow>
+          <boxGeometry args={[8.8, 0.015, 2.2]} />
+          <meshStandardMaterial color="#0b101c" metalness={0.9} roughness={0.25} />
         </mesh>
-        <mesh position={[0, -0.37, 0]}>
-          <boxGeometry args={[12.1, 0.05, 0.1]} />
+        <mesh position={[0, 0.008, 0]}>
+          <boxGeometry args={[8.88, 0.01, 2.28]} />
           <meshStandardMaterial color="#059669" emissive="#047857" emissiveIntensity={1.8} />
         </mesh>
-        <Text position={[0, 0, 0.05]} fontSize={0.32} color="#34d399" anchorX="center" anchorY="middle" letterSpacing={0.08}>
-          BUSINESS VENTURES • BOOTHS B01 - B07
-        </Text>
+        <mesh position={[0, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[8.6, 2.05]} />
+          {businessTexture && (
+            <meshStandardMaterial
+              map={businessTexture}
+              emissive="#ffffff"
+              emissiveMap={businessTexture}
+              emissiveIntensity={1.2}
+              roughness={0.2}
+              toneMapped={false}
+            />
+          )}
+        </mesh>
       </group>
 
-      {/* All Zone 2 Booths (P01-P12, D01-D12, B01-B07) */}
+      {/* 4. Vertical Tech Gallery Ground Poster (Along Central Promenade in front of the 12 Vertical Stalls) */}
+      <group
+        position={[17.2, 0.02, -2.5]}
+        rotation={[0, -Math.PI / 2, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveZone('business');
+        }}
+        onPointerOver={() => {
+          if (!isMobile) document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          if (!isMobile) document.body.style.cursor = 'auto';
+        }}
+      >
+        <mesh receiveShadow>
+          <boxGeometry args={[8.8, 0.015, 2.2]} />
+          <meshStandardMaterial color="#0b101c" metalness={0.9} roughness={0.25} />
+        </mesh>
+        <mesh position={[0, 0.008, 0]}>
+          <boxGeometry args={[8.88, 0.01, 2.28]} />
+          <meshStandardMaterial color="#10b981" emissive="#059669" emissiveIntensity={1.8} />
+        </mesh>
+        <mesh position={[0, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[8.6, 2.05]} />
+          {verticalTexture && (
+            <meshStandardMaterial
+              map={verticalTexture}
+              emissive="#ffffff"
+              emissiveMap={verticalTexture}
+              emissiveIntensity={1.2}
+              roughness={0.2}
+              toneMapped={false}
+            />
+          )}
+        </mesh>
+      </group>
+
+      {/* All Zone 2 Booths (P01-P12, D01-D12, B01-B08: 20 Horizontal + 12 Vertical) */}
       {zone2Projects.map((project) => (
         <BoothMesh key={project.id} project={project} />
       ))}

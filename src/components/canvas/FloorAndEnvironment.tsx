@@ -110,33 +110,9 @@ export default function FloorAndEnvironment() {
           <pointLight position={[-1.5, 4.8, 0]} intensity={isLight ? 3.0 : 4.5} distance={25} color="#fed7aa" decay={2} />
         </group>
 
-        {/* CEILING / ROOF SLAB (at y = 10.5) */}
-        <group position={[0, 10.5, 0]}>
-          <mesh receiveShadow>
-            <boxGeometry args={[60, 0.4, 45.6]} />
-            <meshStandardMaterial
-              color={isLight ? '#64748b' : '#080d18'}
-              roughness={0.5}
-              metalness={0.2}
-            />
-          </mesh>
-          {/* Recessed Skylight Aperture Bands */}
-          {[-10, 10].map((xSky, idx) => (
-            <mesh key={idx} position={[xSky, -0.18, 0]}>
-              <boxGeometry args={[8.0, 0.05, 40]} />
-              <meshStandardMaterial
-                color={isLight ? '#f8fafc' : '#1e293b'}
-                emissive={isLight ? '#bae6fd' : '#0284c7'}
-                emissiveIntensity={isLight ? 0.35 : 0.6}
-              />
-            </mesh>
-          ))}
-        </group>
-
         {/* 
           FRONT OPENING (South Side at z = 22.8 relative to group => world z = 10.8):
-          Architectural Portal Frame with a WIDE OPEN FRONT so the viewer looks
-          directly inside into the exhibition!
+          Architectural Portal Frame with Open Roof and Front Access
         */}
         <group position={[0, 5.25, 22.8]}>
           {/* Left Column of Front Opening */}
@@ -147,11 +123,6 @@ export default function FloorAndEnvironment() {
           {/* Right Column of Front Opening */}
           <mesh position={[29.8, 0, 0]} castShadow>
             <boxGeometry args={[0.6, 10.5, 0.6]} />
-            <meshStandardMaterial color={isLight ? '#475569' : '#0f172a'} metalness={0.8} />
-          </mesh>
-          {/* Top Lintel Beam of Front Opening */}
-          <mesh position={[0, 5.0, 0]} castShadow>
-            <boxGeometry args={[60.2, 0.6, 0.6]} />
             <meshStandardMaterial color={isLight ? '#475569' : '#0f172a'} metalness={0.8} />
           </mesh>
         </group>
@@ -177,8 +148,8 @@ export default function FloorAndEnvironment() {
       </mesh>
 
       {/* B. Main Exhibition Hall Flooring Zone (Warm Oak Showroom Inlay) */}
-      <mesh position={[9, 0.005, -4.5]} receiveShadow>
-        <boxGeometry args={[34, 0.01, 25]} />
+      <mesh position={[10.5, 0.005, -2.5]} receiveShadow>
+        <boxGeometry args={[37, 0.01, 27]} />
         <meshStandardMaterial
           color={isLight ? '#c89965' : '#182030'}
           roughness={isLight ? 0.4 : 0.42}
@@ -186,30 +157,41 @@ export default function FloorAndEnvironment() {
         />
       </mesh>
 
-      {/* Walkway Runners (Architectural inlays across the main hall aisles) */}
-      <mesh position={[8.5, 0.012, -10.75]} receiveShadow>
-        <boxGeometry args={[23.5, 0.01, 3.8]} />
+      {/* Walkway Runners (Architectural inlays aligned with stalls and central promenade) */}
+      {/* Physical Aisle Runner (Row 1 to Row 2) */}
+      <mesh position={[6.4, 0.012, -11.25]} receiveShadow>
+        <boxGeometry args={[16.0, 0.01, 3.8]} />
         <meshStandardMaterial color={isLight ? '#b88652' : '#121824'} roughness={0.5} metalness={0.04} />
       </mesh>
 
-      <mesh position={[8.5, 0.012, 0.5]} receiveShadow>
-        <boxGeometry args={[23.5, 0.01, 4.2]} />
-        <meshStandardMaterial color={isLight ? '#b88652' : '#121824'} roughness={0.5} metalness={0.04} />
-      </mesh>
-
-      <mesh position={[19.8, 0.014, -4.5]} receiveShadow>
-        <boxGeometry args={[3.2, 0.01, 24.5]} />
-        <meshStandardMaterial color={isLight ? '#ad7d4c' : '#101520'} roughness={0.5} metalness={0.04} />
-      </mesh>
-
-      <mesh position={[-3.8, 0.014, -4.5]} receiveShadow>
-        <boxGeometry args={[3.6, 0.01, 24.5]} />
-        <meshStandardMaterial color={isLight ? '#ad7d4c' : '#101520'} roughness={0.5} metalness={0.04} />
-      </mesh>
-
-      <mesh position={[8.5, 0.014, -5.5]} receiveShadow>
-        <boxGeometry args={[23.5, 0.01, 1.8]} />
+      {/* Digital Aisle Runner (Row 2 to Row 3) */}
+      <mesh position={[6.4, 0.012, -6.0]} receiveShadow>
+        <boxGeometry args={[16.0, 0.01, 3.8]} />
         <meshStandardMaterial color={isLight ? '#a37445' : '#0e131d'} roughness={0.5} metalness={0.04} />
+      </mesh>
+
+      {/* Business Aisle Runner (Row 3 to Row 4) */}
+      <mesh position={[6.4, 0.012, -0.75]} receiveShadow>
+        <boxGeometry args={[16.0, 0.01, 3.8]} />
+        <meshStandardMaterial color={isLight ? '#b88652' : '#121824'} roughness={0.5} metalness={0.04} />
+      </mesh>
+
+      {/* South Entrance Aisle Runner (in front of Row 4) */}
+      <mesh position={[6.4, 0.012, 5.0]} receiveShadow>
+        <boxGeometry args={[16.0, 0.01, 3.8]} />
+        <meshStandardMaterial color={isLight ? '#a37445' : '#0e131d'} roughness={0.5} metalness={0.04} />
+      </mesh>
+
+      {/* Wide Central Promenade (between Horizontal rows and the 12 Vertical stalls) */}
+      <mesh position={[17.2, 0.014, -2.5]} receiveShadow>
+        <boxGeometry args={[4.2, 0.01, 26.5]} />
+        <meshStandardMaterial color={isLight ? '#ad7d4c' : '#101520'} roughness={0.5} metalness={0.04} />
+      </mesh>
+
+      {/* West Walkway Runner (along Show & Tell boundary) */}
+      <mesh position={[-3.8, 0.014, -2.5]} receiveShadow>
+        <boxGeometry args={[3.6, 0.01, 26.5]} />
+        <meshStandardMaterial color={isLight ? '#ad7d4c' : '#101520'} roughness={0.5} metalness={0.04} />
       </mesh>
 
       {/* C. Seamless Connecting Concourse between Main Hall and Arenas */}
@@ -344,9 +326,10 @@ export default function FloorAndEnvironment() {
       </group>
 
       {/* ========================================================= */}
-      {/* 4. HYDROPONICS / BIO-GARDEN SMART FARM (NEXT TO B03)      */}
+      {/* 4. HYDROPONICS / BIO-GARDEN SMART FARM (VERTICAL PART)     */}
+      {/* Aligned alongside B08 in the Single Vertical Line          */}
       {/* ========================================================= */}
-      <group position={[17.0, 0, 4.5]}>
+      <group position={[23.6, 0, 9.7]} rotation={[0, -Math.PI / 2, 0]}>
         <mesh position={[0, 0.06, 0]} receiveShadow castShadow>
           <boxGeometry args={[2.4, 0.12, 1.8]} />
           <meshStandardMaterial color={isLight ? '#334155' : '#0f172a'} metalness={0.7} />
@@ -402,11 +385,11 @@ export default function FloorAndEnvironment() {
       </group>
 
       {/* ========================================================= */}
-      {/* 5. DEDICATED LIGHTING ALL OVER STALLS & ARENAS           */}
+      {/* 5. STALL DOWNLIGHTS                                       */}
       {/* ========================================================= */}
       <group position={[0, 0, 0]}>
-        {/* Row 1 Stalls (P01 - P06) Downlights */}
-        {[0.0, 3.4, 6.8, 10.2, 13.6, 17.0].map((xStall, idx) => (
+        {/* Horizontal Row 1 (z = -14.0) */}
+        {[0.0, 3.2, 6.4, 9.6, 12.8].map((xStall, idx) => (
           <pointLight
             key={`r1-${idx}`}
             position={[xStall, 4.2, -14.0]}
@@ -417,11 +400,11 @@ export default function FloorAndEnvironment() {
           />
         ))}
 
-        {/* Upper East Column Stalls (P07 - P10) Downlights */}
-        {[-13.5, -10.5, -7.5, -4.5].map((zStall, idx) => (
+        {/* Horizontal Row 2 (z = -8.5) */}
+        {[0.0, 3.2, 6.4, 9.6, 12.8].map((xStall, idx) => (
           <pointLight
-            key={`east-p-${idx}`}
-            position={[22.5, 4.2, zStall]}
+            key={`r2-${idx}`}
+            position={[xStall, 4.2, -8.5]}
             intensity={isLight ? 2.2 : 3.5}
             distance={8}
             color="#fff8ed"
@@ -429,20 +412,8 @@ export default function FloorAndEnvironment() {
           />
         ))}
 
-        {/* Row 2 Stalls (D04 - P11) Downlights */}
-        {[0.0, 3.4, 6.8, 10.2, 13.6, 17.0].map((xStall, idx) => (
-          <pointLight
-            key={`r2-${idx}`}
-            position={[xStall, 4.2, -7.5]}
-            intensity={isLight ? 2.2 : 3.5}
-            distance={8}
-            color="#f0f9ff"
-            decay={2}
-          />
-        ))}
-
-        {/* Row 3 Stalls (D05 - D10) Downlights */}
-        {[0.0, 3.4, 6.8, 10.2, 13.6, 17.0].map((xStall, idx) => (
+        {/* Horizontal Row 3 (z = -3.5) */}
+        {[0.0, 3.2, 6.4, 9.6, 12.8].map((xStall, idx) => (
           <pointLight
             key={`r3-${idx}`}
             position={[xStall, 4.2, -3.5]}
@@ -453,11 +424,11 @@ export default function FloorAndEnvironment() {
           />
         ))}
 
-        {/* Lower East Column Stalls (D11 - B02) Downlights */}
-        {[-1.5, 1.5, 4.5, 7.5].map((zStall, idx) => (
+        {/* Horizontal Row 4 (z = 2.0) */}
+        {[0.0, 3.2, 6.4, 9.6, 12.8].map((xStall, idx) => (
           <pointLight
-            key={`east-d-${idx}`}
-            position={[22.5, 4.2, zStall]}
+            key={`r4-${idx}`}
+            position={[xStall, 4.2, 2.0]}
             intensity={isLight ? 2.2 : 3.5}
             distance={8}
             color="#ecfdf5"
@@ -465,11 +436,11 @@ export default function FloorAndEnvironment() {
           />
         ))}
 
-        {/* Row 4 Stalls (B07 - B03) Downlights */}
-        {[0.0, 3.4, 6.8, 10.2, 13.6].map((xStall, idx) => (
+        {/* Single Vertical Line of 12 Stalls (x = 21.0) */}
+        {[-14.5, -12.3, -10.1, -7.9, -5.7, -3.5, -1.3, 0.9, 3.1, 5.3, 7.5, 9.7].map((zStall, idx) => (
           <pointLight
-            key={`r4-${idx}`}
-            position={[xStall, 4.2, 4.5]}
+            key={`vert-${idx}`}
+            position={[21.0, 4.2, zStall]}
             intensity={isLight ? 2.2 : 3.5}
             distance={8}
             color="#ecfdf5"
@@ -499,39 +470,6 @@ export default function FloorAndEnvironment() {
             color="#faf5ff"
             decay={2}
           />
-        ))}
-      </group>
-
-      {/* ========================================================= */}
-      {/* 6. CEILING SPACE-FRAME TRUSS SYSTEM & SPOTLIGHT FIXTURES  */}
-      {/* ========================================================= */}
-      <group position={[9, 8.5, -4.5]}>
-        {[-10, 0, 10].map((xTruss, i) => (
-          <group key={i} position={[xTruss, 0, 0]}>
-            <mesh>
-              <boxGeometry args={[0.2, 0.25, 26]} />
-              <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.3} />
-            </mesh>
-            {[-10, -5, 0, 5, 10].map((zSpot, j) => (
-              <group key={j} position={[0, -0.2, zSpot]}>
-                <mesh>
-                  <cylinderGeometry args={[0.12, 0.16, 0.28, 12]} />
-                  <meshStandardMaterial color="#334155" metalness={0.8} />
-                </mesh>
-                <mesh position={[0, -0.15, 0]}>
-                  <circleGeometry args={[0.11, 12]} />
-                  <meshStandardMaterial color="#fef08a" emissive="#fef08a" emissiveIntensity={2.5} />
-                </mesh>
-              </group>
-            ))}
-          </group>
-        ))}
-
-        {[-10, -5, 0, 5, 10].map((zCross, i) => (
-          <mesh key={i} position={[0, 0, zCross]}>
-            <boxGeometry args={[32, 0.18, 0.18]} />
-            <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.3} />
-          </mesh>
         ))}
       </group>
     </>
