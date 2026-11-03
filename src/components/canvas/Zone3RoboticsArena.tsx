@@ -374,11 +374,10 @@ export default function Zone3RoboticsArena() {
     <group position={[0, 0, 0]}>
       {/* ======================================================== */}
       {/* GROUND POSTER - ROBOTICS ARENAS                          */}
-      {/* Placed flat on the concourse floor (y = 0.02)            */}
-      {/* Ultra-crisp canvas decal, 100% visible, zero overlap      */}
+      {/* Perfectly aligned with Physical & Digital banners (x = 6.4)*/}
       {/* ======================================================== */}
       <group
-        position={[10.4, 0.02, -16.5]}
+        position={[6.4, 0.02, -16.5]}
         onClick={handleArenaClick}
         onPointerOver={() => {
           if (!isMobile) document.body.style.cursor = 'pointer';
@@ -388,15 +387,15 @@ export default function Zone3RoboticsArena() {
         }}
       >
         <mesh receiveShadow>
-          <boxGeometry args={[9.4, 0.015, 2.3]} />
+          <boxGeometry args={[8.8, 0.015, 2.2]} />
           <meshStandardMaterial color="#0b101c" metalness={0.9} roughness={0.25} />
         </mesh>
         <mesh position={[0, 0.008, 0]}>
-          <boxGeometry args={[9.48, 0.01, 2.38]} />
+          <boxGeometry args={[8.88, 0.01, 2.28]} />
           <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={1.8} />
         </mesh>
         <mesh position={[0, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[9.2, 2.15]} />
+          <planeGeometry args={[8.6, 2.05]} />
           {roboticsGroundTexture && (
             <meshStandardMaterial
               map={roboticsGroundTexture}
