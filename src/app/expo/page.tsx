@@ -16,6 +16,8 @@ import AuthModal from '@/components/ui/AuthModal';
 import SearchModal from '@/components/ui/SearchModal';
 import MobileNavMenu from '@/components/ui/MobileNavMenu';
 import CameraControlsWidget from '@/components/ui/CameraControlsWidget';
+import GuidedTour from '@/components/canvas/GuidedTour';
+import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import { MousePointerClick, Move, ZoomIn, ArrowLeft } from 'lucide-react';
 
 const ExhibitionCanvas = dynamic(
@@ -135,6 +137,9 @@ export default function ExpoFloorPlanPage() {
       {/* Floating 3D Navigation Controls Widget */}
       <CameraControlsWidget />
 
+      {/* Interactive 3D Guided Virtual Tour */}
+      <GuidedTour />
+
       {/* Segment Inspector Drawer (Opens when a segment is selected to show what's inside!) */}
       <SegmentInspector />
 
@@ -144,6 +149,7 @@ export default function ExpoFloorPlanPage() {
       <AuthModal />
       <SearchModal />
       <MobileNavMenu />
+      <DelegatePassModal />
     </main>
   );
 }

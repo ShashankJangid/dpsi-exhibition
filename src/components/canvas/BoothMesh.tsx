@@ -7,6 +7,7 @@ import { Html } from '@react-three/drei';
 import { Project, CategoryType } from '@/types';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { getBoothMonitorTexture } from '@/lib/screenTextures';
+import { playBlip, triggerHaptic } from '@/lib/sound';
 import { ThumbsUp } from 'lucide-react';
 
 interface BoothMeshProps {
@@ -201,6 +202,8 @@ export default function BoothMesh({ project }: BoothMeshProps) {
 
   const handleClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
+    playBlip(780);
+    triggerHaptic(15);
     selectProject(project);
   };
 
@@ -214,6 +217,7 @@ export default function BoothMesh({ project }: BoothMeshProps) {
         if (!isMobile) {
           e.stopPropagation();
           setHovered(true);
+          playBlip(480);
           document.body.style.cursor = 'pointer';
         }
       }}

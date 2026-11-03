@@ -1,9 +1,10 @@
 'use client';
 
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { signOutFromFirebase } from '@/lib/firebase';
+import { isSoundEnabled, toggleSound, playClick } from '@/lib/sound';
 import {
   Trophy,
   Box,
@@ -16,6 +17,9 @@ import {
   Moon,
   ArrowLeft,
   Sparkles,
+  Compass,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 const ZONES: { id: NavZoneId; label: string }[] = [
@@ -45,6 +49,15 @@ function TopNavHUD() {
   const setMobileMenuOpen = useExhibitionStore((state) => state.setMobileMenuOpen);
   const user = useExhibitionStore((state) => state.user);
   const setUser = useExhibitionStore((state) => state.setUser);
+  const isTourActive = useExhibitionStore((state) => state.isTourActive);
+  const startTour = useExhibitionStore((state) => state.startTour);
+  const stopTour = useExhibitionStore((state) => state.stopTour);
+
+  const [isSoundOn, setIsSoundOn] = useState(true);
+
+  useEffect(() => {
+    setIsSoundOn(isSoundEnabled());
+  }, []);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -245,6 +258,52 @@ function TopNavHUD() {
             <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span className="hidden lg:inline text-[11px]">Leaderboard</span>
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+          </button>
+
+          {/* 3D Guided Virtual Tour Button */}
+          {viewMode === '3d' && (
+            <button
+              onClick={() => {
+                playClick();
+                if (isTourActive) {
+                  stopTour();
+                } else {
+                  startTour();
+                }
+              }}
+              className={`hidden sm:flex items-center gap-1.5 h-8 sm:h-8.5 px-2.5 rounded-xl border text-xs font-bold shadow-xs transition-all whitespace-nowrap shrink-0 ${
+                isTourActive
+                  ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm animate-pulse'
+                  : isLight
+                    ? 'bg-slate-100 hover:bg-slate-200/90 border-slate-200 text-slate-800'
+                    : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 text-slate-200'
+              }`}
+              title="Start 3D Guided Virtual Tour"
+            >
+              <Compass className={`w-3.5 h-3.5 ${isTourActive ? 'animate-spin' : 'text-amber-500'}`} />
+              <span className="hidden xl:inline text-[11px]">{isTourActive ? 'Tour Active' : 'Guided Tour'}</span>
+            </button>
+          )}
+
+          {/* Sound Effects Audio Mute / Unmute Toggle */}
+          <button
+            onClick={() => {
+              const enabled = toggleSound();
+              setIsSoundOn(enabled);
+            }}
+            className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-xl border flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-xs ${
+              isLight
+                ? 'bg-slate-100 hover:bg-slate-200/90 border-slate-200 text-slate-700'
+                : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300'
+            }`}
+            title={isSoundOn ? 'Mute Sound Effects' : 'Enable Sound Effects'}
+            aria-label="Toggle Sound Effects"
+          >
+            {isSoundOn ? (
+              <Volume2 className="w-4 h-4 text-amber-500" />
+            ) : (
+              <VolumeX className="w-4 h-4 text-slate-400" />
+            )}
           </button>
 
           {/* Light / Dark Mode Toggle */}

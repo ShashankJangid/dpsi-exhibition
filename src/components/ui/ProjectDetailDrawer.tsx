@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
+import { playChime, triggerHaptic, playClick, playBlip } from '@/lib/sound';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -20,6 +21,7 @@ import {
   Maximize2,
   ChevronLeft,
   ChevronRight,
+  Award,
 } from 'lucide-react';
 import { CategoryType } from '@/types';
 
@@ -70,6 +72,7 @@ export default function ProjectDetailDrawer() {
   const incrementProjectVote = useExhibitionStore((state) => state.incrementProjectVote);
   const user = useExhibitionStore((state) => state.user);
   const setAuthModalOpen = useExhibitionStore((state) => state.setAuthModalOpen);
+  const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
   const isMobile = useExhibitionStore((state) => state.isMobile);
 
   const [isVoting, setIsVoting] = useState(false);
@@ -134,6 +137,9 @@ export default function ProjectDetailDrawer() {
       markProjectVoted(selectedProject.id);
       incrementProjectVote(selectedProject.id);
       setVoteSuccessMessage(data.message || 'Vote successfully verified and recorded!');
+
+      playChime();
+      triggerHaptic(30);
 
       confetti({
         particleCount: 80,
@@ -382,9 +388,22 @@ export default function ProjectDetailDrawer() {
               </div>
 
               {hasVoted ? (
-                <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold font-mono">
-                  <CheckCircle2 className="w-4 h-4 text-amber-500" />
-                  <span>Voted ✓</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500" />
+                    <span>Voted ✓</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      playClick();
+                      setDelegatePassOpen(true);
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 text-slate-950 text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    title="View & Download Innovation Delegate Pass"
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    <span>Delegate Pass</span>
+                  </button>
                 </div>
               ) : (
                 <button

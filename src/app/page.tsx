@@ -10,11 +10,16 @@ import {
   Vote,
   Sun,
   Moon,
+  Award,
+  Search,
 } from 'lucide-react';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import ProjectDetailDrawer from '@/components/ui/ProjectDetailDrawer';
 import AuthModal from '@/components/ui/AuthModal';
+import DelegatePassModal from '@/components/ui/DelegatePassModal';
+import SearchModal from '@/components/ui/SearchModal';
+import { playClick, playBlip } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 
@@ -53,6 +58,8 @@ export default function LandingPage() {
   const setProjects = useExhibitionStore((state) => state.setProjects);
   const setUser = useExhibitionStore((state) => state.setUser);
   const setDeviceFingerprint = useExhibitionStore((state) => state.setDeviceFingerprint);
+  const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
+  const setSearchModalOpen = useExhibitionStore((state) => state.setSearchModalOpen);
 
   const [selectedZone, setSelectedZone] = useState<'all' | 'Physical' | 'Digital' | 'Business'>('all');
   const [selectedDay, setSelectedDay] = useState<'day1' | 'day2'>('day1');
@@ -65,6 +72,14 @@ export default function LandingPage() {
     };
     handleResize();
     window.addEventListener('resize', handleResize);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     getDeviceFingerprint().then((fp) => {
       setDeviceFingerprint(fp);
@@ -90,6 +105,7 @@ export default function LandingPage() {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
       unsubAuth();
       unsubProjects();
     };
@@ -203,6 +219,43 @@ export default function LandingPage() {
 
           {/* Right Action: Launch 3D Hall & Theme Toggle */}
           <div className="ml-auto flex items-stretch">
+            {/* Quick Search Button */}
+            <button
+              onClick={() => {
+                playClick();
+                setSearchModalOpen(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
+                isLight
+                  ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
+                  : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
+              }`}
+              title="Search Projects (⌘K)"
+            >
+              <Search className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Search</span>
+              <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                ⌘K
+              </kbd>
+            </button>
+
+            {/* Delegate Pass Modal Trigger */}
+            <button
+              onClick={() => {
+                playClick();
+                setDelegatePassOpen(true);
+              }}
+              className={`hidden sm:flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
+                isLight
+                  ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
+                  : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
+              }`}
+              title="View & Download Innovation Delegate Pass"
+            >
+              <Award className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Delegate Pass</span>
+            </button>
+
             <button
               onClick={toggleTheme}
               className={`flex items-center gap-1.5 px-3.5 border-r font-mono text-xs transition-colors ${
@@ -1097,6 +1150,8 @@ export default function LandingPage() {
       {/* Centered Modals for Project Expansion and Anti-Cheat Voting */}
       <ProjectDetailDrawer />
       <AuthModal />
+      <SearchModal />
+      <DelegatePassModal />
     </div>
   );
 }
