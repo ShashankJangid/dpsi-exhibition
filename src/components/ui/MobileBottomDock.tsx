@@ -12,6 +12,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
   Compass,
 } from 'lucide-react';
 
@@ -22,6 +23,8 @@ export default function MobileBottomDock() {
   const setViewMode = useExhibitionStore((state) => state.setViewMode);
   const isLeaderboardOpen = useExhibitionStore((state) => state.isLeaderboardOpen);
   const setLeaderboardOpen = useExhibitionStore((state) => state.setLeaderboardOpen);
+  const isSegmentInspectorOpen = useExhibitionStore((state) => state.isSegmentInspectorOpen);
+  const setSegmentInspectorOpen = useExhibitionStore((state) => state.setSegmentInspectorOpen);
   const setAuthModalOpen = useExhibitionStore((state) => state.setAuthModalOpen);
   const setSearchOpen = useExhibitionStore((state) => state.setSearchOpen);
   const isDrawerOpen = useExhibitionStore((state) => state.isDrawerOpen);
@@ -37,12 +40,13 @@ export default function MobileBottomDock() {
   const stopTour = useExhibitionStore((state) => state.stopTour);
 
   const zones: { id: NavZoneId; short: string; title: string }[] = [
-    { id: 'overview', short: 'All', title: isLight ? 'Overview' : 'Milky Way Overview' },
+    { id: 'overview', short: 'Hall', title: '3D Hall Entrance' },
+    { id: 'blueprint', short: 'Plan', title: 'Blueprint Floor Plan' },
     { id: 'zone-1', short: 'ST', title: 'Show & Tell' },
-    { id: 'physical', short: 'P', title: 'Physical' },
-    { id: 'digital', short: 'D', title: 'Digital' },
-    { id: 'business', short: 'B', title: 'Business' },
-    { id: 'zone-3', short: 'Robo', title: 'Robotics' },
+    { id: 'physical', short: 'P', title: 'Physical Solutions' },
+    { id: 'digital', short: 'D', title: 'Digital Solutions' },
+    { id: 'business', short: 'B', title: 'Business Ventures' },
+    { id: 'zone-3', short: 'Robo', title: 'Robotics Arenas' },
   ];
 
   if (isDrawerOpen) return null;
@@ -51,47 +55,63 @@ export default function MobileBottomDock() {
     <div className="md:hidden fixed bottom-3 inset-x-3 z-[100] pointer-events-auto pb-safe flex flex-col gap-1.5 items-center">
       {/* Quick Booth Stepper Pill for 3D navigation on mobile */}
       {viewMode === '3d' && (
-        <div className={`flex items-center justify-between gap-1 px-3 py-1 rounded-full backdrop-blur-xl border text-[11px] font-mono shadow-md transition-all ${
-          isLight
-            ? 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-300/40'
-            : 'bg-[#0b101c]/90 border-slate-700/60 text-white shadow-black/80'
-        }`}>
-          <button
-            onClick={selectPrevProject}
-            className="flex items-center gap-0.5 px-2 py-0.5 rounded hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold active:scale-95"
-            aria-label="Previous Booth"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span>Prev</span>
-          </button>
-          
-          <button
-            onClick={() => {
-              playClick();
-              if (isTourActive) {
-                stopTour();
-              } else {
-                startTour();
-              }
-            }}
-            className={`px-2.5 py-0.5 rounded-full flex items-center gap-1 transition-all ${
-              isTourActive
-                ? 'bg-amber-500 text-slate-950 font-bold animate-pulse'
-                : 'text-slate-600 dark:text-slate-300 hover:text-amber-500 font-semibold truncate max-w-[170px]'
-            }`}
-          >
-            <Compass className={`w-3 h-3 ${isTourActive ? 'animate-spin' : 'text-amber-500'}`} />
-            <span>{isTourActive ? 'Tour Active' : selectedProject ? `Booth ${selectedProject.booth_code}` : '✦ Guided Tour'}</span>
-          </button>
+        <div className="flex items-center gap-1.5 max-w-full">
+          <div className={`flex items-center justify-between gap-1 px-3 py-1 rounded-full backdrop-blur-xl border text-[11px] font-mono shadow-md transition-all ${
+            isLight
+              ? 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-300/40'
+              : 'bg-[#0b101c]/90 border-slate-700/60 text-white shadow-black/80'
+          }`}>
+            <button
+              onClick={selectPrevProject}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold active:scale-95"
+              aria-label="Previous Booth"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
+            </button>
+            
+            <button
+              onClick={() => {
+                playClick();
+                if (isTourActive) {
+                  stopTour();
+                } else {
+                  startTour();
+                }
+              }}
+              className={`px-2.5 py-0.5 rounded-full flex items-center gap-1 transition-all ${
+                isTourActive
+                  ? 'bg-amber-500 text-slate-950 font-bold animate-pulse'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-amber-500 font-semibold truncate max-w-[170px]'
+              }`}
+            >
+              <Compass className={`w-3 h-3 ${isTourActive ? 'animate-spin' : 'text-amber-500'}`} />
+              <span>{isTourActive ? 'Tour Active' : selectedProject ? `Booth ${selectedProject.booth_code}` : '✦ Guided Tour'}</span>
+            </button>
 
-          <button
-            onClick={selectNextProject}
-            className="flex items-center gap-0.5 px-2 py-0.5 rounded hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold active:scale-95"
-            aria-label="Next Booth"
-          >
-            <span>Next</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+            <button
+              onClick={selectNextProject}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold active:scale-95"
+              aria-label="Next Booth"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {activeZone !== 'overview' && activeZone !== 'blueprint' && (
+            <button
+              onClick={() => setSegmentInspectorOpen(!isSegmentInspectorOpen)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full backdrop-blur-xl border text-[11px] font-mono font-bold shadow-md transition-all active:scale-95 shrink-0 ${
+                isSegmentInspectorOpen
+                  ? 'bg-slate-800 text-white border-slate-600'
+                  : 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/20'
+              }`}
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>{isSegmentInspectorOpen ? 'Hide' : 'Projects'}</span>
+            </button>
+          )}
         </div>
       )}
 

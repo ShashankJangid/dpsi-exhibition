@@ -15,80 +15,80 @@ export type NavZoneId =
 export type ThemeMode = 'light' | 'dark';
 
 export const CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
-  // Balanced isometric perspective capturing Show & Tell, Main Hall, and Robotics with clear depth
+  // Convenient, optimized initial entrance spawning position looking directly into the open 3D Hall
   overview: {
-    position: [7, 36, 30],
-    target: [7, 0.5, -6],
+    position: [0.8, 7.5, 18.5],
+    target: [0.8, 1.6, -10.0],
   },
   blueprint: {
-    // True architectural top-down floor plan view matching the uploaded blueprint
-    position: [7, 48, -6.001],
-    target: [7, 0.0, -6],
+    // True architectural top-down floor plan view centered over the entire hall
+    position: [-2.0, 42.0, -12.001],
+    target: [-2.0, 0.0, -12.0],
   },
   'zone-1': {
-    // Show & Tell angled pavilion (eye-level close-up showcasing the desks and kiosks)
-    position: [-16, 7.5, 4.5],
-    target: [-16, 0.8, -3.5],
+    // Show & Tell angled pavilion (eye-level perspective looking directly down the central promenade of ST01-ST08)
+    position: [-9.5, 3.8, -2.8],
+    target: [-19.5, 1.2, -3.2],
   },
   'zone-2': {
-    // Main Hall comprehensive view
-    position: [8.5, 13.5, 14],
-    target: [8.5, 0.8, -4],
+    // Main Hall comprehensive elevated overview
+    position: [8.5, 10.5, 13.5],
+    target: [8.5, 1.2, -6.5],
   },
   'zone-3': {
-    // Robotics arenas & top concourse (angled downward into the speedway and soccer pitch)
-    position: [8.5, 9.0, -13],
-    target: [8.5, 0.8, -24.5],
+    // Robotics arenas grandstand view: directly in front of the concourse rail with full symmetrical view of both Arenas
+    position: [10.4, 4.6, -16.8],
+    target: [10.4, 1.2, -26.0],
   },
   physical: {
-    // Physical Booths P01-P12 close-in aisle view looking directly at the booths
-    position: [8.5, 5.5, -3.5],
-    target: [8.5, 0.8, -10.5],
+    // Physical Computing aisle view: directly down the center aisle of P01-P12
+    position: [-2.2, 3.5, -11.25],
+    target: [9.0, 1.1, -11.25],
   },
   digital: {
-    // Digital Booths D01-D12 close-in aisle view
-    position: [8.5, 5.5, 2.5],
-    target: [8.5, 0.8, -4.5],
+    // Digital Solutions aisle view: clear perspective right into the D01-D12 stores
+    position: [-2.2, 3.5, -6.0],
+    target: [9.0, 1.1, -6.0],
   },
   business: {
-    // Business Booths B01-B07 close-in aisle view
-    position: [8.5, 5.5, 8.5],
-    target: [8.5, 0.8, 1.5],
+    // Business Ventures & Vertical Line view: comprehensive perspective looking into B01-B08 and the 12 vertical stalls
+    position: [12.0, 5.2, 14.5],
+    target: [20.5, 1.2, 2.5],
   },
 };
 
 export const MOBILE_CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
   overview: {
-    position: [7, 46, 40],
-    target: [7, 0.5, -6],
+    position: [0.8, 10.5, 23.5],
+    target: [0.8, 1.6, -10.0],
   },
   blueprint: {
-    position: [7, 60, -6.001],
-    target: [7, 0.0, -6],
+    position: [-2.0, 55.0, -12.001],
+    target: [-2.0, 0.0, -12.0],
   },
   'zone-1': {
-    position: [-16, 11, 7],
-    target: [-16, 0.8, -3.5],
+    position: [-8.5, 4.6, -2.8],
+    target: [-19.5, 1.2, -3.2],
   },
   'zone-2': {
-    position: [8.5, 18, 17],
-    target: [8.5, 0.8, -4],
+    position: [8.5, 14.0, 18.0],
+    target: [8.5, 1.2, -6.5],
   },
   'zone-3': {
-    position: [8.5, 13, -11],
-    target: [8.5, 0.8, -24.5],
+    position: [10.4, 6.2, -15.2],
+    target: [10.4, 1.2, -26.0],
   },
   physical: {
-    position: [8.5, 8.5, -1],
-    target: [8.5, 0.8, -10.5],
+    position: [-2.2, 4.2, -11.25],
+    target: [9.0, 1.1, -11.25],
   },
   digital: {
-    position: [8.5, 8.5, 5],
-    target: [8.5, 0.8, -4.5],
+    position: [-2.2, 4.2, -6.0],
+    target: [9.0, 1.1, -6.0],
   },
   business: {
-    position: [8.5, 8.5, 11],
-    target: [8.5, 0.8, 1.5],
+    position: [11.0, 7.5, 17.0],
+    target: [20.5, 1.2, 2.5],
   },
 };
 
@@ -275,7 +275,8 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
     const isMobile = get().isMobile;
     const presets = isMobile ? MOBILE_CAMERA_PRESETS : CAMERA_PRESETS;
     const config = presets[zone] || presets.overview;
-    const shouldOpenInspector = zone !== 'overview' && zone !== 'blueprint';
+    // On mobile, keep 3D view unobstructed so user directly sees the arenas & stores!
+    const shouldOpenInspector = !isMobile && zone !== 'overview' && zone !== 'blueprint';
     set({
       activeZone: zone,
       cameraConfig: config,

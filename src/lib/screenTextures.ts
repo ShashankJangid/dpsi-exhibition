@@ -4,6 +4,7 @@ import { Project } from '@/types';
 // In-memory cache so canvas textures are created once per project and reused
 const textureCache = new Map<string, THREE.CanvasTexture>();
 let stageTextureCache: THREE.CanvasTexture | null = null;
+let showAndTellTextureCache: THREE.CanvasTexture | null = null;
 
 /**
  * Generates an ultra-crisp, high-tech dashboard UI texture for a booth's presentation monitor.
@@ -283,5 +284,264 @@ export function getStageMediaWallTexture(): THREE.CanvasTexture {
   texture.generateMipmaps = false;
 
   stageTextureCache = texture;
+  return texture;
+}
+
+/**
+ * Generates an ultra-crisp, high-resolution texture for the Show & Tell Pavilion overhead banner.
+ * Completely eliminates moiré artifacts, SDF aliasing, and Z-fighting distortion.
+ */
+export function getShowAndTellBannerTexture(): THREE.CanvasTexture {
+  if (showAndTellTextureCache) return showAndTellTextureCache;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 160;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    const fallback = new THREE.CanvasTexture(canvas);
+    return fallback;
+  }
+
+  // 1. Sleek deep violet/purple linear gradient
+  const grad = ctx.createLinearGradient(0, 0, 1024, 160);
+  grad.addColorStop(0, '#0f051d');
+  grad.addColorStop(0.3, '#2a0e4e');
+  grad.addColorStop(0.7, '#381269');
+  grad.addColorStop(1, '#0f051d');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 160);
+
+  // Glowing neon purple border rim
+  ctx.strokeStyle = '#a855f7';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(2, 2, 1020, 156);
+
+  // Subtle interior grid accents
+  ctx.strokeStyle = 'rgba(192, 132, 252, 0.08)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 1024; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 160);
+    ctx.stroke();
+  }
+
+  // 2. Overline Tag
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#c084fc';
+  ctx.font = 'bold 16px monospace';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('• JUNIOR & SENIOR INNOVATION SHOWCASE •', 512, 42);
+  ctx.letterSpacing = '0px';
+
+  // 3. Grand Banner Title
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
+  ctx.shadowBlur = 12;
+  ctx.font = '900 44px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('SHOW & TELL PAVILION', 512, 94);
+  ctx.shadowBlur = 0;
+
+  // 4. Subline Info
+  ctx.fillStyle = '#e9d5ff';
+  ctx.font = '600 16px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('BOOTHS ST01 – ST08  •  DELHI PUBLIC SCHOOL INDIRAPURAM', 512, 132);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+
+  showAndTellTextureCache = texture;
+  return texture;
+}
+
+const groundPosterTextureCache = new Map<string, THREE.CanvasTexture>();
+
+export function getGroundPosterTexture(
+  zone: 'physical' | 'digital' | 'business' | 'show-and-tell' | 'robotics' | 'vertical'
+): THREE.CanvasTexture {
+  if (groundPosterTextureCache.has(zone)) {
+    return groundPosterTextureCache.get(zone)!;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    const fallback = new THREE.CanvasTexture(canvas);
+    return fallback;
+  }
+
+  const configs: Record<
+    string,
+    {
+      title: string;
+      subtitle: string;
+      tag: string;
+      accent: string;
+      accentGlow: string;
+      bg1: string;
+      bg2: string;
+    }
+  > = {
+    physical: {
+      title: 'PHYSICAL COMPUTING',
+      subtitle: 'BOOTHS P01 – P12 • SENSORS, EMBEDDED SYSTEMS & HARDWARE',
+      tag: 'INNOVATION SECTION 1',
+      accent: '#f59e0b',
+      accentGlow: '#fbbf24',
+      bg1: '#120b02',
+      bg2: '#2b1504',
+    },
+    digital: {
+      title: 'DIGITAL SOLUTIONS',
+      subtitle: 'BOOTHS D01 – D12 • AI, FULL-STACK SOFTWARE & CLOUD APPS',
+      tag: 'INNOVATION SECTION 2',
+      accent: '#0284c7',
+      accentGlow: '#38bdf8',
+      bg1: '#020b18',
+      bg2: '#052244',
+    },
+    business: {
+      title: 'BUSINESS & ENTERPRISE',
+      subtitle: 'BOOTHS B01 – B08 • STARTUPS, EDTECH & HYDROPONICS',
+      tag: 'INNOVATION SECTION 3',
+      accent: '#059669',
+      accentGlow: '#34d399',
+      bg1: '#02120b',
+      bg2: '#062d1c',
+    },
+    vertical: {
+      title: 'VERTICAL TECH GALLERY',
+      subtitle: '12 ADVANCED HARDWARE, DIGITAL & STARTUP VENTURES',
+      tag: 'EAST GALLERY SHOWCASE',
+      accent: '#10b981',
+      accentGlow: '#6ee7b7',
+      bg1: '#041410',
+      bg2: '#092e22',
+    },
+    'show-and-tell': {
+      title: 'SHOW & TELL PAVILION',
+      subtitle: 'BOOTHS ST01 – ST08 • JUNIOR & SENIOR STUDENT SHOWCASE',
+      tag: 'SPECIAL EXHIBIT PAVILION',
+      accent: '#9333ea',
+      accentGlow: '#c084fc',
+      bg1: '#0d041a',
+      bg2: '#28084a',
+    },
+    robotics: {
+      title: 'ROBOTICS ARENAS',
+      subtitle: 'ROBO SPEEDWAY CIRCUIT • ROBO SOCCER 2v2 STADIUM',
+      tag: 'LIVE ARENA COMPETITIONS',
+      accent: '#dc2626',
+      accentGlow: '#f87171',
+      bg1: '#160404',
+      bg2: '#380a0a',
+    },
+  };
+
+  const c = configs[zone] || configs.physical;
+
+  // 1. High-contrast rich dark gradient
+  const grad = ctx.createLinearGradient(0, 0, 1024, 256);
+  grad.addColorStop(0, '#020617');
+  grad.addColorStop(0.2, c.bg1);
+  grad.addColorStop(0.5, c.bg2);
+  grad.addColorStop(0.8, c.bg1);
+  grad.addColorStop(1, '#020617');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 256);
+
+  // Subtle architectural grid texture
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 1024; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 256);
+    ctx.stroke();
+  }
+  for (let y = 0; y < 256; y += 32) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(1024, y);
+    ctx.stroke();
+  }
+
+  // 2. High-visibility outer glowing border
+  ctx.strokeStyle = c.accent;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(4, 4, 1016, 248);
+
+  // Inner subtle neon hairline border
+  ctx.strokeStyle = c.accentGlow;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(12, 12, 1000, 232);
+
+  // Corner Accent Brackets
+  const cornerLen = 28;
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#ffffff';
+  // Top-left
+  ctx.beginPath();
+  ctx.moveTo(4, 4 + cornerLen);
+  ctx.lineTo(4, 4);
+  ctx.lineTo(4 + cornerLen, 4);
+  ctx.stroke();
+  // Top-right
+  ctx.beginPath();
+  ctx.moveTo(1020 - cornerLen, 4);
+  ctx.lineTo(1020, 4);
+  ctx.lineTo(1020, 4 + cornerLen);
+  ctx.stroke();
+  // Bottom-left
+  ctx.beginPath();
+  ctx.moveTo(4, 252 - cornerLen);
+  ctx.lineTo(4, 252);
+  ctx.lineTo(4 + cornerLen, 252);
+  ctx.stroke();
+  // Bottom-right
+  ctx.beginPath();
+  ctx.moveTo(1020 - cornerLen, 252);
+  ctx.lineTo(1020, 252);
+  ctx.lineTo(1020, 252 - cornerLen);
+  ctx.stroke();
+
+  // 3. Category Tag Pill Badge (Top Center)
+  ctx.textAlign = 'center';
+  ctx.fillStyle = c.accent;
+  ctx.font = 'bold 16px monospace';
+  ctx.letterSpacing = '3px';
+  ctx.fillText(`• ${c.tag} •`, 512, 54);
+  ctx.letterSpacing = '0px';
+
+  // 4. Grand Main Title (Massive, Bold, Crisp White with colored glow shadow)
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = c.accentGlow;
+  ctx.shadowBlur = 14;
+  ctx.font = '900 52px "Segoe UI", system-ui, -apple-system, sans-serif';
+  ctx.fillText(c.title, 512, 134);
+  ctx.shadowBlur = 0;
+
+  // 5. High-Contrast Subtitle
+  ctx.fillStyle = c.accentGlow;
+  ctx.font = 'bold 24px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText(c.subtitle, 512, 186);
+
+  // Decorative bottom bar
+  ctx.fillStyle = c.accent;
+  ctx.fillRect(256, 214, 512, 3);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+
+  groundPosterTextureCache.set(zone, texture);
   return texture;
 }
