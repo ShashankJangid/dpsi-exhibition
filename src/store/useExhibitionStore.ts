@@ -26,9 +26,9 @@ export const CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
     target: [-2.0, 0.0, -12.0],
   },
   'zone-1': {
-    // Show & Tell angled pavilion (eye-level view of registration desks, laptops, and ST01-ST08 booths)
-    position: [-13.5, 3.8, 3.2],
-    target: [-17.5, 1.0, -3.5],
+    // Show & Tell angled pavilion (eye-level perspective looking directly down the central promenade of ST01-ST08)
+    position: [-9.5, 3.8, -2.8],
+    target: [-19.5, 1.2, -3.2],
   },
   'zone-2': {
     // Main Hall comprehensive elevated overview
@@ -67,8 +67,8 @@ export const MOBILE_CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
     target: [-2.0, 0.0, -12.0],
   },
   'zone-1': {
-    position: [-13.0, 4.8, 4.2],
-    target: [-17.5, 1.0, -3.5],
+    position: [-8.5, 4.6, -2.8],
+    target: [-19.5, 1.2, -3.2],
   },
   'zone-2': {
     position: [8.5, 14.0, 18.0],
