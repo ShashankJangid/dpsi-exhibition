@@ -56,7 +56,10 @@ function TopNavHUD() {
   const [isSoundOn, setIsSoundOn] = useState(true);
 
   useEffect(() => {
-    setIsSoundOn(isSoundEnabled());
+    const animId = requestAnimationFrame(() => {
+      setIsSoundOn(isSoundEnabled());
+    });
+    return () => cancelAnimationFrame(animId);
   }, []);
 
   const handleSignOut = useCallback(async () => {
