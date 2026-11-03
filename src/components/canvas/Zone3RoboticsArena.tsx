@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
@@ -13,7 +13,15 @@ import BoothMesh from './BoothMesh';
  * Drives up the ascending ramp, crosses the elevated bridge, descends the down ramp,
  * and powers through the turns with live wheel spinning, headlight beams, and roof LiDAR.
  */
-function AnimatedRoboRacer() {
+function AnimatedRoboRacer({
+  timeOffset = 0,
+  chassisColor = '#ea580c',
+  accentColor = '#38bdf8',
+}: {
+  timeOffset?: number;
+  chassisColor?: string;
+  accentColor?: string;
+}) {
   const roverRef = useRef<THREE.Group>(null);
   const wheelsRef = useRef<THREE.Group[]>([]);
   const lidarRef = useRef<THREE.Mesh>(null);
@@ -21,8 +29,8 @@ function AnimatedRoboRacer() {
   useFrame(({ clock }, delta) => {
     if (!roverRef.current) return;
 
-    // Track loop speed
-    const t = (clock.getElapsedTime() * 0.85) % (Math.PI * 2);
+    // Track loop speed with optional phase offset for multi-rover racing
+    const t = (clock.getElapsedTime() * 0.85 + timeOffset) % (Math.PI * 2);
 
     // Parametric stadium circuit (Arena 1 local: X in [-3.2, 3.2], Z in [-3.4, 3.4])
     const a = 2.9; // X amplitude
@@ -53,17 +61,17 @@ function AnimatedRoboRacer() {
     if (posZ < -2.0) {
       if (posX >= -2.5 && posX < -0.9) {
         // 1. Ascending Ramp (Climbing up)
-        const rampProgress = (posX - (-2.5)) / 1.6;
+        const rampProgress = (posX - -2.5) / 1.6;
         posY = 0.45 + rampProgress * 0.65;
         pitch = -0.36; // Nose pitched UP
       } else if (posX >= -0.9 && posX <= 0.9) {
         // 2. Elevated Bridge Deck (Cruising high above track)
-        posY = 1.10;
+        posY = 1.1;
         pitch = 0.0;
       } else if (posX > 0.9 && posX <= 2.5) {
         // 3. Descending Ramp (Sloping down)
         const rampProgress = (posX - 0.9) / 1.6;
-        posY = 1.10 - rampProgress * 0.65;
+        posY = 1.1 - rampProgress * 0.65;
         pitch = 0.36; // Nose pitched DOWN
       }
     }
@@ -73,7 +81,7 @@ function AnimatedRoboRacer() {
 
     // Spin roof LiDAR sensor
     if (lidarRef.current) {
-      lidarRef.current.rotation.y += delta * 12;
+      lidarRef.current.rotation.y += delta * 14;
     }
 
     // Spin wheels with track speed
@@ -84,82 +92,122 @@ function AnimatedRoboRacer() {
 
   return (
     <group ref={roverRef} castShadow>
-      {/* Aerodynamic Carbon/Orange Race Chassis */}
-      <mesh position={[0, 0.1, 0]} castShadow>
-        <boxGeometry args={[0.55, 0.14, 0.95]} />
-        <meshStandardMaterial color="#ea580c" roughness={0.3} metalness={0.7} />
+      {/* Carbon-Fiber Underbody Floor Pan */}
+      <mesh position={[0, 0.055, 0]} castShadow>
+        <boxGeometry args={[0.58, 0.03, 1.02]} />
+        <meshStandardMaterial color="#090d16" metalness={0.85} roughness={0.2} />
       </mesh>
 
-      {/* Front Splitter / Carbon Underbody */}
-      <mesh position={[0, 0.04, 0.48]} castShadow>
-        <boxGeometry args={[0.58, 0.02, 0.12]} />
+      {/* Aerodynamic Race Chassis Body */}
+      <mesh position={[0, 0.11, -0.02]} castShadow>
+        <boxGeometry args={[0.52, 0.12, 0.88]} />
+        <meshStandardMaterial color={chassisColor} roughness={0.25} metalness={0.72} />
+      </mesh>
+
+      {/* Sculpted Sidepods with Glowing Intake Strips */}
+      {[-0.28, 0.28].map((xPod, pIdx) => (
+        <group key={pIdx} position={[xPod, 0.09, -0.02]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.08, 0.09, 0.52]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.25} />
+          </mesh>
+          <mesh position={[0, 0, 0.265]}>
+            <boxGeometry args={[0.06, 0.05, 0.01]} />
+            <meshBasicMaterial color={accentColor} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Front Multi-Element Aero Wing & Splitter */}
+      <mesh position={[0, 0.04, 0.5]} castShadow>
+        <boxGeometry args={[0.64, 0.022, 0.14]} />
         <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.2} />
       </mesh>
-
-      {/* Cockpit / Electronics Canopy */}
-      <mesh position={[0, 0.22, -0.05]} castShadow>
-        <boxGeometry args={[0.38, 0.13, 0.55]} />
-        <meshStandardMaterial color="#090d16" roughness={0.2} metalness={0.9} />
+      <mesh position={[-0.31, 0.065, 0.5]}>
+        <boxGeometry args={[0.02, 0.07, 0.16]} />
+        <meshStandardMaterial color={chassisColor} metalness={0.7} />
+      </mesh>
+      <mesh position={[0.31, 0.065, 0.5]}>
+        <boxGeometry args={[0.02, 0.07, 0.16]} />
+        <meshStandardMaterial color={chassisColor} metalness={0.7} />
       </mesh>
 
-      {/* Rear High-Downforce GT Wing with Dual Struts */}
-      <mesh position={[0, 0.32, -0.42]}>
-        <boxGeometry args={[0.62, 0.02, 0.16]} />
-        <meshStandardMaterial color="#090d16" metalness={0.8} />
+      {/* Cockpit / AI Compute Canopy */}
+      <mesh position={[0, 0.21, -0.05]} castShadow>
+        <boxGeometry args={[0.36, 0.12, 0.52]} />
+        <meshStandardMaterial color="#090d16" roughness={0.15} metalness={0.92} />
       </mesh>
-      <mesh position={[-0.22, 0.24, -0.42]}>
-        <boxGeometry args={[0.02, 0.16, 0.08]} />
-        <meshStandardMaterial color="#ea580c" />
+
+      {/* Rear High-Downforce GT Dual-Plane Wing */}
+      <mesh position={[0, 0.33, -0.43]}>
+        <boxGeometry args={[0.64, 0.022, 0.16]} />
+        <meshStandardMaterial color="#090d16" metalness={0.85} roughness={0.2} />
       </mesh>
-      <mesh position={[0.22, 0.24, -0.42]}>
+      <mesh position={[-0.32, 0.32, -0.43]}>
+        <boxGeometry args={[0.02, 0.09, 0.18]} />
+        <meshStandardMaterial color={chassisColor} />
+      </mesh>
+      <mesh position={[0.32, 0.32, -0.43]}>
+        <boxGeometry args={[0.02, 0.09, 0.18]} />
+        <meshStandardMaterial color={chassisColor} />
+      </mesh>
+      <mesh position={[-0.2, 0.24, -0.42]}>
         <boxGeometry args={[0.02, 0.16, 0.08]} />
-        <meshStandardMaterial color="#ea580c" />
+        <meshStandardMaterial color={chassisColor} />
+      </mesh>
+      <mesh position={[0.2, 0.24, -0.42]}>
+        <boxGeometry args={[0.02, 0.16, 0.08]} />
+        <meshStandardMaterial color={chassisColor} />
       </mesh>
 
       {/* Roof Spinning LiDAR Scanner with Projection Ring */}
-      <group position={[0, 0.31, 0.05]}>
-        <mesh position={[0, 0.03, 0]}>
-          <cylinderGeometry args={[0.04, 0.04, 0.06, 12]} />
-          <meshStandardMaterial color="#475569" />
+      <group position={[0, 0.29, 0.04]}>
+        <mesh position={[0, 0.025, 0]}>
+          <cylinderGeometry args={[0.04, 0.045, 0.05, 12]} />
+          <meshStandardMaterial color="#475569" metalness={0.85} />
         </mesh>
-        <mesh ref={lidarRef} position={[0, 0.07, 0]}>
-          <cylinderGeometry args={[0.06, 0.06, 0.04, 12]} />
-          <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={2.0} />
+        <mesh ref={lidarRef} position={[0, 0.065, 0]}>
+          <cylinderGeometry args={[0.062, 0.062, 0.038, 12]} />
+          <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={2.2} />
         </mesh>
       </group>
 
-      {/* Glowing Headlights (Cyan LEDs with projection cones) */}
+      {/* Glowing Headlights & Projection Cones */}
       <mesh position={[-0.2, 0.1, 0.48]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshBasicMaterial color="#38bdf8" />
+        <sphereGeometry args={[0.038, 8, 8]} />
+        <meshBasicMaterial color={accentColor} />
       </mesh>
       <mesh position={[0.2, 0.1, 0.48]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshBasicMaterial color="#38bdf8" />
+        <sphereGeometry args={[0.038, 8, 8]} />
+        <meshBasicMaterial color={accentColor} />
+      </mesh>
+      <mesh position={[-0.2, 0.08, 0.76]} rotation={[Math.PI / 12, 0, 0]}>
+        <coneGeometry args={[0.17, 0.58, 12]} />
+        <meshBasicMaterial color={accentColor} transparent opacity={0.18} />
+      </mesh>
+      <mesh position={[0.2, 0.08, 0.76]} rotation={[Math.PI / 12, 0, 0]}>
+        <coneGeometry args={[0.17, 0.58, 12]} />
+        <meshBasicMaterial color={accentColor} transparent opacity={0.18} />
       </mesh>
 
-      {/* Headlight Beams */}
-      <mesh position={[-0.2, 0.08, 0.75]} rotation={[Math.PI / 12, 0, 0]}>
-        <coneGeometry args={[0.18, 0.6, 12]} />
-        <meshBasicMaterial color="#38bdf8" transparent opacity={0.2} />
-      </mesh>
-      <mesh position={[0.2, 0.08, 0.75]} rotation={[Math.PI / 12, 0, 0]}>
-        <coneGeometry args={[0.18, 0.6, 12]} />
-        <meshBasicMaterial color="#38bdf8" transparent opacity={0.2} />
-      </mesh>
-
-      {/* Rear Brake Light Bar */}
+      {/* Rear Brake Light Bar & Twin Afterburner Exhausts */}
       <mesh position={[0, 0.14, -0.48]}>
-        <boxGeometry args={[0.42, 0.03, 0.02]} />
-        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2.5} />
+        <boxGeometry args={[0.44, 0.028, 0.02]} />
+        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2.6} />
       </mesh>
+      {[-0.1, 0.1].map((xEx, eIdx) => (
+        <mesh key={eIdx} position={[xEx, 0.075, -0.49]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.024, 0.028, 0.04, 10]} />
+          <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={2.0} />
+        </mesh>
+      ))}
 
-      {/* 4 Rubber Tires with Multi-Spoke Alloy Rims */}
+      {/* 4 Rubber Tires with Multi-Spoke Alloy Rims & Glowing Rim Rings */}
       {[
-        [-0.32, 0.08, 0.28, 0],
-        [0.32, 0.08, 0.28, 1],
-        [-0.32, 0.08, -0.28, 2],
-        [0.32, 0.08, -0.28, 3],
+        [-0.33, 0.085, 0.29, 0],
+        [0.33, 0.085, 0.29, 1],
+        [-0.33, 0.085, -0.29, 2],
+        [0.33, 0.085, -0.29, 3],
       ].map(([x, y, z, idx]) => (
         <group
           key={idx}
@@ -170,13 +218,18 @@ function AnimatedRoboRacer() {
         >
           {/* Tire */}
           <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
-            <cylinderGeometry args={[0.09, 0.09, 0.08, 14]} />
-            <meshStandardMaterial color="#18181b" roughness={0.8} />
+            <cylinderGeometry args={[0.095, 0.095, 0.085, 16]} />
+            <meshStandardMaterial color="#18181b" roughness={0.75} />
           </mesh>
           {/* Rim */}
           <mesh rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.05, 0.05, 0.082, 8]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
+            <cylinderGeometry args={[0.055, 0.055, 0.088, 10]} />
+            <meshStandardMaterial color="#e2e8f0" metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Glowing Wheel Hub Ring */}
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.03, 0.03, 0.091, 8]} />
+            <meshBasicMaterial color={accentColor} />
           </mesh>
         </group>
       ))}
@@ -185,11 +238,12 @@ function AnimatedRoboRacer() {
 }
 
 /**
- * Animated Robo Soccer: 2 Autonomous Robots playing soccer on the pitch
+ * Animated Robo Soccer: Autonomous Robots playing 2v2 soccer on the pitch
  */
 function AnimatedRoboSoccer() {
   const strikerRef = useRef<THREE.Group>(null);
   const keeperRef = useRef<THREE.Group>(null);
+  const southKeeperRef = useRef<THREE.Group>(null);
   const ballRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
@@ -259,6 +313,11 @@ function AnimatedRoboSoccer() {
       keeperRef.current.rotation.y = 0;
     }
 
+    if (southKeeperRef.current) {
+      southKeeperRef.current.position.set(Math.cos(clock.getElapsedTime() * 1.8) * 0.75, 0.48, 4.4);
+      southKeeperRef.current.rotation.y = Math.PI;
+    }
+
     if (ballRef.current) {
       ballRef.current.position.set(ballX, 0.42, ballZ);
       ballRef.current.rotation.x += 0.12;
@@ -272,30 +331,31 @@ function AnimatedRoboSoccer() {
       <group ref={strikerRef} castShadow>
         {/* Tiered Cylindrical Tournament Body */}
         <mesh position={[0, 0.12, 0]} castShadow>
-          <cylinderGeometry args={[0.34, 0.36, 0.24, 18]} />
-          <meshStandardMaterial color="#0284c7" metalness={0.7} roughness={0.3} />
+          <cylinderGeometry args={[0.34, 0.37, 0.24, 20]} />
+          <meshStandardMaterial color="#0284c7" metalness={0.75} roughness={0.25} />
         </mesh>
+        {/* Carbon Armor Top Plate */}
         <mesh position={[0, 0.25, 0]}>
-          <cylinderGeometry args={[0.32, 0.32, 0.03, 18]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.2} />
+          <cylinderGeometry args={[0.32, 0.32, 0.03, 20]} />
+          <meshStandardMaterial color="#0f172a" metalness={0.85} roughness={0.2} />
         </mesh>
         {/* Solenoid Kicker Plate */}
-        <mesh position={[0, 0.08, 0.35]}>
-          <boxGeometry args={[0.34, 0.12, 0.06]} />
-          <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.4} />
+        <mesh position={[0, 0.08, 0.36]}>
+          <boxGeometry args={[0.36, 0.12, 0.06]} />
+          <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.6} />
         </mesh>
-        {/* Top Camera Turret */}
-        <mesh position={[0, 0.32, 0.05]} castShadow>
-          <sphereGeometry args={[0.1, 14, 14]} />
-          <meshStandardMaterial color="#1e293b" />
+        {/* Top Omnidirectional Vision Turret */}
+        <mesh position={[0, 0.32, 0.04]} castShadow>
+          <sphereGeometry args={[0.11, 14, 14]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.2} />
         </mesh>
         <mesh position={[0, 0.32, 0.13]}>
-          <sphereGeometry args={[0.04, 10, 10]} />
+          <sphereGeometry args={[0.042, 10, 10]} />
           <meshBasicMaterial color="#38bdf8" />
         </mesh>
         {/* Team Cyan Status Ring */}
         <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.38, 0.42, 24]} />
+          <ringGeometry args={[0.39, 0.44, 24]} />
           <meshBasicMaterial color="#38bdf8" />
         </mesh>
         <Text position={[0, 0.58, 0]} fontSize={0.16} color="#38bdf8" anchorX="center" anchorY="middle">
@@ -303,35 +363,35 @@ function AnimatedRoboSoccer() {
         </Text>
       </group>
 
-      {/* 2. GOALKEEPER BOT (Team Rose • S02 TitanKeeper) */}
+      {/* 2. NORTH GOALKEEPER BOT (Team Rose • S02 TitanKeeper) */}
       <group ref={keeperRef} castShadow>
         <mesh position={[0, 0.14, 0]} castShadow>
-          <boxGeometry args={[0.78, 0.26, 0.4]} />
-          <meshStandardMaterial color="#dc2626" metalness={0.7} roughness={0.3} />
+          <boxGeometry args={[0.78, 0.26, 0.42]} />
+          <meshStandardMaterial color="#dc2626" metalness={0.75} roughness={0.25} />
         </mesh>
-        <mesh position={[0, 0.12, 0.22]}>
+        <mesh position={[0, 0.28, 0]}>
+          <boxGeometry args={[0.68, 0.03, 0.34]} />
+          <meshStandardMaterial color="#0f172a" metalness={0.85} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.12, 0.23]}>
           <boxGeometry args={[0.82, 0.18, 0.06]} />
-          <meshStandardMaterial color="#f87171" emissive="#dc2626" emissiveIntensity={1.4} />
+          <meshStandardMaterial color="#f87171" emissive="#dc2626" emissiveIntensity={1.6} />
         </mesh>
         {/* Goal Defense Antennas */}
-        <mesh position={[-0.32, 0.35, -0.1]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.22, 8]} />
-          <meshStandardMaterial color="#94a3b8" />
-        </mesh>
-        <mesh position={[-0.32, 0.46, -0.1]}>
-          <sphereGeometry args={[0.035, 8, 8]} />
-          <meshBasicMaterial color="#f87171" />
-        </mesh>
-        <mesh position={[0.32, 0.35, -0.1]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.22, 8]} />
-          <meshStandardMaterial color="#94a3b8" />
-        </mesh>
-        <mesh position={[0.32, 0.46, -0.1]}>
-          <sphereGeometry args={[0.035, 8, 8]} />
-          <meshBasicMaterial color="#f87171" />
-        </mesh>
+        {[-0.32, 0.32].map((xAnt, aIdx) => (
+          <group key={aIdx} position={[xAnt, 0.35, -0.1]}>
+            <mesh>
+              <cylinderGeometry args={[0.015, 0.015, 0.22, 8]} />
+              <meshStandardMaterial color="#94a3b8" metalness={0.9} />
+            </mesh>
+            <mesh position={[0, 0.11, 0]}>
+              <sphereGeometry args={[0.035, 8, 8]} />
+              <meshBasicMaterial color="#f87171" />
+            </mesh>
+          </group>
+        ))}
         <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.45, 0.49, 24]} />
+          <ringGeometry args={[0.45, 0.5, 24]} />
           <meshBasicMaterial color="#f87171" />
         </mesh>
         <Text position={[0, 0.58, 0]} fontSize={0.16} color="#f87171" anchorX="center" anchorY="middle">
@@ -339,17 +399,77 @@ function AnimatedRoboSoccer() {
         </Text>
       </group>
 
-      {/* 3. HIGH-TORQUE SOCCER BALL */}
+      {/* 3. SOUTH GOALKEEPER BOT (Team Cyan • S01 Sweeper) */}
+      <group ref={southKeeperRef} castShadow>
+        <mesh position={[0, 0.13, 0]} castShadow>
+          <boxGeometry args={[0.68, 0.24, 0.38]} />
+          <meshStandardMaterial color="#0284c7" metalness={0.75} roughness={0.25} />
+        </mesh>
+        <mesh position={[0, 0.11, 0.21]}>
+          <boxGeometry args={[0.72, 0.16, 0.05]} />
+          <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.5} />
+        </mesh>
+        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.42, 0.46, 24]} />
+          <meshBasicMaterial color="#38bdf8" />
+        </mesh>
+      </group>
+
+      {/* 4. HIGH-TORQUE ILLUMINATED SOCCER BALL */}
       <mesh ref={ballRef} castShadow>
-        <sphereGeometry args={[0.16, 24, 24]} />
-        <meshStandardMaterial color="#fbbf24" roughness={0.3} metalness={0.2} />
+        <sphereGeometry args={[0.165, 24, 24]} />
+        <meshStandardMaterial
+          color="#fbbf24"
+          emissive="#f59e0b"
+          emissiveIntensity={0.45}
+          roughness={0.25}
+          metalness={0.3}
+        />
       </mesh>
     </group>
   );
 }
 
+/**
+ * Corner Stadium Floodlight Tower Mast for the Robotics Arenas
+ */
+function ArenaFloodlightTower({
+  position,
+  rotation = [0, 0, 0],
+  glowColor = '#38bdf8',
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  glowColor?: string;
+}) {
+  return (
+    <group position={position} rotation={rotation}>
+      {/* Base Anchor Collar */}
+      <mesh position={[0, 0.08, 0]}>
+        <cylinderGeometry args={[0.1, 0.14, 0.16, 10]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Vertical Truss Mast */}
+      <mesh position={[0, 1.35, 0]} castShadow>
+        <cylinderGeometry args={[0.045, 0.065, 2.5, 10]} />
+        <meshStandardMaterial color="#475569" metalness={0.92} roughness={0.18} />
+      </mesh>
+      {/* Angled Floodlight Bank Head */}
+      <group position={[0, 2.6, 0]} rotation={[0.42, 0, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.56, 0.24, 0.08]} />
+          <meshStandardMaterial color="#0f172a" metalness={0.85} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0, 0.045]}>
+          <planeGeometry args={[0.5, 0.18]} />
+          <meshStandardMaterial color="#ffffff" emissive={glowColor} emissiveIntensity={2.4} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 export default function Zone3RoboticsArena() {
-  const [hoveredArena, setHoveredArena] = useState<string | null>(null);
   const projects = useExhibitionStore((state) => state.projects);
   const zone3Projects = projects.filter((p) => p.zone === 'zone-3');
   const setActiveZone = useExhibitionStore((state) => state.setActiveZone);
@@ -373,8 +493,8 @@ export default function Zone3RoboticsArena() {
   return (
     <group position={[0, 0, 0]}>
       {/* ======================================================== */}
-      {/* GROUND POSTER - ROBOTICS ARENAS                          */}
-      {/* Perfectly aligned with Physical & Digital banners (x = 6.4)*/}
+      {/* GROUND POSTER - ROBOTICS ARENAS LIGHT-BOX                */}
+      {/* Perfectly aligned with Physical & Digital banners (x=6.4) */}
       {/* ======================================================== */}
       <group
         position={[6.4, 0.02, -16.5]}
@@ -387,14 +507,29 @@ export default function Zone3RoboticsArena() {
         }}
       >
         <mesh receiveShadow>
+          <boxGeometry args={[9.08, 0.012, 2.42]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.92} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.004, 0]} receiveShadow>
           <boxGeometry args={[8.8, 0.015, 2.2]} />
           <meshStandardMaterial color="#0b101c" metalness={0.9} roughness={0.25} />
         </mesh>
-        <mesh position={[0, 0.008, 0]}>
-          <boxGeometry args={[8.88, 0.01, 2.28]} />
-          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={1.8} />
+        <mesh position={[0, 0.009, 0]}>
+          <boxGeometry args={[8.9, 0.01, 2.3]} />
+          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={2.0} />
         </mesh>
-        <mesh position={[0, 0.016, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        {[
+          [-4.36, 0.015, -1.06],
+          [4.36, 0.015, -1.06],
+          [-4.36, 0.015, 1.06],
+          [4.36, 0.015, 1.06],
+        ].map(([cx, cy, cz], idx) => (
+          <mesh key={idx} position={[cx, cy, cz]}>
+            <boxGeometry args={[0.24, 0.008, 0.24]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.12} />
+          </mesh>
+        ))}
+        <mesh position={[0, 0.019, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[8.6, 2.05]} />
           {roboticsGroundTexture && (
             <meshStandardMaterial
@@ -408,6 +543,7 @@ export default function Zone3RoboticsArena() {
           )}
         </mesh>
       </group>
+
       {/* ======================================================== */}
       {/* 1. LEFT ARENA: ROBO SPEEDWAY CIRCUIT WITH REAL RAMPS     */}
       {/* Perfectly aligned and balanced (x = 3.0, z = -25.5)      */}
@@ -418,13 +554,11 @@ export default function Zone3RoboticsArena() {
         onPointerOver={(e) => {
           if (!isMobile) {
             e.stopPropagation();
-            setHoveredArena('speedway');
             document.body.style.cursor = 'pointer';
           }
         }}
         onPointerOut={() => {
           if (!isMobile) {
-            setHoveredArena(null);
             document.body.style.cursor = 'auto';
           }
         }}
@@ -440,13 +574,23 @@ export default function Zone3RoboticsArena() {
           color="#fffdf7"
         />
 
-        {/* Platform Base Dais */}
-        <mesh position={[0, 0.15, 0]} receiveShadow castShadow>
-          <boxGeometry args={[10.5, 0.3, 11.5]} />
-          <meshStandardMaterial color="#0f172a" metalness={0.7} roughness={0.3} />
+        {/* Sculpted Multi-Tier Platform Base Dais with Glowing Crimson Skirt */}
+        <mesh position={[0, 0.14, 0]} receiveShadow castShadow>
+          <boxGeometry args={[10.6, 0.28, 11.6]} />
+          <meshStandardMaterial color="#0b111e" metalness={0.8} roughness={0.25} />
+        </mesh>
+        <mesh position={[0, 0.29, 0]}>
+          <boxGeometry args={[10.46, 0.02, 11.46]} />
+          <meshStandardMaterial color="#f87171" emissive="#dc2626" emissiveIntensity={1.4} />
         </mesh>
 
-        {/* Green Turf Infield & Surrounds (matching blueprint green rectangle) */}
+        {/* 4 Corner Stadium Floodlight Towers */}
+        <ArenaFloodlightTower position={[-4.85, 0.3, -5.35]} rotation={[0, Math.PI / 4, 0]} glowColor="#fbbf24" />
+        <ArenaFloodlightTower position={[4.85, 0.3, -5.35]} rotation={[0, -Math.PI / 4, 0]} glowColor="#fbbf24" />
+        <ArenaFloodlightTower position={[-4.85, 0.3, 5.35]} rotation={[0, (Math.PI * 3) / 4, 0]} glowColor="#f87171" />
+        <ArenaFloodlightTower position={[4.85, 0.3, 5.35]} rotation={[0, (-Math.PI * 3) / 4, 0]} glowColor="#f87171" />
+
+        {/* Green Turf Infield & Surrounds */}
         <mesh position={[0, 0.31, 0]} receiveShadow>
           <boxGeometry args={[10.0, 0.02, 11.0]} />
           <meshStandardMaterial color="#065f46" roughness={0.7} />
@@ -455,20 +599,58 @@ export default function Zone3RoboticsArena() {
         {/* Ground Asphalt Circuit Track */}
         <mesh position={[0, 0.32, 0]} receiveShadow>
           <boxGeometry args={[9.0, 0.015, 10.0]} />
-          <meshStandardMaterial color="#1e2430" roughness={0.8} />
+          <meshStandardMaterial color="#1b2230" roughness={0.78} />
         </mesh>
 
-        {/* Track Apex Kerbs (Red & White Racing Strips on Turn Apices) */}
+        {/* Crisp White Outer & Inner Track Lane Lines */}
+        <mesh position={[0, 0.329, -4.75]}>
+          <boxGeometry args={[8.5, 0.004, 0.05]} />
+          <meshBasicMaterial color="#e2e8f0" />
+        </mesh>
+        <mesh position={[0, 0.329, 4.75]}>
+          <boxGeometry args={[8.5, 0.004, 0.05]} />
+          <meshBasicMaterial color="#e2e8f0" />
+        </mesh>
+        <mesh position={[-4.25, 0.329, 0]}>
+          <boxGeometry args={[0.05, 0.004, 9.5]} />
+          <meshBasicMaterial color="#e2e8f0" />
+        </mesh>
+        <mesh position={[4.25, 0.329, 0]}>
+          <boxGeometry args={[0.05, 0.004, 9.5]} />
+          <meshBasicMaterial color="#e2e8f0" />
+        </mesh>
+
+        {/* Checkered Start / Finish Line Strip on Asphalt */}
+        <group position={[0, 0.33, 3.6]}>
+          {[-3.2, -2.8, -2.4, -2.0, 2.0, 2.4, 2.8, 3.2].map((xCheck, cIdx) => (
+            <mesh key={cIdx} position={[xCheck, 0, 0]}>
+              <boxGeometry args={[0.2, 0.004, 0.28]} />
+              <meshBasicMaterial color={cIdx % 2 === 0 ? '#ffffff' : '#ef4444'} />
+            </mesh>
+          ))}
+        </group>
+
+        {/* Track Apex Kerbs (Red & White Racing Rumble Strips on Turn Apices) */}
         {[
           [-3.8, 0.33, -3.8],
           [3.8, 0.33, -3.8],
           [-3.8, 0.33, 3.8],
           [3.8, 0.33, 3.8],
         ].map(([kx, ky, kz], idx) => (
-          <mesh key={idx} position={[kx, ky, kz]}>
-            <boxGeometry args={[1.2, 0.02, 1.2]} />
-            <meshStandardMaterial color="#ef4444" roughness={0.5} />
-          </mesh>
+          <group key={idx} position={[kx, ky, kz]}>
+            <mesh>
+              <boxGeometry args={[1.25, 0.02, 1.25]} />
+              <meshStandardMaterial color="#ef4444" roughness={0.45} />
+            </mesh>
+            <mesh position={[0, 0.003, 0]}>
+              <boxGeometry args={[0.85, 0.02, 0.85]} />
+              <meshStandardMaterial color="#f8fafc" roughness={0.45} />
+            </mesh>
+            <mesh position={[0, 0.006, 0]}>
+              <boxGeometry args={[0.45, 0.02, 0.45]} />
+              <meshStandardMaterial color="#ef4444" roughness={0.45} />
+            </mesh>
+          </group>
         ))}
 
         {/* 
@@ -481,49 +663,48 @@ export default function Zone3RoboticsArena() {
           {/* Ascending Up-Ramp (West side) */}
           <group position={[-1.7, 0.64, 0]} rotation={[0, 0, 0.38]}>
             <mesh castShadow receiveShadow>
-              <boxGeometry args={[1.75, 0.06, 1.2]} />
-              <meshStandardMaterial color="#334155" roughness={0.4} metalness={0.3} />
+              <boxGeometry args={[1.75, 0.06, 1.24]} />
+              <meshStandardMaterial color="#334155" roughness={0.35} metalness={0.45} />
             </mesh>
-            {/* Yellow/Black High-Contrast Grip Surface */}
+            {/* High-Grip Deck with Glowing Guide Rails */}
             <mesh position={[0, 0.035, 0]}>
               <boxGeometry args={[1.7, 0.01, 1.15]} />
-              <meshStandardMaterial color="#f59e0b" roughness={0.6} />
+              <meshStandardMaterial color="#f59e0b" roughness={0.55} />
             </mesh>
-            {/* Safety Edge Rail */}
-            <mesh position={[0, 0.08, -0.58]}>
+            <mesh position={[0, 0.08, -0.59]}>
               <boxGeometry args={[1.75, 0.1, 0.04]} />
-              <meshStandardMaterial color="#ef4444" />
+              <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
             </mesh>
-            <mesh position={[0, 0.08, 0.58]}>
+            <mesh position={[0, 0.08, 0.59]}>
               <boxGeometry args={[1.75, 0.1, 0.04]} />
-              <meshStandardMaterial color="#ef4444" />
+              <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
             </mesh>
           </group>
 
           {/* Elevated Central Bridge Platform */}
           <group position={[0, 0.96, 0]}>
             <mesh castShadow receiveShadow>
-              <boxGeometry args={[1.85, 0.08, 1.2]} />
-              <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.5} />
+              <boxGeometry args={[1.85, 0.08, 1.24]} />
+              <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.6} />
             </mesh>
             {/* Top Deck Line */}
             <mesh position={[0, 0.045, 0]}>
               <boxGeometry args={[1.8, 0.01, 1.15]} />
               <meshStandardMaterial color="#f59e0b" roughness={0.5} />
             </mesh>
-            {/* Safety Handrails */}
-            <mesh position={[0, 0.12, -0.58]}>
+            {/* Safety Handrails with Neon Top Bar */}
+            <mesh position={[0, 0.12, -0.59]}>
               <boxGeometry args={[1.85, 0.16, 0.04]} />
-              <meshStandardMaterial color="#ef4444" />
+              <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={1.0} />
             </mesh>
-            <mesh position={[0, 0.12, 0.58]}>
+            <mesh position={[0, 0.12, 0.59]}>
               <boxGeometry args={[1.85, 0.16, 0.04]} />
-              <meshStandardMaterial color="#ef4444" />
+              <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={1.0} />
             </mesh>
             {/* Structural Steel I-Beam Trusses Beneath Bridge */}
             {[-0.8, 0.8].map((legX, i) => (
               <mesh key={i} position={[legX, -0.32, 0]} castShadow>
-                <boxGeometry args={[0.08, 0.56, 1.15]} />
+                <boxGeometry args={[0.09, 0.56, 1.18]} />
                 <meshStandardMaterial color="#475569" metalness={0.9} roughness={0.2} />
               </mesh>
             ))}
@@ -532,53 +713,64 @@ export default function Zone3RoboticsArena() {
           {/* Descending Down-Ramp (East side) */}
           <group position={[1.7, 0.64, 0]} rotation={[0, 0, -0.38]}>
             <mesh castShadow receiveShadow>
-              <boxGeometry args={[1.75, 0.06, 1.2]} />
-              <meshStandardMaterial color="#334155" roughness={0.4} metalness={0.3} />
+              <boxGeometry args={[1.75, 0.06, 1.24]} />
+              <meshStandardMaterial color="#334155" roughness={0.35} metalness={0.45} />
             </mesh>
             <mesh position={[0, 0.035, 0]}>
               <boxGeometry args={[1.7, 0.01, 1.15]} />
-              <meshStandardMaterial color="#f59e0b" roughness={0.6} />
+              <meshStandardMaterial color="#f59e0b" roughness={0.55} />
             </mesh>
-            <mesh position={[0, 0.08, -0.58]}>
+            <mesh position={[0, 0.08, -0.59]}>
               <boxGeometry args={[1.75, 0.1, 0.04]} />
-              <meshStandardMaterial color="#ef4444" />
+              <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
             </mesh>
-            <mesh position={[0, 0.08, 0.58]}>
+            <mesh position={[0, 0.08, 0.59]}>
               <boxGeometry args={[1.75, 0.1, 0.04]} />
-              <meshStandardMaterial color="#ef4444" />
+              <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
             </mesh>
           </group>
         </group>
 
-        {/* Center Island Barrier */}
-        <mesh position={[0, 0.5, 0.4]} castShadow receiveShadow>
-          <boxGeometry args={[3.6, 0.38, 3.8]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.4} />
-        </mesh>
-        <mesh position={[0, 0.7, 0.4]}>
-          <boxGeometry args={[3.7, 0.04, 3.9]} />
-          <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={1.2} />
-        </mesh>
+        {/* Center Island Telemetry Control Hub */}
+        <group position={[0, 0.5, 0.4]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[3.6, 0.38, 3.8]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.35} metalness={0.6} />
+          </mesh>
+          <mesh position={[0, 0.2, 0]}>
+            <boxGeometry args={[3.7, 0.04, 3.9]} />
+            <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={1.4} />
+          </mesh>
+          {/* Central Telemetry Beacon Pylon on Infield Island */}
+          <mesh position={[0, 0.42, 0]} castShadow>
+            <cylinderGeometry args={[0.28, 0.36, 0.42, 16]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.2} />
+          </mesh>
+          <mesh position={[0, 0.66, 0]}>
+            <cylinderGeometry args={[0.18, 0.18, 0.08, 16]} />
+            <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={2.0} />
+          </mesh>
+        </group>
 
-        {/* Outer Crimson Perimeter Safety Walls */}
+        {/* Outer Crimson & Polycarbonate Crash Safety Walls */}
         <mesh position={[0, 0.48, -5.5]}>
-          <boxGeometry args={[10.0, 0.32, 0.06]} />
-          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
+          <boxGeometry args={[10.0, 0.34, 0.07]} />
+          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.9} />
         </mesh>
         <mesh position={[0, 0.48, 5.5]}>
-          <boxGeometry args={[10.0, 0.32, 0.06]} />
-          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
+          <boxGeometry args={[10.0, 0.34, 0.07]} />
+          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.9} />
         </mesh>
         <mesh position={[-5.0, 0.48, 0]}>
-          <boxGeometry args={[0.06, 0.32, 11.0]} />
-          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
+          <boxGeometry args={[0.07, 0.34, 11.0]} />
+          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.9} />
         </mesh>
         <mesh position={[5.0, 0.48, 0]}>
-          <boxGeometry args={[0.06, 0.32, 11.0]} />
-          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.8} />
+          <boxGeometry args={[0.07, 0.34, 11.0]} />
+          <meshStandardMaterial color="#ef4444" emissive="#dc2626" emissiveIntensity={0.9} />
         </mesh>
 
-        {/* Flat Arena Floor Plaque (Zero Vertical Midair Collision with Stage!) */}
+        {/* Flat Arena Floor Plaque */}
         <group position={[0, 0.325, 5.2]} rotation={[-Math.PI / 2, 0, 0]}>
           <mesh>
             <planeGeometry args={[7.2, 0.32]} />
@@ -589,27 +781,35 @@ export default function Zone3RoboticsArena() {
           </Text>
         </group>
 
-        {/* Start / Finish Gantry Arch */}
+        {/* Start / Finish Gantry Arch with F1 Race Start Lights */}
         <group position={[0, 0.32, 3.6]}>
-          <mesh position={[-3.6, 1.1, 0]}>
-            <boxGeometry args={[0.12, 2.2, 0.12]} />
-            <meshStandardMaterial color="#ef4444" />
+          <mesh position={[-3.6, 1.1, 0]} castShadow>
+            <boxGeometry args={[0.16, 2.2, 0.16]} />
+            <meshStandardMaterial color="#ef4444" metalness={0.6} roughness={0.3} />
           </mesh>
-          <mesh position={[3.6, 1.1, 0]}>
-            <boxGeometry args={[0.12, 2.2, 0.12]} />
-            <meshStandardMaterial color="#ef4444" />
+          <mesh position={[3.6, 1.1, 0]} castShadow>
+            <boxGeometry args={[0.16, 2.2, 0.16]} />
+            <meshStandardMaterial color="#ef4444" metalness={0.6} roughness={0.3} />
           </mesh>
-          <mesh position={[0, 2.1, 0]}>
-            <boxGeometry args={[7.3, 0.35, 0.14]} />
-            <meshStandardMaterial color="#0f172a" />
+          <mesh position={[0, 2.1, 0]} castShadow>
+            <boxGeometry args={[7.4, 0.38, 0.18]} />
+            <meshStandardMaterial color="#0f172a" metalness={0.85} roughness={0.2} />
           </mesh>
-          <Text position={[0, 2.1, 0.08]} fontSize={0.14} color="#fbbf24" anchorX="center" anchorY="middle" letterSpacing={0.08}>
+          {/* 5 Race Start Signal Pods */}
+          {[-1.2, -0.6, 0, 0.6, 1.2].map((xLight, lIdx) => (
+            <mesh key={lIdx} position={[xLight, 1.86, 0.08]}>
+              <sphereGeometry args={[0.045, 10, 10]} />
+              <meshBasicMaterial color={lIdx < 3 ? '#ef4444' : '#22c55e'} />
+            </mesh>
+          ))}
+          <Text position={[0, 2.1, 0.1]} fontSize={0.14} color="#fbbf24" anchorX="center" anchorY="middle" letterSpacing={0.08}>
             START / FINISH • RAMP OBSTACLE READY
           </Text>
         </group>
 
-        {/* Animated Racing Robot Rover tackling the ramps! */}
-        <AnimatedRoboRacer />
+        {/* 2 Animated Racing Robot Rovers tackling the ramps head-to-head! */}
+        <AnimatedRoboRacer timeOffset={0} chassisColor="#ea580c" accentColor="#38bdf8" />
+        <AnimatedRoboRacer timeOffset={Math.PI} chassisColor="#dc2626" accentColor="#fbbf24" />
       </group>
 
       {/* ======================================================== */}
@@ -622,13 +822,11 @@ export default function Zone3RoboticsArena() {
         onPointerOver={(e) => {
           if (!isMobile) {
             e.stopPropagation();
-            setHoveredArena('soccer');
             document.body.style.cursor = 'pointer';
           }
         }}
         onPointerOut={() => {
           if (!isMobile) {
-            setHoveredArena(null);
             document.body.style.cursor = 'auto';
           }
         }}
@@ -644,17 +842,35 @@ export default function Zone3RoboticsArena() {
           color="#f0fdf4"
         />
 
-        {/* Platform Base */}
-        <mesh position={[0, 0.15, 0]} receiveShadow castShadow>
-          <boxGeometry args={[10.5, 0.3, 11.5]} />
-          <meshStandardMaterial color="#0f172a" metalness={0.7} roughness={0.3} />
+        {/* Sculpted Multi-Tier Platform Base with Glowing Emerald Skirt */}
+        <mesh position={[0, 0.14, 0]} receiveShadow castShadow>
+          <boxGeometry args={[10.6, 0.28, 11.6]} />
+          <meshStandardMaterial color="#0b111e" metalness={0.8} roughness={0.25} />
         </mesh>
+        <mesh position={[0, 0.29, 0]}>
+          <boxGeometry args={[10.46, 0.02, 11.46]} />
+          <meshStandardMaterial color="#34d399" emissive="#059669" emissiveIntensity={1.4} />
+        </mesh>
+
+        {/* 4 Corner Stadium Floodlight Towers */}
+        <ArenaFloodlightTower position={[-4.85, 0.3, -5.35]} rotation={[0, Math.PI / 4, 0]} glowColor="#34d399" />
+        <ArenaFloodlightTower position={[4.85, 0.3, -5.35]} rotation={[0, -Math.PI / 4, 0]} glowColor="#34d399" />
+        <ArenaFloodlightTower position={[-4.85, 0.3, 5.35]} rotation={[0, (Math.PI * 3) / 4, 0]} glowColor="#38bdf8" />
+        <ArenaFloodlightTower position={[4.85, 0.3, 5.35]} rotation={[0, (-Math.PI * 3) / 4, 0]} glowColor="#38bdf8" />
 
         {/* Green Astroturf */}
         <mesh position={[0, 0.31, 0]} receiveShadow>
           <boxGeometry args={[10.0, 0.02, 11.0]} />
-          <meshStandardMaterial color="#059669" roughness={0.7} />
+          <meshStandardMaterial color="#059669" roughness={0.68} />
         </mesh>
+
+        {/* Subtle Alternating Turf Mowing Stripes */}
+        {[-3.6, -1.2, 1.2, 3.6].map((zStripe, sIdx) => (
+          <mesh key={sIdx} position={[0, 0.321, zStripe]} receiveShadow>
+            <boxGeometry args={[9.0, 0.002, 1.1]} />
+            <meshStandardMaterial color="#047857" roughness={0.7} />
+          </mesh>
+        ))}
 
         {/* Regulation Pitch Markings */}
         <mesh position={[0, 0.325, 0]}>
@@ -662,16 +878,41 @@ export default function Zone3RoboticsArena() {
           <meshStandardMaterial color="#ffffff" />
         </mesh>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.325, 0]}>
-          <ringGeometry args={[1.2, 1.26, 28]} />
+          <ringGeometry args={[1.2, 1.26, 32]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+        {/* Touchlines & Goal Lines */}
+        <mesh position={[-4.5, 0.325, 0]}>
+          <boxGeometry args={[0.05, 0.005, 9.6]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+        <mesh position={[4.5, 0.325, 0]}>
+          <boxGeometry args={[0.05, 0.005, 9.6]} />
           <meshStandardMaterial color="#ffffff" />
         </mesh>
         {/* Penalty Area Outlines */}
-        <mesh position={[0, 0.325, -4.2]}>
+        <mesh position={[0, 0.325, -3.9]}>
           <boxGeometry args={[4.2, 0.005, 0.05]} />
           <meshStandardMaterial color="#ffffff" />
         </mesh>
-        <mesh position={[0, 0.325, 4.2]}>
+        <mesh position={[-2.1, 0.325, -4.35]}>
+          <boxGeometry args={[0.05, 0.005, 0.9]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+        <mesh position={[2.1, 0.325, -4.35]}>
+          <boxGeometry args={[0.05, 0.005, 0.9]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+        <mesh position={[0, 0.325, 3.9]}>
           <boxGeometry args={[4.2, 0.005, 0.05]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+        <mesh position={[-2.1, 0.325, 4.35]}>
+          <boxGeometry args={[0.05, 0.005, 0.9]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+        <mesh position={[2.1, 0.325, 4.35]}>
+          <boxGeometry args={[0.05, 0.005, 0.9]} />
           <meshStandardMaterial color="#ffffff" />
         </mesh>
 
@@ -689,22 +930,30 @@ export default function Zone3RoboticsArena() {
             </mesh>
             <mesh position={[0.06, 0.44, 0]}>
               <boxGeometry args={[0.12, 0.08, 0.01]} />
-              <meshStandardMaterial color="#fbbf24" />
+              <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.8} />
             </mesh>
           </group>
         ))}
 
-        {/* Acrylic Perimeter Safety Walls */}
+        {/* Full 4-Sided Tempered Glass Stadium Perimeter Walls */}
         <mesh position={[0, 0.52, -5.5]}>
-          <boxGeometry args={[10.0, 0.42, 0.06]} />
-          <meshStandardMaterial color="#10b981" transparent opacity={0.35} />
+          <boxGeometry args={[10.0, 0.42, 0.05]} />
+          <meshStandardMaterial color="#10b981" transparent opacity={0.32} metalness={0.9} roughness={0.1} />
         </mesh>
         <mesh position={[0, 0.52, 5.5]}>
-          <boxGeometry args={[10.0, 0.42, 0.06]} />
-          <meshStandardMaterial color="#10b981" transparent opacity={0.35} />
+          <boxGeometry args={[10.0, 0.42, 0.05]} />
+          <meshStandardMaterial color="#10b981" transparent opacity={0.32} metalness={0.9} roughness={0.1} />
+        </mesh>
+        <mesh position={[-5.0, 0.52, 0]}>
+          <boxGeometry args={[0.05, 0.42, 11.0]} />
+          <meshStandardMaterial color="#10b981" transparent opacity={0.28} metalness={0.9} roughness={0.1} />
+        </mesh>
+        <mesh position={[5.0, 0.52, 0]}>
+          <boxGeometry args={[0.05, 0.42, 11.0]} />
+          <meshStandardMaterial color="#10b981" transparent opacity={0.28} metalness={0.9} roughness={0.1} />
         </mesh>
 
-        {/* Flat Arena Floor Plaque (Zero Vertical Midair Collision with Stage!) */}
+        {/* Flat Arena Floor Plaque */}
         <group position={[0, 0.325, 5.2]} rotation={[-Math.PI / 2, 0, 0]}>
           <mesh>
             <planeGeometry args={[7.2, 0.32]} />
@@ -715,79 +964,195 @@ export default function Zone3RoboticsArena() {
           </Text>
         </group>
 
-        {/* North Goalpost (Cyan) with Tubular Crossbar */}
+        {/* North Goalpost (Cyan) with Tubular Crossbar & Goal Net Cage */}
         <group position={[0, 0.32, -4.8]}>
           <mesh position={[-1.1, 0.5, 0]}>
-            <cylinderGeometry args={[0.035, 0.035, 1.0, 12]} />
-            <meshStandardMaterial color="#38bdf8" />
+            <cylinderGeometry args={[0.038, 0.038, 1.0, 12]} />
+            <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.2} />
           </mesh>
           <mesh position={[1.1, 0.5, 0]}>
-            <cylinderGeometry args={[0.035, 0.035, 1.0, 12]} />
-            <meshStandardMaterial color="#38bdf8" />
+            <cylinderGeometry args={[0.038, 0.038, 1.0, 12]} />
+            <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.2} />
           </mesh>
           <mesh position={[0, 1.0, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.035, 0.035, 2.2, 12]} />
-            <meshStandardMaterial color="#38bdf8" />
+            <cylinderGeometry args={[0.038, 0.038, 2.24, 12]} />
+            <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.2} />
+          </mesh>
+          {/* Translucent Goal Netting Box */}
+          <mesh position={[0, 0.5, -0.25]}>
+            <boxGeometry args={[2.18, 0.96, 0.48]} />
+            <meshStandardMaterial color="#38bdf8" transparent opacity={0.18} wireframe />
           </mesh>
         </group>
 
-        {/* South Goalpost (Rose) with Tubular Crossbar */}
+        {/* South Goalpost (Rose) with Tubular Crossbar & Goal Net Cage */}
         <group position={[0, 0.32, 4.8]}>
           <mesh position={[-1.1, 0.5, 0]}>
-            <cylinderGeometry args={[0.035, 0.035, 1.0, 12]} />
-            <meshStandardMaterial color="#f87171" />
+            <cylinderGeometry args={[0.038, 0.038, 1.0, 12]} />
+            <meshStandardMaterial color="#f87171" emissive="#dc2626" emissiveIntensity={1.2} />
           </mesh>
           <mesh position={[1.1, 0.5, 0]}>
-            <cylinderGeometry args={[0.035, 0.035, 1.0, 12]} />
-            <meshStandardMaterial color="#f87171" />
+            <cylinderGeometry args={[0.038, 0.038, 1.0, 12]} />
+            <meshStandardMaterial color="#f87171" emissive="#dc2626" emissiveIntensity={1.2} />
           </mesh>
           <mesh position={[0, 1.0, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.035, 0.035, 2.2, 12]} />
-            <meshStandardMaterial color="#f87171" />
+            <cylinderGeometry args={[0.038, 0.038, 2.24, 12]} />
+            <meshStandardMaterial color="#f87171" emissive="#dc2626" emissiveIntensity={1.2} />
+          </mesh>
+          <mesh position={[0, 0.5, 0.25]}>
+            <boxGeometry args={[2.18, 0.96, 0.48]} />
+            <meshStandardMaterial color="#f87171" transparent opacity={0.18} wireframe />
           </mesh>
         </group>
 
-        {/* 2 Animated Robots Playing Soccer in Real-Time! */}
+        {/* Animated Robots Playing Soccer in Real-Time! */}
         <AnimatedRoboSoccer />
       </group>
 
-      {/* 
-        3. HIGH-END AUDITORIUM KEYNOTE STAGE & ULTRA-WIDE LED MEDIA WALL
-        (North Wall at x = 10.4, z = -32.5)
-        Curved modern media wall with crisp keynote graphics, stage riser, and downlights.
-      */}
+      {/* ======================================================== */}
+      {/* 3. HIGH-END AUDITORIUM KEYNOTE STAGE & CONCERT TRUSS RIG */}
+      {/* (North Wall at x = 10.4, z = -32.5)                      */}
+      {/* ======================================================== */}
       <group position={[10.4, 0, -32.5]}>
-        {/* Stage Deck Riser Platform (Warm Architectural Wood) */}
-        <mesh position={[0, 0.22, 0]} receiveShadow castShadow>
-          <boxGeometry args={[30.5, 0.44, 4.2]} />
-          <meshStandardMaterial color="#9a7049" roughness={0.35} metalness={0.1} />
+        {/* Lower Anodized Stage Base Skirt */}
+        <mesh position={[0, 0.08, 0]} receiveShadow castShadow>
+          <boxGeometry args={[30.8, 0.16, 4.4]} />
+          <meshStandardMaterial color="#090d16" metalness={0.85} roughness={0.2} />
         </mesh>
+
+        {/* Stage Deck Riser Platform (Warm Architectural Wood) */}
+        <mesh position={[0, 0.28, 0]} receiveShadow castShadow>
+          <boxGeometry args={[30.5, 0.32, 4.2]} />
+          <meshStandardMaterial color="#9a7049" roughness={0.32} metalness={0.12} />
+        </mesh>
+
         {/* Front Step Edge with Warm Underglow LED Strip */}
         <mesh position={[0, 0.22, 2.12]}>
           <boxGeometry args={[30.5, 0.04, 0.04]} />
-          <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={1.8} />
+          <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={2.0} />
         </mesh>
 
-        {/* Stage Presentation Podium */}
+        {/* Left & Right Illuminated Stage Access Stairs */}
+        {[-15.8, 15.8].map((xStair, sIdx) => (
+          <group key={sIdx} position={[xStair, 0, 1.1]}>
+            <mesh position={[0, 0.08, 0.4]} castShadow receiveShadow>
+              <boxGeometry args={[1.1, 0.16, 0.8]} />
+              <meshStandardMaterial color="#1e293b" metalness={0.7} roughness={0.3} />
+            </mesh>
+            <mesh position={[0, 0.2, -0.2]} castShadow receiveShadow>
+              <boxGeometry args={[1.1, 0.32, 0.8]} />
+              <meshStandardMaterial color="#334155" metalness={0.7} roughness={0.3} />
+            </mesh>
+            <mesh position={[0, 0.165, 0.81]}>
+              <boxGeometry args={[1.05, 0.02, 0.02]} />
+              <meshBasicMaterial color="#fbbf24" />
+            </mesh>
+          </group>
+        ))}
+
+        {/* 4 Angled Stage Floor Monitor Wedges Along Front Edge */}
+        {[-8.0, -3.2, 3.2, 8.0].map((xMon, mIdx) => (
+          <group key={mIdx} position={[xMon, 0.48, 1.85]} rotation={[-0.35, 0, 0]}>
+            <mesh castShadow>
+              <boxGeometry args={[0.65, 0.22, 0.34]} />
+              <meshStandardMaterial color="#0f172a" metalness={0.8} roughness={0.25} />
+            </mesh>
+            <mesh position={[0, 0.115, 0]}>
+              <boxGeometry args={[0.55, 0.01, 0.02]} />
+              <meshBasicMaterial color="#38bdf8" />
+            </mesh>
+          </group>
+        ))}
+
+        {/* Executive Keynote Presentation Podium + Teleprompters */}
         <group position={[0, 0.44, 1.2]}>
-          <mesh position={[0, 0.55, 0]} castShadow>
-            <boxGeometry args={[1.2, 1.1, 0.65]} />
-            <meshStandardMaterial color="#0f172a" metalness={0.8} roughness={0.2} />
+          {/* Podium Base Plinth */}
+          <mesh position={[0, 0.04, 0]}>
+            <boxGeometry args={[1.36, 0.08, 0.78]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.2} />
+          </mesh>
+          {/* Sculpted Lectern Body */}
+          <mesh position={[0, 0.56, 0]} castShadow>
+            <boxGeometry args={[1.2, 1.05, 0.65]} />
+            <meshStandardMaterial color="#0f172a" metalness={0.85} roughness={0.2} />
+          </mesh>
+          {/* Slanted Top Reading Deck */}
+          <mesh position={[0, 1.1, -0.02]} rotation={[0.18, 0, 0]}>
+            <boxGeometry args={[1.28, 0.04, 0.72]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.18} />
           </mesh>
           {/* Edge-lit DPS Emblem Plate */}
-          <mesh position={[0, 0.55, 0.33]}>
-            <boxGeometry args={[0.8, 0.45, 0.02]} />
-            <meshStandardMaterial color="#0284c7" emissive="#0284c7" emissiveIntensity={1.2} />
+          <mesh position={[0, 0.58, 0.33]}>
+            <boxGeometry args={[0.82, 0.46, 0.02]} />
+            <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.6} />
           </mesh>
-          {/* Chrome Microphone */}
-          <mesh position={[0.25, 1.18, 0.1]} rotation={[-0.3, 0, 0]}>
-            <cylinderGeometry args={[0.008, 0.008, 0.22, 6]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.98} />
+          {/* Dual Chrome Gooseneck Microphones */}
+          {[-0.22, 0.22].map((xMic, micIdx) => (
+            <mesh key={micIdx} position={[xMic, 1.22, 0.1]} rotation={[-0.3, 0, 0]}>
+              <cylinderGeometry args={[0.008, 0.008, 0.24, 8]} />
+              <meshStandardMaterial color="#e2e8f0" metalness={0.98} roughness={0.1} />
+            </mesh>
+          ))}
+        </group>
+
+        {/* ====================================================== */}
+        {/* OVERHEAD CONCERT BOX-TRUSS GANTRY & LINE-ARRAY SPEAKERS */}
+        {/* ====================================================== */}
+        <group position={[0, 0, 0.2]}>
+          {/* Left & Right Vertical Truss Towers */}
+          {[-13.5, 13.5].map((xTower, tIdx) => (
+            <group key={tIdx} position={[xTower, 3.3, 0]}>
+              <mesh castShadow>
+                <boxGeometry args={[0.38, 6.4, 0.38]} />
+                <meshStandardMaterial color="#334155" metalness={0.92} roughness={0.18} />
+              </mesh>
+              <mesh position={[0, 0, 0.2]}>
+                <boxGeometry args={[0.04, 6.2, 0.02]} />
+                <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.5} />
+              </mesh>
+            </group>
+          ))}
+
+          {/* Overhead Horizontal Box-Truss Bridge */}
+          <mesh position={[0, 6.42, 0]} castShadow>
+            <boxGeometry args={[27.6, 0.36, 0.36]} />
+            <meshStandardMaterial color="#475569" metalness={0.92} roughness={0.18} />
           </mesh>
+
+          {/* 8 Concert Moving-Head Spotlight Fixtures on Overhead Truss */}
+          {[-10.5, -7.5, -4.5, -1.5, 1.5, 4.5, 7.5, 10.5].map((xSpot, spIdx) => (
+            <group key={spIdx} position={[xSpot, 6.1, 0.12]}>
+              <mesh>
+                <cylinderGeometry args={[0.1, 0.12, 0.24, 12]} />
+                <meshStandardMaterial color="#0f172a" metalness={0.85} roughness={0.2} />
+              </mesh>
+              <mesh position={[0, -0.13, 0.03]}>
+                <circleGeometry args={[0.08, 12]} />
+                <meshBasicMaterial color={spIdx % 2 === 0 ? '#fef08a' : '#38bdf8'} />
+              </mesh>
+            </group>
+          ))}
+
+          {/* Left & Right Suspended Line-Array Concert Speaker Clusters */}
+          {[-12.2, 12.2].map((xArr, aIdx) => (
+            <group key={aIdx} position={[xArr, 5.4, 0.35]} rotation={[0.15, aIdx === 0 ? 0.18 : -0.18, 0]}>
+              {[0, -0.24, -0.48, -0.72].map((yCab, cIdx) => (
+                <mesh key={cIdx} position={[0, yCab, cIdx * 0.03]} castShadow>
+                  <boxGeometry args={[0.85, 0.2, 0.45]} />
+                  <meshStandardMaterial color="#090d16" metalness={0.8} roughness={0.25} />
+                </mesh>
+              ))}
+            </group>
+          ))}
         </group>
 
         {/* Center Main Ultra-Wide LED Media Wall */}
         <group position={[0, 3.4, -0.6]}>
+          {/* Outer Titanium Structural Surround */}
+          <mesh position={[0, 0, -0.04]} castShadow>
+            <boxGeometry args={[26.5, 5.65, 0.18]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.92} roughness={0.18} />
+          </mesh>
           {/* Beveled Matte-Black Frame */}
           <mesh castShadow>
             <boxGeometry args={[26.2, 5.4, 0.2]} />
@@ -818,7 +1183,11 @@ export default function Zone3RoboticsArena() {
           </mesh>
           <mesh position={[0, 0, 0.08]}>
             <planeGeometry args={[3.0, 5.1]} />
-            <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.4} />
+            <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
+          </mesh>
+          <mesh position={[0, 0, 0.085]}>
+            <boxGeometry args={[3.04, 0.04, 0.01]} />
+            <meshBasicMaterial color="#38bdf8" />
           </mesh>
         </group>
 
@@ -829,7 +1198,11 @@ export default function Zone3RoboticsArena() {
           </mesh>
           <mesh position={[0, 0, 0.08]}>
             <planeGeometry args={[3.0, 5.1]} />
-            <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.4} />
+            <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
+          </mesh>
+          <mesh position={[0, 0, 0.085]}>
+            <boxGeometry args={[3.04, 0.04, 0.01]} />
+            <meshBasicMaterial color="#fbbf24" />
           </mesh>
         </group>
 
