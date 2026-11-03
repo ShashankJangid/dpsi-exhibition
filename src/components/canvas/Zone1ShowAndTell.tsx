@@ -24,13 +24,13 @@ export default function Zone1ShowAndTell() {
   return (
     <group position={[0, 0, 0]}>
       {/* 
-        GROUND POSTER - SHOW & TELL PAVILION ENTRANCE THRESHOLD
-        Placed in the entrance walkway connecting the Main Hall and Show & Tell Pavilion
+        GROUND POSTER - SHOW & TELL CENTRAL WALKWAY BANNER
+        Centered in the middle of both lines of stalls (Row 1 ST01-ST04 and Row 2 ST05-ST08)
         Ultra-crisp high-contrast canvas decal, zero blur, zero mesh clipping.
       */}
       <group
-        position={[-10.8, 0.02, -3.0]}
-        rotation={[0, Math.PI / 2, 0]}
+        position={[-18.5, 0.02, -3.0]}
+        rotation={[0, -0.38, 0]}
         onClick={handlePavilionClick}
         onPointerOver={() => {
           if (!isMobile) document.body.style.cursor = 'pointer';

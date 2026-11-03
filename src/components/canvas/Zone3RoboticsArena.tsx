@@ -378,7 +378,7 @@ export default function Zone3RoboticsArena() {
       {/* Ultra-crisp canvas decal, 100% visible, zero overlap      */}
       {/* ======================================================== */}
       <group
-        position={[8.5, 0.02, -16.5]}
+        position={[10.4, 0.02, -16.5]}
         onClick={handleArenaClick}
         onPointerOver={() => {
           if (!isMobile) document.body.style.cursor = 'pointer';
@@ -411,10 +411,10 @@ export default function Zone3RoboticsArena() {
       </group>
       {/* ======================================================== */}
       {/* 1. LEFT ARENA: ROBO SPEEDWAY CIRCUIT WITH REAL RAMPS     */}
-      {/* (x = 2.5, z = -25.5)                                     */}
+      {/* Perfectly aligned and balanced (x = 3.0, z = -25.5)      */}
       {/* ======================================================== */}
       <group
-        position={[2.5, 0, -25.5]}
+        position={[3.0, 0, -25.5]}
         onClick={handleArenaClick}
         onPointerOver={(e) => {
           if (!isMobile) {
@@ -614,10 +614,11 @@ export default function Zone3RoboticsArena() {
       </group>
 
       {/* ======================================================== */}
-      {/* 2. RIGHT ARENA: ROBO SOCCER STADIUM (x = 14.5, z = -25.5) */}
+      {/* 2. RIGHT ARENA: ROBO SOCCER STADIUM (x = 17.8, z = -25.5) */}
+      {/* Perfectly aligned with East side (opposite of Show & Tell)*/}
       {/* ======================================================== */}
       <group
-        position={[14.5, 0, -25.5]}
+        position={[17.8, 0, -25.5]}
         onClick={handleArenaClick}
         onPointerOver={(e) => {
           if (!isMobile) {
@@ -753,18 +754,18 @@ export default function Zone3RoboticsArena() {
 
       {/* 
         3. HIGH-END AUDITORIUM KEYNOTE STAGE & ULTRA-WIDE LED MEDIA WALL
-        (North Wall at x = 8.5, z = -32.5)
+        (North Wall at x = 10.4, z = -32.5)
         Curved modern media wall with crisp keynote graphics, stage riser, and downlights.
       */}
-      <group position={[8.5, 0, -32.5]}>
+      <group position={[10.4, 0, -32.5]}>
         {/* Stage Deck Riser Platform (Warm Architectural Wood) */}
         <mesh position={[0, 0.22, 0]} receiveShadow castShadow>
-          <boxGeometry args={[26.5, 0.44, 4.2]} />
+          <boxGeometry args={[30.5, 0.44, 4.2]} />
           <meshStandardMaterial color="#9a7049" roughness={0.35} metalness={0.1} />
         </mesh>
         {/* Front Step Edge with Warm Underglow LED Strip */}
         <mesh position={[0, 0.22, 2.12]}>
-          <boxGeometry args={[26.5, 0.04, 0.04]} />
+          <boxGeometry args={[30.5, 0.04, 0.04]} />
           <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={1.8} />
         </mesh>
 
@@ -790,12 +791,12 @@ export default function Zone3RoboticsArena() {
         <group position={[0, 3.4, -0.6]}>
           {/* Beveled Matte-Black Frame */}
           <mesh castShadow>
-            <boxGeometry args={[24.2, 5.4, 0.2]} />
+            <boxGeometry args={[26.2, 5.4, 0.2]} />
             <meshStandardMaterial color="#050811" metalness={0.92} roughness={0.15} />
           </mesh>
           {/* High-Resolution Keynote LED Display Face */}
           <mesh position={[0, 0, 0.11]}>
-            <planeGeometry args={[23.8, 5.1]} />
+            <planeGeometry args={[25.8, 5.1]} />
             {stageTexture ? (
               <meshStandardMaterial
                 map={stageTexture}
@@ -811,7 +812,7 @@ export default function Zone3RoboticsArena() {
         </group>
 
         {/* Left & Right Angled Stage Wing Screens */}
-        <group position={[-13.5, 3.4, 0.3]} rotation={[0, 0.32, 0]}>
+        <group position={[-14.5, 3.4, 0.3]} rotation={[0, 0.32, 0]}>
           <mesh castShadow>
             <boxGeometry args={[3.2, 5.4, 0.15]} />
             <meshStandardMaterial color="#050811" metalness={0.9} roughness={0.2} />
@@ -822,7 +823,7 @@ export default function Zone3RoboticsArena() {
           </mesh>
         </group>
 
-        <group position={[13.5, 3.4, 0.3]} rotation={[0, -0.32, 0]}>
+        <group position={[14.5, 3.4, 0.3]} rotation={[0, -0.32, 0]}>
           <mesh castShadow>
             <boxGeometry args={[3.2, 5.4, 0.15]} />
             <meshStandardMaterial color="#050811" metalness={0.9} roughness={0.2} />

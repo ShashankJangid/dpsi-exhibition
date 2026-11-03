@@ -36,9 +36,9 @@ export const CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
     target: [8.5, 1.2, -6.5],
   },
   'zone-3': {
-    // Robotics arenas grandstand view: directly in front of the concourse rail with full view of both Arenas
-    position: [8.5, 4.6, -16.8],
-    target: [8.5, 1.2, -26.0],
+    // Robotics arenas grandstand view: directly in front of the concourse rail with full symmetrical view of both Arenas
+    position: [10.4, 4.6, -16.8],
+    target: [10.4, 1.2, -26.0],
   },
   physical: {
     // Physical Computing aisle view: directly down the center aisle of P01-P12
@@ -75,8 +75,8 @@ export const MOBILE_CAMERA_PRESETS: Record<NavZoneId, CameraViewConfig> = {
     target: [8.5, 1.2, -6.5],
   },
   'zone-3': {
-    position: [8.5, 6.2, -15.2],
-    target: [8.5, 1.2, -26.0],
+    position: [10.4, 6.2, -15.2],
+    target: [10.4, 1.2, -26.0],
   },
   physical: {
     position: [-2.2, 4.2, -11.25],

@@ -201,11 +201,11 @@ export default function FloorAndEnvironment() {
       </mesh>
 
       {/* Glass Balustrade along the Concourse Overlook */}
-      <group position={[9, 0, -18.9]}>
-        {[-8, -2, 4, 10].map((xGlass, idx) => (
+      <group position={[10.4, 0, -18.9]}>
+        {[-13.8, -9.2, -4.6, 0.0, 4.6, 9.2, 13.8].map((xGlass, idx) => (
           <group key={idx} position={[xGlass, 0.55, 0]}>
             <mesh>
-              <boxGeometry args={[4.8, 0.95, 0.03]} />
+              <boxGeometry args={[4.4, 0.95, 0.03]} />
               <meshStandardMaterial
                 color="#e0f2fe"
                 transparent
@@ -215,12 +215,12 @@ export default function FloorAndEnvironment() {
               />
             </mesh>
             <mesh position={[0, 0.5, 0]}>
-              <boxGeometry args={[4.82, 0.04, 0.06]} />
+              <boxGeometry args={[4.42, 0.04, 0.06]} />
               <meshStandardMaterial color="#cbd5e1" metalness={0.98} roughness={0.1} />
             </mesh>
           </group>
         ))}
-        {[-10.5, -5.5, -0.5, 4.5, 9.5, 12.5].map((xPost, idx) => (
+        {[-16.1, -11.5, -6.9, -2.3, 2.3, 6.9, 11.5, 16.1].map((xPost, idx) => (
           <mesh key={idx} position={[xPost, 0.55, 0]}>
             <cylinderGeometry args={[0.025, 0.025, 1.1, 10]} />
             <meshStandardMaterial color="#cbd5e1" metalness={0.98} roughness={0.1} />
@@ -229,8 +229,8 @@ export default function FloorAndEnvironment() {
       </group>
 
       {/* D. Top Arena Wing Floor Inlay */}
-      <mesh position={[8.5, 0.005, -25.5]} receiveShadow>
-        <boxGeometry args={[33, 0.01, 14.5]} />
+      <mesh position={[10.4, 0.005, -25.5]} receiveShadow>
+        <boxGeometry args={[34.8, 0.01, 14.5]} />
         <meshStandardMaterial
           color={isLight ? '#94a3b8' : '#0c1320'}
           roughness={isLight ? 0.55 : 0.45}
@@ -269,17 +269,18 @@ export default function FloorAndEnvironment() {
       </group>
 
       {/* ========================================================= */}
-      {/* 3. WEST WING PARTITIONS & SHOW & TELL GRAND ENTRANCE PORTAL */}
-      {/* Leaves the central corridor completely open and unobstructed*/}
+      {/* 3. WEST WING PARTITIONS & EXTENDED GATES TO LAST OF WALL  */}
+      {/* Extends continuously from North wall (-34.8) to South wall (+10.8) */}
+      {/* With 9.0m Grand Entrance Portal to Show & Tell at [-7.5, 1.5] */}
       {/* ========================================================= */}
       <group position={[-7.0, 0, 0]}>
         {/* Grand Portal Framing Columns & Overhead Lintel */}
         <mesh position={[0, 2.5, -7.5]} castShadow>
-          <boxGeometry args={[0.24, 5.0, 0.24]} />
+          <boxGeometry args={[0.26, 5.0, 0.26]} />
           <meshStandardMaterial color={isLight ? '#475569' : '#0f172a'} metalness={0.9} roughness={0.2} />
         </mesh>
         <mesh position={[0, 2.5, 1.5]} castShadow>
-          <boxGeometry args={[0.24, 5.0, 0.24]} />
+          <boxGeometry args={[0.26, 5.0, 0.26]} />
           <meshStandardMaterial color={isLight ? '#475569' : '#0f172a'} metalness={0.9} roughness={0.2} />
         </mesh>
         {/* Overhead Grand Portal Lintel Beam (Clear 9.0m Open Walkway Below) */}
@@ -293,58 +294,68 @@ export default function FloorAndEnvironment() {
           <meshStandardMaterial color="#a855f7" emissive="#7c3aed" emissiveIntensity={1.8} />
         </mesh>
 
-        {/* North Partition Wall & Exterior Swing Door (z <= -7.5) */}
-        {[-16.5, -12.0].map((zPos, idx) => (
+        {/* 
+          NORTH EXTENSION TO BACK WALL (z: -7.5 all the way to -34.8)
+          Structural columns, glass panels, and swing gates extending right to the North exterior wall.
+        */}
+        {[-34.8, -30.0, -25.5, -21.0, -16.5, -12.0].map((zPos, idx) => (
           <mesh key={`n-col-${idx}`} position={[0, 2.5, zPos]} castShadow>
             <boxGeometry args={[0.2, 5.0, 0.2]} />
             <meshStandardMaterial color={isLight ? '#475569' : '#0f172a'} metalness={0.9} roughness={0.2} />
           </mesh>
         ))}
-        {/* Glass Panels North Wing */}
-        <mesh position={[0, 2.4, -9.75]}>
-          <boxGeometry args={[0.06, 4.8, 4.3]} />
-          <meshStandardMaterial
-            color={isLight ? '#e0f2fe' : '#38bdf8'}
-            metalness={0.9}
-            roughness={0.1}
-            transparent
-            opacity={isLight ? 0.3 : 0.4}
-          />
-        </mesh>
-        {/* North Wing Door */}
-        <group position={[0, 0, -14.25]}>
-          <mesh position={[0, 1.5, -1.0]} castShadow>
-            <boxGeometry args={[0.18, 3.0, 0.1]} />
-            <meshStandardMaterial color={isLight ? '#334155' : '#1e293b'} metalness={0.8} />
+        {/* North Wing Glass Partitions */}
+        {[-9.75, -18.75, -27.75].map((zGlass, idx) => (
+          <mesh key={`n-glass-${idx}`} position={[0, 2.4, zGlass]}>
+            <boxGeometry args={[0.06, 4.8, 4.3]} />
+            <meshStandardMaterial
+              color={isLight ? '#e0f2fe' : '#38bdf8'}
+              metalness={0.9}
+              roughness={0.1}
+              transparent
+              opacity={isLight ? 0.3 : 0.4}
+            />
           </mesh>
-          <mesh position={[0, 1.5, 1.0]} castShadow>
-            <boxGeometry args={[0.18, 3.0, 0.1]} />
-            <meshStandardMaterial color={isLight ? '#334155' : '#1e293b'} metalness={0.8} />
-          </mesh>
-          <mesh position={[0, 3.05, 0]}>
-            <boxGeometry args={[0.18, 0.1, 2.1]} />
-            <meshStandardMaterial color={isLight ? '#334155' : '#1e293b'} metalness={0.8} />
-          </mesh>
-          <group position={[0, 0, 0.95]} rotation={[0, 0.85, 0]}>
-            <mesh position={[0, 1.45, -0.85]} castShadow>
-              <boxGeometry args={[0.05, 2.85, 1.7]} />
-              <meshStandardMaterial color={isLight ? '#a87848' : '#1e293b'} roughness={0.3} metalness={0.2} />
+        ))}
+        {/* North Wing Architectural Swing Gates along wall to -34.8 */}
+        {[-14.25, -23.25, -32.4].map((zDoor, idx) => (
+          <group key={`n-door-${idx}`} position={[0, 0, zDoor]}>
+            <mesh position={[0, 1.5, -1.0]} castShadow>
+              <boxGeometry args={[0.18, 3.0, 0.1]} />
+              <meshStandardMaterial color={isLight ? '#334155' : '#1e293b'} metalness={0.8} />
             </mesh>
-            <mesh position={[-0.04, 1.3, -1.6]}>
-              <cylinderGeometry args={[0.018, 0.018, 0.6, 8]} />
-              <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.1} />
+            <mesh position={[0, 1.5, 1.0]} castShadow>
+              <boxGeometry args={[0.18, 3.0, 0.1]} />
+              <meshStandardMaterial color={isLight ? '#334155' : '#1e293b'} metalness={0.8} />
             </mesh>
+            <mesh position={[0, 3.05, 0]}>
+              <boxGeometry args={[0.18, 0.1, 2.1]} />
+              <meshStandardMaterial color={isLight ? '#334155' : '#1e293b'} metalness={0.8} />
+            </mesh>
+            <group position={[0, 0, 0.95]} rotation={[0, 0.85, 0]}>
+              <mesh position={[0, 1.45, -0.85]} castShadow>
+                <boxGeometry args={[0.05, 2.85, 1.7]} />
+                <meshStandardMaterial color={isLight ? '#a87848' : '#1e293b'} roughness={0.3} metalness={0.2} />
+              </mesh>
+              <mesh position={[-0.04, 1.3, -1.6]}>
+                <cylinderGeometry args={[0.018, 0.018, 0.6, 8]} />
+                <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.1} />
+              </mesh>
+            </group>
           </group>
-        </group>
+        ))}
 
-        {/* South Partition Wall & Exterior Swing Door (z >= 1.5) */}
-        {[6.0, 10.5].map((zPos, idx) => (
+        {/* 
+          SOUTH EXTENSION TO FRONT OPENING (z: 1.5 all the way to 10.8)
+          Extending right to the front wall opening.
+        */}
+        {[6.0, 10.8].map((zPos, idx) => (
           <mesh key={`s-col-${idx}`} position={[0, 2.5, zPos]} castShadow>
             <boxGeometry args={[0.2, 5.0, 0.2]} />
             <meshStandardMaterial color={isLight ? '#475569' : '#0f172a'} metalness={0.9} roughness={0.2} />
           </mesh>
         ))}
-        {/* Glass Panels South Wing */}
+        {/* South Wing Glass Partition */}
         <mesh position={[0, 2.4, 3.75]}>
           <boxGeometry args={[0.06, 4.8, 4.3]} />
           <meshStandardMaterial
@@ -355,8 +366,8 @@ export default function FloorAndEnvironment() {
             opacity={isLight ? 0.3 : 0.4}
           />
         </mesh>
-        {/* South Wing Door */}
-        <group position={[0, 0, 8.25]}>
+        {/* South Wing Architectural Swing Gate to wall at 10.8 */}
+        <group position={[0, 0, 8.4]}>
           <mesh position={[0, 1.5, -1.0]} castShadow>
             <boxGeometry args={[0.18, 3.0, 0.1]} />
             <meshStandardMaterial color={isLight ? '#334155' : '#1e293b'} metalness={0.8} />
@@ -506,7 +517,7 @@ export default function FloorAndEnvironment() {
         ))}
 
         {/* Concourse Stalls Outside Arena (R01, R02, S01, S02) Downlights */}
-        {[0.5, 4.2, 12.8, 16.5].map((xStall, idx) => (
+        {[1.2, 4.8, 16.0, 19.6].map((xStall, idx) => (
           <pointLight
             key={`pit-${idx}`}
             position={[xStall, 4.2, -18.0]}
