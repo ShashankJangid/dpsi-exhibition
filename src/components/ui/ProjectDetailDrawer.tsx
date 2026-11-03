@@ -117,7 +117,7 @@ export default function ProjectDetailDrawer() {
         markProjectVoted(selectedProject.id);
         setVoteError(
           data.message ||
-            'Anti-Cheat Alert: A vote has already been recorded for this project from this device or account.'
+            'A vote has already been recorded for this project from this device or account.'
         );
         return;
       }
@@ -339,11 +339,11 @@ export default function ProjectDetailDrawer() {
                 </div>
               </div>
 
-              {/* Anti-Cheat Voting Notice */}
+              {/* Verified Ballot Notice */}
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <p>
-                  <strong>Verified Anti-Cheat Voting:</strong> Ballots are cryptographically bound to hardware canvas fingerprints and Google OAuth signatures to prevent duplicate submissions.
+                  <strong>Verified Ballot:</strong> Ballots are authenticated via Google OAuth and single-device verification to prevent duplicate submissions.
                 </p>
               </div>
 

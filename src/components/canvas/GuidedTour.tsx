@@ -21,17 +21,18 @@ export default function GuidedTour() {
   const currentStop = TOUR_STOPS[tourStepIndex] || TOUR_STOPS[0];
 
   useEffect(() => {
+    let animId: number;
     if (!isTourActive) {
-      setProgress(0);
-      return;
+      animId = requestAnimationFrame(() => setProgress(0));
+      return () => cancelAnimationFrame(animId);
     }
 
     playWhoosh();
-    setProgress(0);
+    animId = requestAnimationFrame(() => setProgress(0));
 
     if (isPaused) {
       if (timerRef.current) clearInterval(timerRef.current);
-      return;
+      return () => cancelAnimationFrame(animId);
     }
 
     const intervalTime = 100;
