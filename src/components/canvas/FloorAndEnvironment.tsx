@@ -517,7 +517,7 @@ export default function FloorAndEnvironment() {
         ))}
 
         {/* Concourse Stalls Outside Arena (R01, R02, S01, S02) Downlights */}
-        {[-1.2, 0.8, 14.8, 18.4].map((xStall, idx) => (
+        {[-5.5, -2.9, 23.6, 26.2].map((xStall, idx) => (
           <pointLight
             key={`pit-${idx}`}
             position={[xStall, 4.2, -18.4]}
