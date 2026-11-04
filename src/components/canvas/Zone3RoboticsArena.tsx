@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
-import { getStageMediaWallTexture, getGroundPosterTexture } from '@/lib/screenTextures';
+import { getStageMediaWallTexture, getAuxiliaryStageScreenTexture, getGroundPosterTexture } from '@/lib/screenTextures';
 import BoothMesh from './BoothMesh';
 
 /**
@@ -478,6 +478,11 @@ export default function Zone3RoboticsArena() {
   const stageTexture = useMemo(() => {
     if (typeof window === 'undefined') return null;
     return getStageMediaWallTexture();
+  }, []);
+
+  const auxStageTexture = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return getAuxiliaryStageScreenTexture();
   }, []);
 
   const roboticsGroundTexture = useMemo(() => {
@@ -1146,7 +1151,39 @@ export default function Zone3RoboticsArena() {
           ))}
         </group>
 
-        {/* Center Main Ultra-Wide LED Media Wall */}
+        {/* 
+          Acoustic Oak Wood Paneling & Horizontal Reveal Wall (Directly from Image 2!)
+          Flanks the stage with rich architectural timber grain, horizontal reveals, and recessed warm sconces.
+        */}
+        <group position={[0, 4.2, -0.9]}>
+          <mesh receiveShadow>
+            <boxGeometry args={[32.4, 8.4, 0.3]} />
+            <meshStandardMaterial color="#8b5e34" roughness={0.42} metalness={0.08} />
+          </mesh>
+          {/* Horizontal Brushed Aluminum Reveals */}
+          {[-3.0, -1.5, 0.0, 1.5, 3.0].map((yRev, idx) => (
+            <mesh key={idx} position={[0, yRev, 0.16]}>
+              <boxGeometry args={[32.3, 0.03, 0.02]} />
+              <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.15} />
+            </mesh>
+          ))}
+          {/* Architectural Linear Wall Sconces with Warm Indirect Wash */}
+          {[-15.2, -10.5, 10.5, 15.2].map((xSconce, idx) => (
+            <group key={idx} position={[xSconce, 1.2, 0.18]}>
+              <mesh>
+                <boxGeometry args={[0.08, 0.65, 0.05]} />
+                <meshStandardMaterial color="#0f172a" metalness={0.8} />
+              </mesh>
+              <mesh position={[0, 0, 0.03]}>
+                <boxGeometry args={[0.04, 0.58, 0.02]} />
+                <meshStandardMaterial color="#fed7aa" emissive="#f97316" emissiveIntensity={1.8} />
+              </mesh>
+              <pointLight position={[0, 0, 0.4]} intensity={2.2} distance={6} color="#fef3c7" decay={2} />
+            </group>
+          ))}
+        </group>
+
+        {/* Center Main Ultra-Wide LED Media Wall (World Map & Live Telemetry from Image 2!) */}
         <group position={[0, 3.4, -0.6]}>
           {/* Outer Titanium Structural Surround */}
           <mesh position={[0, 0, -0.04]} castShadow>
@@ -1166,8 +1203,9 @@ export default function Zone3RoboticsArena() {
                 map={stageTexture}
                 emissive="#ffffff"
                 emissiveMap={stageTexture}
-                emissiveIntensity={0.95}
-                roughness={0.2}
+                emissiveIntensity={1.05}
+                roughness={0.18}
+                toneMapped={false}
               />
             ) : (
               <meshStandardMaterial color="#071228" emissive="#0284c7" emissiveIntensity={0.8} />
@@ -1175,7 +1213,7 @@ export default function Zone3RoboticsArena() {
           </mesh>
         </group>
 
-        {/* Left & Right Angled Stage Wing Screens */}
+        {/* Left & Right Angled Stage Wing Screens (Auxiliary Summit Info from Image 2!) */}
         <group position={[-14.5, 3.4, 0.3]} rotation={[0, 0.32, 0]}>
           <mesh castShadow>
             <boxGeometry args={[3.2, 5.4, 0.15]} />
@@ -1183,7 +1221,18 @@ export default function Zone3RoboticsArena() {
           </mesh>
           <mesh position={[0, 0, 0.08]}>
             <planeGeometry args={[3.0, 5.1]} />
-            <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
+            {auxStageTexture ? (
+              <meshStandardMaterial
+                map={auxStageTexture}
+                emissive="#ffffff"
+                emissiveMap={auxStageTexture}
+                emissiveIntensity={1.0}
+                roughness={0.2}
+                toneMapped={false}
+              />
+            ) : (
+              <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
+            )}
           </mesh>
           <mesh position={[0, 0, 0.085]}>
             <boxGeometry args={[3.04, 0.04, 0.01]} />
@@ -1198,12 +1247,57 @@ export default function Zone3RoboticsArena() {
           </mesh>
           <mesh position={[0, 0, 0.08]}>
             <planeGeometry args={[3.0, 5.1]} />
-            <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
+            {auxStageTexture ? (
+              <meshStandardMaterial
+                map={auxStageTexture}
+                emissive="#ffffff"
+                emissiveMap={auxStageTexture}
+                emissiveIntensity={1.0}
+                roughness={0.2}
+                toneMapped={false}
+              />
+            ) : (
+              <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
+            )}
           </mesh>
           <mesh position={[0, 0, 0.085]}>
             <boxGeometry args={[3.04, 0.04, 0.01]} />
             <meshBasicMaterial color="#fbbf24" />
           </mesh>
+        </group>
+
+        {/* Suspended Ceiling Presentation Projector (from Image 2!) */}
+        <group position={[0, 7.8, 4.5]}>
+          {/* Ceiling Mounting Flange */}
+          <mesh position={[0, 0.15, 0]}>
+            <cylinderGeometry args={[0.15, 0.15, 0.04, 16]} />
+            <meshStandardMaterial color="#334155" metalness={0.8} />
+          </mesh>
+          {/* Steel Suspension Downrod */}
+          <mesh position={[0, -0.6, 0]}>
+            <cylinderGeometry args={[0.025, 0.025, 1.2, 10]} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.95} />
+          </mesh>
+          {/* Projector Chassis */}
+          <mesh position={[0, -1.25, 0]} castShadow>
+            <boxGeometry args={[0.9, 0.32, 0.7]} />
+            <meshStandardMaterial color="#f1f5f9" roughness={0.3} metalness={0.5} />
+          </mesh>
+          {/* Projector Glass Lens (Facing North toward Stage Screen) */}
+          <mesh position={[0, -1.25, -0.36]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.08, 0.08, 0.04, 16]} />
+            <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.5} roughness={0.1} />
+          </mesh>
+          {/* Subtle throw light beam */}
+          <spotLight
+            position={[0, -1.25, -0.4]}
+            target-position={[0, 3.4, -0.6]}
+            intensity={4.5}
+            distance={14}
+            angle={0.45}
+            penumbra={0.6}
+            color="#bae6fd"
+          />
         </group>
 
         {/* Professional Stage Floodlights */}
