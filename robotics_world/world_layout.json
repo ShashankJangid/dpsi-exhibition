@@ -1,0 +1,2065 @@
+{
+  "metadata": {
+    "name": "DPSI Tech & Innovation Summit 2026 - Physical World",
+    "venue": "Delhi Public School Indirapuram - Main Exhibition Hall",
+    "coordinate_convention": "Right-Handed REP-103: X=East/Right, Y=North/Forward, Z=Up",
+    "dimensions_meters": {
+      "length_x": 59.6,
+      "width_y": 45.6,
+      "height_z": 10.5,
+      "bounds_x": [
+        -31.8,
+        27.8
+      ],
+      "bounds_y": [
+        -10.8,
+        34.8
+      ],
+      "elevation_z": [
+        0.0,
+        10.5
+      ]
+    }
+  },
+  "walls": [
+    {
+      "name": "north_back_wall",
+      "pos": [
+        -2.0,
+        34.8,
+        5.25
+      ],
+      "size": [
+        59.6,
+        0.4,
+        10.5
+      ],
+      "color": [
+        0.15,
+        0.2,
+        0.3,
+        1.0
+      ],
+      "material": "matte_wall"
+    },
+    {
+      "name": "west_wall",
+      "pos": [
+        -31.8,
+        12.0,
+        5.25
+      ],
+      "size": [
+        0.4,
+        45.6,
+        10.5
+      ],
+      "color": [
+        0.15,
+        0.2,
+        0.3,
+        1.0
+      ],
+      "material": "matte_wall"
+    },
+    {
+      "name": "east_wall",
+      "pos": [
+        27.8,
+        12.0,
+        5.25
+      ],
+      "size": [
+        0.4,
+        45.6,
+        10.5
+      ],
+      "color": [
+        0.45,
+        0.3,
+        0.2,
+        1.0
+      ],
+      "material": "wood_wall"
+    },
+    {
+      "name": "south_wall_left",
+      "pos": [
+        -24.0,
+        -10.8,
+        2.5
+      ],
+      "size": [
+        15.6,
+        0.4,
+        5.0
+      ],
+      "color": [
+        0.2,
+        0.25,
+        0.35,
+        1.0
+      ],
+      "material": "portal_frame"
+    },
+    {
+      "name": "south_wall_right",
+      "pos": [
+        20.0,
+        -10.8,
+        2.5
+      ],
+      "size": [
+        15.6,
+        0.4,
+        5.0
+      ],
+      "color": [
+        0.2,
+        0.25,
+        0.35,
+        1.0
+      ],
+      "material": "portal_frame"
+    },
+    {
+      "name": "west_partition_north",
+      "pos": [
+        -7.0,
+        21.15,
+        2.5
+      ],
+      "size": [
+        0.25,
+        27.3,
+        5.0
+      ],
+      "color": [
+        0.3,
+        0.4,
+        0.5,
+        0.6
+      ],
+      "material": "glass_partition"
+    },
+    {
+      "name": "west_partition_south",
+      "pos": [
+        -7.0,
+        -6.15,
+        2.5
+      ],
+      "size": [
+        0.25,
+        9.3,
+        5.0
+      ],
+      "color": [
+        0.3,
+        0.4,
+        0.5,
+        0.6
+      ],
+      "material": "glass_partition"
+    },
+    {
+      "name": "robotics_balustrade",
+      "pos": [
+        10.4,
+        18.9,
+        0.55
+      ],
+      "size": [
+        32.0,
+        0.08,
+        1.1
+      ],
+      "color": [
+        0.7,
+        0.8,
+        0.9,
+        0.5
+      ],
+      "material": "balustrade"
+    }
+  ],
+  "portal_columns": [
+    {
+      "name": "portal_col_south",
+      "pos": [
+        -7.0,
+        -1.5,
+        2.5
+      ],
+      "size": [
+        0.3,
+        0.3,
+        5.0
+      ]
+    },
+    {
+      "name": "portal_col_north",
+      "pos": [
+        -7.0,
+        7.5,
+        2.5
+      ],
+      "size": [
+        0.3,
+        0.3,
+        5.0
+      ]
+    },
+    {
+      "name": "portal_lintel",
+      "pos": [
+        -7.0,
+        3.0,
+        4.8
+      ],
+      "size": [
+        0.3,
+        9.0,
+        0.4
+      ]
+    }
+  ],
+  "robotics_arena": {
+    "arena_1_speedway": {
+      "center": [
+        -1.0,
+        25.5,
+        0.0
+      ],
+      "track_bounds": {
+        "min_x": -4.5,
+        "max_x": 4.5,
+        "min_y": 21.5,
+        "max_y": 29.5
+      },
+      "boundary_walls": [
+        {
+          "name": "speedway_wall_n",
+          "pos": [
+            -1.0,
+            29.5,
+            0.3
+          ],
+          "size": [
+            8.0,
+            0.15,
+            0.6
+          ]
+        },
+        {
+          "name": "speedway_wall_s",
+          "pos": [
+            -1.0,
+            21.5,
+            0.3
+          ],
+          "size": [
+            8.0,
+            0.15,
+            0.6
+          ]
+        },
+        {
+          "name": "speedway_wall_w",
+          "pos": [
+            -5.0,
+            25.5,
+            0.3
+          ],
+          "size": [
+            0.15,
+            8.0,
+            0.6
+          ]
+        },
+        {
+          "name": "speedway_wall_e",
+          "pos": [
+            3.0,
+            25.5,
+            0.3
+          ],
+          "size": [
+            0.15,
+            8.0,
+            0.6
+          ]
+        }
+      ],
+      "ramp_obstacle": [
+        {
+          "name": "ascending_ramp",
+          "pos": [
+            -1.7,
+            27.5,
+            0.325
+          ],
+          "size": [
+            1.6,
+            1.2,
+            0.65
+          ],
+          "type": "ramp_up",
+          "incline_rad": 0.36
+        },
+        {
+          "name": "elevated_bridge_deck",
+          "pos": [
+            0.0,
+            27.5,
+            0.65
+          ],
+          "size": [
+            1.8,
+            1.2,
+            0.1
+          ],
+          "type": "bridge"
+        },
+        {
+          "name": "descending_ramp",
+          "pos": [
+            1.7,
+            27.5,
+            0.325
+          ],
+          "size": [
+            1.6,
+            1.2,
+            0.65
+          ],
+          "type": "ramp_down",
+          "incline_rad": -0.36
+        }
+      ]
+    },
+    "arena_2_soccer": {
+      "center": [
+        18.0,
+        25.5,
+        0.0
+      ],
+      "pitch_size": [
+        10.0,
+        14.0
+      ],
+      "boundary_walls": [
+        {
+          "name": "soccer_wall_n",
+          "pos": [
+            18.0,
+            32.5,
+            0.25
+          ],
+          "size": [
+            10.0,
+            0.12,
+            0.5
+          ]
+        },
+        {
+          "name": "soccer_wall_s",
+          "pos": [
+            18.0,
+            18.5,
+            0.25
+          ],
+          "size": [
+            10.0,
+            0.12,
+            0.5
+          ]
+        },
+        {
+          "name": "soccer_wall_w",
+          "pos": [
+            13.0,
+            25.5,
+            0.25
+          ],
+          "size": [
+            0.12,
+            14.0,
+            0.5
+          ]
+        },
+        {
+          "name": "soccer_wall_e",
+          "pos": [
+            23.0,
+            25.5,
+            0.25
+          ],
+          "size": [
+            0.12,
+            14.0,
+            0.5
+          ]
+        }
+      ],
+      "goals": [
+        {
+          "name": "goal_north",
+          "pos": [
+            18.0,
+            32.2,
+            0.3
+          ],
+          "size": [
+            2.4,
+            0.6,
+            0.6
+          ]
+        },
+        {
+          "name": "goal_south",
+          "pos": [
+            18.0,
+            18.8,
+            0.3
+          ],
+          "size": [
+            2.4,
+            0.6,
+            0.6
+          ]
+        }
+      ]
+    }
+  },
+  "booths": [
+    {
+      "id": "p01",
+      "booth_code": "P01",
+      "title": "P01 \u2022 Stepwise AI: Biomechanical Gait Analysis",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        0.0,
+        14.0,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          0.0,
+          14.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          0.0,
+          14.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p02",
+      "booth_code": "P02",
+      "title": "P02 \u2022 Move Smarter: ADAS (Driver Assistance System)",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        3.2,
+        14.0,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          3.2,
+          14.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          3.2,
+          14.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p03",
+      "booth_code": "P03",
+      "title": "P03 \u2022 Smart Water Management & Micro-Filtration System",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        6.4,
+        14.0,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          6.4,
+          14.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          6.4,
+          14.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p04",
+      "booth_code": "P04",
+      "title": "P04 \u2022 Eco-Composite Smart Trashcan System",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        9.6,
+        14.0,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          9.6,
+          14.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          9.6,
+          14.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p05",
+      "booth_code": "P05",
+      "title": "P05 \u2022 Autonomous Medical Supply Drone Delivery",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        12.8,
+        14.0,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          12.8,
+          14.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          12.8,
+          14.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p06",
+      "booth_code": "P06",
+      "title": "P06 \u2022 Robotic Smart Moving Bin System",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        0.0,
+        8.5,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          0.0,
+          8.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          0.0,
+          8.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p07",
+      "booth_code": "P07",
+      "title": "P07 \u2022 Health Thread: Smart Bio-Sensing Wearable",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        21.0,
+        14.5,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          14.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          14.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p08",
+      "booth_code": "P08",
+      "title": "P08 \u2022 Classroom Smart Queue & Flow Management",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        21.0,
+        12.3,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          12.3,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          12.3,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p09",
+      "booth_code": "P09",
+      "title": "P09 \u2022 Smart IoT Parcel Delivery & Secure Locker Box",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        21.0,
+        10.1,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          10.1,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          10.1,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p10",
+      "booth_code": "P10",
+      "title": "P10 \u2022 Automated Digital Passes & Campus Access Control",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        21.0,
+        7.9,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          7.9,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          7.9,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p11",
+      "booth_code": "P11",
+      "title": "P11 \u2022 NeuroScience Brain-Computer Interface (BCI)",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        3.2,
+        8.5,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          3.2,
+          8.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          3.2,
+          8.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "p12",
+      "booth_code": "P12",
+      "title": "P12 \u2022 Motorized Indoor Clothes Hanger & Dehumidifier",
+      "zone": "zone-2",
+      "category": "Physical",
+      "pos": [
+        6.4,
+        8.5,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          6.4,
+          8.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          6.4,
+          8.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d01",
+      "booth_code": "D01",
+      "title": "D01 \u2022 Farm To Home: Farmer Verification System",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        9.6,
+        8.5,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          9.6,
+          8.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          9.6,
+          8.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d02",
+      "booth_code": "D02",
+      "title": "D02 \u2022 Hetu Setu: Maternal Health System",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        12.8,
+        8.5,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          12.8,
+          8.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          12.8,
+          8.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d03",
+      "booth_code": "D03",
+      "title": "D03 \u2022 Rehab 360: AI Prisoner Therapist",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        0.0,
+        3.5,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          0.0,
+          3.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          0.0,
+          3.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d04",
+      "booth_code": "D04",
+      "title": "D04 \u2022 Transportation Hub Crowd Management",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        3.2,
+        3.5,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          3.2,
+          3.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          3.2,
+          3.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d05",
+      "booth_code": "D05",
+      "title": "D05 \u2022 Move Smarter: CityWatch AI Surveillance",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        6.4,
+        3.5,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          6.4,
+          3.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          6.4,
+          3.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d06",
+      "booth_code": "D06",
+      "title": "D06 \u2022 Move Smarter: Smart Exit Transit Station for Airport Authority",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        9.6,
+        3.5,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          9.6,
+          3.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          9.6,
+          3.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d07",
+      "booth_code": "D07",
+      "title": "D07 \u2022 Medical Kiosk Health Diagnostic Center",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        12.8,
+        3.5,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          12.8,
+          3.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          12.8,
+          3.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d08",
+      "booth_code": "D08",
+      "title": "D08 \u2022 SchoolsOS: Cafeteria & Nutrition Management",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        0.0,
+        -2.0,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          0.0,
+          -2.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          0.0,
+          -2.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d09",
+      "booth_code": "D09",
+      "title": "D09 \u2022 SchoolsOS: Lost & Found Intelligence Network",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        3.2,
+        -2.0,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          3.2,
+          -2.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          3.2,
+          -2.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d10",
+      "booth_code": "D10",
+      "title": "D10 \u2022 Move Smarter: Landmark-Based Route Optimization",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        6.4,
+        -2.0,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          6.4,
+          -2.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          6.4,
+          -2.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d11",
+      "booth_code": "D11",
+      "title": "D11 \u2022 AI Exam Monitor & Proctoring Intelligence",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        21.0,
+        5.7,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          5.7,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          5.7,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "d12",
+      "booth_code": "D12",
+      "title": "D12 \u2022 Eagle",
+      "zone": "zone-2",
+      "category": "Digital",
+      "pos": [
+        21.0,
+        3.5,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          3.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          3.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b01",
+      "booth_code": "B01",
+      "title": "B01 \u2022 Zap Fit: AI Fitness App & Wellness Platform",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        21.0,
+        1.3,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          1.3,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          1.3,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b02",
+      "booth_code": "B02",
+      "title": "B02 \u2022 GrowGrid: Urban Hydroponic Farming Solutions",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        21.0,
+        -0.9,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          -0.9,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          -0.9,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b03",
+      "booth_code": "B03",
+      "title": "B03 \u2022 P&P: PPE Kit & Bio-Safety Gear Solutions",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        21.0,
+        -3.1,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          -3.1,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          -3.1,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b04",
+      "booth_code": "B04",
+      "title": "B04 \u2022 Tera Mosaic Lounges & Waiting Area Architecture",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        21.0,
+        -5.3,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          -5.3,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          -5.3,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b05",
+      "booth_code": "B05",
+      "title": "B05 \u2022 Steel & Stack: Next-Gen Enterprise Web Development",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        21.0,
+        -7.5,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          -7.5,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          -7.5,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b06",
+      "booth_code": "B06",
+      "title": "B06 \u2022 Trading Cards: Collectibles Exchange Platform",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        9.6,
+        -2.0,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          9.6,
+          -2.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          9.6,
+          -2.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b07",
+      "booth_code": "B07",
+      "title": "B07 \u2022 WonderTech: K-12 STEM Innovation & Maker Kits",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        12.8,
+        -2.0,
+        0.0
+      ],
+      "yaw": -3.1416,
+      "desk_surface": {
+        "center": [
+          12.8,
+          -2.0,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          12.8,
+          -2.0,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "b08",
+      "booth_code": "B08",
+      "title": "B08 \u2022 BioHarvest: Smart Automated Hydroponics Farm",
+      "zone": "zone-2",
+      "category": "Business",
+      "pos": [
+        21.0,
+        -9.7,
+        0.0
+      ],
+      "yaw": 1.5708,
+      "desk_surface": {
+        "center": [
+          21.0,
+          -9.7,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          21.0,
+          -9.7,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st01",
+      "booth_code": "ST01",
+      "title": "ST01 \u2022 Aeroplane Flight Dynamics & Aerodynamics Display",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -21.96,
+        7.83,
+        0.0
+      ],
+      "yaw": 0.38,
+      "desk_surface": {
+        "center": [
+          -21.96,
+          7.83,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -21.96,
+          7.83,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st02",
+      "booth_code": "ST02",
+      "title": "ST02 \u2022 Humanoid Robotics Simulation & Motion Synthesis",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -18.89,
+        6.6,
+        0.0
+      ],
+      "yaw": 0.38,
+      "desk_surface": {
+        "center": [
+          -18.89,
+          6.6,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -18.89,
+          6.6,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st03",
+      "booth_code": "ST03",
+      "title": "ST03 \u2022 Unitree Go2 Quadruped Robot Demonstration",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -15.73,
+        5.34,
+        0.0
+      ],
+      "yaw": 0.38,
+      "desk_surface": {
+        "center": [
+          -15.73,
+          5.34,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -15.73,
+          5.34,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st04",
+      "booth_code": "ST04",
+      "title": "ST04 \u2022 Hand Gesture Controlled Teleoperation Vehicle",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -12.67,
+        4.12,
+        0.0
+      ],
+      "yaw": 0.38,
+      "desk_surface": {
+        "center": [
+          -12.67,
+          4.12,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -12.67,
+          4.12,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st05",
+      "booth_code": "ST05",
+      "title": "ST05 \u2022 Wireless RF Telemetry Race Car",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -24.33,
+        1.88,
+        0.0
+      ],
+      "yaw": -2.76,
+      "desk_surface": {
+        "center": [
+          -24.33,
+          1.88,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -24.33,
+          1.88,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st06",
+      "booth_code": "ST06",
+      "title": "ST06 \u2022 Gesture Controlled Robotic Arm: Game of Candy",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -21.27,
+        0.66,
+        0.0
+      ],
+      "yaw": -2.76,
+      "desk_surface": {
+        "center": [
+          -21.27,
+          0.66,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -21.27,
+          0.66,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st07",
+      "booth_code": "ST07",
+      "title": "ST07 \u2022 Multi-Legged Biomorphic SpiderBot Explorer",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -18.11,
+        -0.6,
+        0.0
+      ],
+      "yaw": -2.76,
+      "desk_surface": {
+        "center": [
+          -18.11,
+          -0.6,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -18.11,
+          -0.6,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "st08",
+      "booth_code": "ST08",
+      "title": "ST08 \u2022 Autonomous Aerial Drone Display & Safety Mesh",
+      "zone": "zone-1",
+      "category": "Show & Tell",
+      "pos": [
+        -15.04,
+        -1.83,
+        0.0
+      ],
+      "yaw": -2.76,
+      "desk_surface": {
+        "center": [
+          -15.04,
+          -1.83,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -15.04,
+          -1.83,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "r01",
+      "booth_code": "R01",
+      "title": "R01 \u2022 Robo Race: Velocity-X High-Speed Obstacle Rover",
+      "zone": "zone-3",
+      "category": "Robo Race",
+      "pos": [
+        -5.5,
+        18.4,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          -5.5,
+          18.4,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -5.5,
+          18.4,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "r02",
+      "booth_code": "R02",
+      "title": "R02 \u2022 Robo Race: Apex Drift Pro Telemetry Kart",
+      "zone": "zone-3",
+      "category": "Robo Race",
+      "pos": [
+        -2.9,
+        18.4,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          -2.9,
+          18.4,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          -2.9,
+          18.4,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "s01",
+      "booth_code": "S01",
+      "title": "S01 \u2022 Robo Soccer: StrikerBot Autonomous Vision Attacker",
+      "zone": "zone-3",
+      "category": "Robo Soccer",
+      "pos": [
+        23.6,
+        18.4,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          23.6,
+          18.4,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          23.6,
+          18.4,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "s02",
+      "booth_code": "S02",
+      "title": "S02 \u2022 Robo Soccer: TitanKeeper High-Torque Goalkeeper",
+      "zone": "zone-3",
+      "category": "Robo Soccer",
+      "pos": [
+        26.2,
+        18.4,
+        0.0
+      ],
+      "yaw": -0.0,
+      "desk_surface": {
+        "center": [
+          26.2,
+          18.4,
+          0.72
+        ],
+        "size": [
+          2.0,
+          0.8,
+          0.05
+        ]
+      },
+      "collision_box": {
+        "center": [
+          26.2,
+          18.4,
+          0.75
+        ],
+        "size": [
+          2.2,
+          1.6,
+          1.5
+        ]
+      }
+    }
+  ]
+}

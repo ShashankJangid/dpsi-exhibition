@@ -1,0 +1,46 @@
+# DPSI Exhibition Material Library
+newmtl floor_mat
+Kd 0.85 0.88 0.92
+Ks 0.2 0.2 0.2
+Ns 30
+
+newmtl wall_mat
+Kd 0.25 0.32 0.42
+Ks 0.1 0.1 0.1
+Ns 10
+
+newmtl wood_mat
+Kd 0.65 0.45 0.28
+Ks 0.15 0.15 0.15
+Ns 20
+
+newmtl portal_mat
+Kd 0.20 0.25 0.35
+Ks 0.8 0.8 0.8
+Ns 80
+
+newmtl glass_mat
+Kd 0.70 0.85 0.95
+d 0.5
+Ks 0.9 0.9 0.9
+Ns 90
+
+newmtl desk_mat
+Kd 0.78 0.60 0.40
+Ks 0.2 0.2 0.2
+Ns 30
+
+newmtl physical_mat
+Kd 0.96 0.62 0.07
+
+newmtl digital_mat
+Kd 0.02 0.52 0.78
+
+newmtl business_mat
+Kd 0.02 0.59 0.41
+
+newmtl showntell_mat
+Kd 0.49 0.23 0.93
+
+newmtl robotics_mat
+Kd 0.86 0.15 0.15

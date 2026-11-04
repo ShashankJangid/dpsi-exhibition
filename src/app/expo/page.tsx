@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { useExhibitionStore } from '@/store/useExhibitionStore';
+import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
+import { SEED_PROJECTS } from '@/data/seedProjects';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 import { subscribeToProjects, onFirebaseAuthStateChange, checkRedirectResult } from '@/lib/firebase';
 import TopNavHUD from '@/components/ui/TopNavHUD';
@@ -18,7 +18,7 @@ import MobileNavMenu from '@/components/ui/MobileNavMenu';
 import CameraControlsWidget from '@/components/ui/CameraControlsWidget';
 import GuidedTour from '@/components/canvas/GuidedTour';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
-import { MousePointerClick, Move, ZoomIn, ArrowLeft } from 'lucide-react';
+import { MousePointerClick, Move, ZoomIn } from 'lucide-react';
 
 const ExhibitionCanvas = dynamic(
   () => import('@/components/canvas/ExhibitionCanvas'),
@@ -79,6 +79,42 @@ export default function ExpoFloorPlanPage() {
         setProjects(liveProjects);
       }
     });
+
+    // 4. URL query deep-linking (?booth=, ?stall=, or ?zone=)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const boothCode = params.get('booth') || params.get('stall');
+      const zoneCode = params.get('zone');
+
+      if (boothCode) {
+        const storeState = useExhibitionStore.getState();
+        const projectsList = storeState.projects.length > 0 ? storeState.projects : SEED_PROJECTS;
+        const match = projectsList.find(
+          (p) => p.booth_code.toLowerCase() === boothCode.toLowerCase()
+        );
+        if (match) {
+          setTimeout(() => {
+            useExhibitionStore.getState().selectProject(match);
+          }, 200);
+        }
+      } else if (zoneCode) {
+        const validZones: NavZoneId[] = [
+          'overview',
+          'blueprint',
+          'zone-1',
+          'zone-2',
+          'zone-3',
+          'physical',
+          'digital',
+          'business',
+        ];
+        if (validZones.includes(zoneCode as NavZoneId)) {
+          setTimeout(() => {
+            useExhibitionStore.getState().setActiveZone(zoneCode as NavZoneId);
+          }, 200);
+        }
+      }
+    }
 
     return () => {
       window.removeEventListener('resize', checkMobile);
