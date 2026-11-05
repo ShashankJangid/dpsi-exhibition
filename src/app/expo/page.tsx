@@ -16,6 +16,7 @@ import AuthModal from '@/components/ui/AuthModal';
 import SearchModal from '@/components/ui/SearchModal';
 import MobileNavMenu from '@/components/ui/MobileNavMenu';
 import CameraControlsWidget from '@/components/ui/CameraControlsWidget';
+import MinimapHUD from '@/components/ui/MinimapHUD';
 import GuidedTour from '@/components/canvas/GuidedTour';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import { MousePointerClick, Move, ZoomIn } from 'lucide-react';
@@ -172,6 +173,9 @@ export default function ExpoFloorPlanPage() {
 
       {/* Floating 3D Navigation Controls Widget */}
       <CameraControlsWidget />
+
+      {/* Floating 3D Architectural Radar Minimap */}
+      <MinimapHUD />
 
       {/* Interactive 3D Guided Virtual Tour */}
       <GuidedTour />
