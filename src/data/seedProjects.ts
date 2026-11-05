@@ -152,7 +152,7 @@ export const SEED_PROJECTS: Project[] = [
     position_y: 0,
     position_z: -14.5,
     rotation_y: -1.5708,
-    image_url: 'https://images.unsplash.com/photo-1510519138195-068d828884bb?auto=format&fit=crop&w=800&q=80',
+    image_url: 'https://images.unsplash.com/photo-1576243345690-4e4b79b63288?auto=format&fit=crop&w=800&q=80',
     description: 'Conductive yarn-woven smart sports band monitoring photoplethysmography (PPG) pulse transit time, skin temperature, and hydration for school athletes.',
     tagline: 'Non-invasive biometric telemetry woven into athletic apparel',
     members: [
@@ -351,7 +351,7 @@ export const SEED_PROJECTS: Project[] = [
     position_y: 0,
     position_z: -3.5,
     rotation_y: 0.00000,
-    image_url: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80',
+    image_url: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
     description: 'Transit terminal occupancy predictive engine calculating bottleneck density in metro stations, scheduling gate flow rates, and recommending dynamic passenger detour routes.',
     tagline: 'Predictive density analytics and passenger detour optimization',
     members: [
