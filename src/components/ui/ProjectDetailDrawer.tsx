@@ -207,28 +207,34 @@ export default function ProjectDetailDrawer() {
   };
 
   return (
-    <AnimatePresence>
-      {isDrawerOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden sm:overflow-y-auto">
-          {/* Backdrop with Blur */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => selectProject(null)}
-            className="fixed inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-md transition-all"
-          />
-
-          {/* Centered Modal Card / Mobile Bottom Sheet */}
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            initial={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 290 }}
-            className="relative z-10 w-full max-w-2xl max-h-[88vh] rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-300/80 dark:border-slate-800 bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 backdrop-blur-2xl shadow-2xl flex flex-col text-slate-800 dark:text-slate-100 overflow-hidden sm:my-auto"
+    <>
+      <AnimatePresence>
+        {isDrawerOpen && (
+          <div
+            key="project-drawer-overlay"
+            className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden sm:overflow-y-auto"
           >
+            {/* Backdrop with Blur */}
+            <motion.div
+              key="project-drawer-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => selectProject(null)}
+              className="fixed inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-md transition-all"
+            />
+
+            {/* Centered Modal Card / Mobile Bottom Sheet */}
+            <motion.div
+              key="project-drawer-card"
+              role="dialog"
+              aria-modal="true"
+              initial={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 290 }}
+              className="relative z-10 w-full max-w-2xl max-h-[88vh] rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-300/80 dark:border-slate-800 bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 backdrop-blur-2xl shadow-2xl flex flex-col text-slate-800 dark:text-slate-100 overflow-hidden sm:my-auto"
+            >
             {/* Mobile Drag Indicator Handle */}
             <div className="sm:hidden pt-2.5 pb-1 flex justify-center w-full">
               <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
@@ -532,20 +538,22 @@ export default function ProjectDetailDrawer() {
           </motion.div>
         </div>
       )}
+    </AnimatePresence>
 
-      {/* Full-Screen Image Lightbox */}
-      <AnimatePresence>
-        {isLightboxActive && selectedProject && (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="High-Resolution Project Preview Lightbox"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 sm:p-8 select-none"
-            onClick={() => setIsLightboxOpen(false)}
-          >
+    {/* Full-Screen Image Lightbox */}
+    <AnimatePresence>
+      {isLightboxActive && selectedProject && (
+        <motion.div
+          key="project-lightbox-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="High-Resolution Project Preview Lightbox"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 sm:p-8 select-none"
+          onClick={() => setIsLightboxOpen(false)}
+        >
             {/* Lightbox Top Bar */}
             <div className="w-full max-w-5xl flex items-center justify-between text-white z-10">
               <div className="flex items-center gap-2.5">
@@ -620,6 +628,6 @@ export default function ProjectDetailDrawer() {
           </motion.div>
         )}
       </AnimatePresence>
-    </AnimatePresence>
+    </>
   );
 }
