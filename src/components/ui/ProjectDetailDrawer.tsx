@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
+import { castVoteInFirebase } from '@/lib/firebase';
 import { playChime, triggerHaptic, playClick } from '@/lib/sound';
 import confetti from 'canvas-confetti';
 import {
@@ -150,44 +151,30 @@ export default function ProjectDetailDrawer() {
     try {
       const fingerprint = await getDeviceFingerprint();
 
-      const voteApiUrl = process.env.NEXT_PUBLIC_VOTE_API_URL || '/api/vote';
-      const res = await fetch(voteApiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: selectedProject.id,
-          fingerprint,
-          userId: user.id,
-          userEmail: user.email,
-        }),
+      const res = await castVoteInFirebase({
+        projectId: selectedProject.id,
+        fingerprint,
+        userId: user.id,
+        userEmail: user.email,
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (res.status === 409 || data.alreadyVoted) {
+      if (res.alreadyVoted) {
         markProjectVoted(selectedProject.id);
         setVoteError(
-          data.message ||
+          res.message ||
             'A vote has already been recorded for this project from this device or account.'
         );
         return;
       }
 
-      if (res.status === 429) {
-        setVoteError(
-          data.message || 'Rate limit reached: Too many requests. Please wait a moment before trying again.'
-        );
-        return;
-      }
-
-      if (!res.ok || !data.success) {
-        setVoteError(data.message || 'Vote verification failed. Please try again.');
+      if (!res.success) {
+        setVoteError(res.message || 'Vote verification failed. Please try again.');
         return;
       }
 
       markProjectVoted(selectedProject.id);
       incrementProjectVote(selectedProject.id);
-      setVoteSuccessMessage(data.message || 'Vote successfully verified and recorded!');
+      setVoteSuccessMessage(res.message || 'Vote successfully verified and recorded!');
 
       playChime();
       triggerHaptic(30);

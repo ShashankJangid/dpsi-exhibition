@@ -56,6 +56,14 @@ export class SlidingWindowRateLimiter {
     activeTimestamps.push(now);
     this.records.set(key, activeTimestamps);
 
+    // Hard ceiling FIFO eviction: if new key pushed size over maxKeys, prune oldest
+    if (this.records.size > this.maxKeys) {
+      const oldest = this.records.keys().next().value;
+      if (oldest) {
+        this.records.delete(oldest);
+      }
+    }
+
     return {
       allowed: true,
       remaining: this.maxRequests - activeTimestamps.length,
@@ -72,7 +80,7 @@ export class SlidingWindowRateLimiter {
   }
 
   private maybeCleanup(now: number): void {
-    if (now - this.lastCleanup > this.windowMs || this.records.size > this.maxKeys) {
+    if (now - this.lastCleanup > this.windowMs) {
       const windowStart = now - this.windowMs;
       for (const [key, timestamps] of this.records.entries()) {
         const active = timestamps.filter((t) => t > windowStart);

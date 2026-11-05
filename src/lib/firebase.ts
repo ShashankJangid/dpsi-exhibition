@@ -53,27 +53,20 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
  * Sign in using Google OAuth with automatic redirect fallback if popup is blocked
  */
 export async function signInWithGoogle() {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
-  } catch (err: unknown) {
-    const isPopupBlocked =
-      (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'auth/popup-blocked') ||
-      (err instanceof Error && err.message.includes('popup-blocked'));
-
-    if (isPopupBlocked) {
-      console.warn('Popup blocked by browser. Falling back to signInWithRedirect...');
-      await signInWithRedirect(auth, googleProvider);
-      return null;
-    }
-    throw err;
+  if (!isFirebaseConfigured) {
+    throw new Error('Google OAuth is not configured in this environment. Please use the Visitor Pass tab to vote.');
   }
+  const result = await signInWithPopup(auth, googleProvider);
+  return result.user;
 }
 
 /**
  * Direct redirect-based Google sign in (useful for mobile browsers or strict popup blockers)
  */
 export async function signInWithGoogleRedirect() {
+  if (!isFirebaseConfigured) {
+    throw new Error('Google OAuth is not configured in this environment. Please use the Visitor Pass tab to vote.');
+  }
   await signInWithRedirect(auth, googleProvider);
 }
 
@@ -94,20 +87,53 @@ export async function checkRedirectResult(): Promise<User | null> {
 }
 
 /**
- * Sign in as a verified guest/judge visitor
+ * Sign in as a verified guest/judge visitor.
+ * Guaranteed to succeed even if Firebase Anonymous Auth is unconfigured or blocked by network.
  */
 export async function signInAsGuest(name: string, email: string) {
-  const userCredential = await signInAnonymously(auth);
-  if (auth.currentUser) {
-    await updateProfile(auth.currentUser, {
-      displayName: name,
-    });
-  }
-  return {
-    uid: userCredential.user.uid,
+  const fallbackGuest = () => ({
+    uid: 'guest_' + Math.random().toString(36).substring(2, 12),
     displayName: name,
     email: email || `${name.toLowerCase().replace(/\s+/g, '')}@dpsi-visitor.in`,
-  };
+  });
+
+  if (!isFirebaseConfigured) {
+    return fallbackGuest();
+  }
+
+  try {
+    const userCredential = await signInAnonymously(auth);
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, {
+        displayName: name,
+      });
+    }
+    return {
+      uid: userCredential.user.uid,
+      displayName: name,
+      email: email || `${name.toLowerCase().replace(/\s+/g, '')}@dpsi-visitor.in`,
+    };
+  } catch (err) {
+    console.warn('Notice: Firebase anonymous auth fallback used:', err);
+    return fallbackGuest();
+  }
+}
+
+/**
+ * Retrieves the current Firebase Auth user ID token for backend Authorization headers
+ */
+export async function getCurrentUserIdToken(): Promise<string | null> {
+  if (!isFirebaseConfigured || typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    if (auth.currentUser) {
+      return await auth.currentUser.getIdToken();
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 /**
@@ -246,11 +272,17 @@ export async function castVoteInFirebase(
 ): Promise<VoteSubmissionResponse> {
   try {
     const voteApiUrl = process.env.NEXT_PUBLIC_VOTE_API_URL || '/api/vote';
+    const idToken = await getCurrentUserIdToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (idToken) {
+      headers['Authorization'] = `Bearer ${idToken}`;
+    }
+
     const response = await fetch(voteApiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(payload),
     });
 

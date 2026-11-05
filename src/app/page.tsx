@@ -29,7 +29,7 @@ import SearchModal from '@/components/ui/SearchModal';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
 import ProjectCardSkeleton from '@/components/ui/ProjectCardSkeleton';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
-import { subscribeToProjects, onFirebaseAuthStateChange } from '@/lib/firebase';
+import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 
 // React Bits Components loaded dynamically for SSR safety
@@ -115,15 +115,36 @@ export default function LandingPage() {
       setDeviceFingerprint(fp);
     });
 
+    // Process any returning Google OAuth redirect credentials
+    checkRedirectResult()
+      .then((user) => {
+        if (user) {
+          setUser({
+            id: user.uid,
+            email: user.email || 'user@dpsi.in',
+            name: user.displayName || 'Visitor',
+          });
+          showToast(`Welcome, ${user.displayName || 'Visitor'}!`);
+        }
+      })
+      .catch((err) => {
+        console.warn('OAuth redirect check notice:', err);
+      });
+
     const unsubAuth = onFirebaseAuthStateChange((firebaseUser) => {
       if (firebaseUser) {
+        const currentUser = useExhibitionStore.getState().user;
         setUser({
           id: firebaseUser.uid,
-          email: firebaseUser.email || 'user@dpsi.in',
-          name: firebaseUser.displayName || 'Visitor',
+          email: firebaseUser.email || (currentUser?.id === firebaseUser.uid ? currentUser.email : 'visitor@dpsi.in'),
+          name: firebaseUser.displayName || (currentUser?.id === firebaseUser.uid ? currentUser.name : 'Visitor'),
         });
       } else {
-        setUser(null);
+        const currentUser = useExhibitionStore.getState().user;
+        // Retain local guest visitor pass if Firebase anonymous auth is unconfigured
+        if (!currentUser?.id.startsWith('guest_')) {
+          setUser(null);
+        }
       }
     });
 
@@ -230,7 +251,6 @@ export default function LandingPage() {
 
     try {
       const fingerprint = await getDeviceFingerprint();
-      const voteApiUrl = process.env.NEXT_PUBLIC_VOTE_API_URL || '/api/vote';
 
       // Instant optimistic UI update
       markProjectVoted(p.id);
@@ -251,17 +271,19 @@ export default function LandingPage() {
 
       showToast(`🎉 Verified ballot recorded for Booth ${p.booth_code}!`);
 
-      // Async backend verification
-      fetch(voteApiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: p.id,
-          fingerprint,
-          userId: user.id,
-          userEmail: user.email,
-        }),
-      }).catch((err) => console.warn('Vote sync:', err));
+      // Backend verification with token attachment and response verification
+      castVoteInFirebase({
+        projectId: p.id,
+        fingerprint,
+        userId: user.id,
+        userEmail: user.email,
+      }).then((res) => {
+        if (res.alreadyVoted) {
+          showToast(`Notice: Vote was previously recorded for Booth ${p.booth_code}`);
+        } else if (!res.success) {
+          showToast(res.message || 'Vote verification sync warning. Please check connection.');
+        }
+      });
     } catch {
       showToast(`Vote recorded for Booth ${p.booth_code}!`);
     }

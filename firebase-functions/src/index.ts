@@ -78,6 +78,41 @@ export const vote = onRequest(
         return;
       }
 
+      // 4.5 Verify Firebase OAuth ID Token
+      const rawAuth = req.headers.authorization;
+      const authHeader = Array.isArray(rawAuth) ? rawAuth[0] : rawAuth;
+      let hasVerifiedToken = false;
+
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const idToken = authHeader.slice(7).trim();
+        if (idToken) {
+          try {
+            const decoded = await admin.auth().verifyIdToken(idToken);
+            // Cryptographically bind vote to the verified OAuth identity
+            validation.data.userId = decoded.uid;
+            validation.data.userEmail = decoded.email ? decoded.email.toLowerCase() : null;
+            hasVerifiedToken = true;
+          } catch (tokenErr) {
+            console.warn('Firebase ID token verification failed:', tokenErr);
+            res.status(401).json({
+              success: false,
+              message: 'Invalid or expired authentication token. Please sign in again.',
+            });
+            return;
+          }
+        }
+      }
+
+      // Enforce cryptographic identity: registered user accounts MUST supply a valid token
+      // Unauthenticated callers are strictly restricted to guest pass credentials (guest_*)
+      if (!hasVerifiedToken && !validation.data.userId.startsWith('guest_')) {
+        res.status(401).json({
+          success: false,
+          message: 'Authentication token required for registered user accounts. Please sign in.',
+        });
+        return;
+      }
+
       // 5. Composite device rate limiting (10 req/min per device fingerprint on this IP)
       const compositeKey = `${ipHash}:${validation.data.deviceFingerprint}`;
       const deviceLimit = compositeRateLimiter.check(compositeKey);
@@ -149,6 +184,17 @@ export const voteCallable = onCall(
     const validation = validateVotePayload(request.data);
     if (!validation.isValid) {
       throw new HttpsError('invalid-argument', validation.error);
+    }
+
+    // Cryptographically bind to verified OAuth identity if authenticated via Firebase SDK
+    if (request.auth) {
+      validation.data.userId = request.auth.uid;
+      validation.data.userEmail = request.auth.token.email ? request.auth.token.email.toLowerCase() : null;
+    } else if (!validation.data.userId.startsWith('guest_')) {
+      throw new HttpsError(
+        'unauthenticated',
+        'Authentication required for registered user accounts. Please sign in.'
+      );
     }
 
     // Composite device rate limiting (10 req/min)

@@ -40,8 +40,6 @@ export default function AuthModal() {
           name: firebaseUser.displayName || 'Verified Attendee (Google)',
         });
         setAuthModalOpen(false);
-      } else {
-        setAuthError('Popup blocked by browser. Redirecting you to Google Sign-In...');
       }
     } catch (err: unknown) {
       console.error('Google sign-in error:', err);
@@ -50,13 +48,8 @@ export default function AuthModal() {
         (err instanceof Error && err.message.includes('popup-blocked'));
 
       if (isPopupBlocked) {
-        setAuthError('Browser blocked the popup window. Redirecting to Google Sign-In...');
-        try {
-          await signInWithGoogleRedirect();
-          return;
-        } catch (redirectErr) {
-          console.error('Redirect sign-in error:', redirectErr);
-        }
+        setAuthError('Browser blocked the popup window. Choose Direct Page Redirect below or use the 1-Click Visitor Pass.');
+        return;
       }
 
       const errorMsg =
@@ -215,16 +208,30 @@ export default function AuthModal() {
                 </div>
               </div>
 
-              {authError.toLowerCase().includes('popup') && (
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                {authError.toLowerCase().includes('popup') && (
+                  <button
+                    type="button"
+                    onClick={() => signInWithGoogleRedirect()}
+                    className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 hover:underline"
+                  >
+                    <span>Direct page redirect</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => signInWithGoogleRedirect()}
-                  className="self-start mt-1 flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 hover:underline"
+                  onClick={() => {
+                    setAuthError(null);
+                    setActiveTab('guest');
+                    if (!guestName) setGuestName('Exhibition Attendee');
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
                 >
-                  <span>Continue with direct page redirect</span>
+                  <span>Use 1-Click Visitor Pass instead</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
-              )}
+              </div>
             </motion.div>
           )}
 
