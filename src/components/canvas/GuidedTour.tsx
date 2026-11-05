@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useExhibitionStore, TOUR_STOPS } from '@/store/useExhibitionStore';
 import { playWhoosh, playBlip, playClick } from '@/lib/sound';
-import { Play, Pause, ChevronRight, ChevronLeft, X, Compass, Volume2 } from 'lucide-react';
+import { Play, Pause, ChevronRight, ChevronLeft, X, Compass } from 'lucide-react';
 
 export default function GuidedTour() {
   const isTourActive = useExhibitionStore((state) => state.isTourActive);

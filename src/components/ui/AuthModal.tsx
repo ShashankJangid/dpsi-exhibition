@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { signInWithGoogle, signInWithGoogleRedirect, signInAsGuest } from '@/lib/firebase';
@@ -129,10 +130,11 @@ export default function AuthModal() {
           {/* School Brand & Header Alignment */}
           <div className="flex items-center gap-3.5 mb-5 pr-8">
             <div className="w-12 h-12 rounded-2xl bg-white p-1.5 shadow-md flex items-center justify-center shrink-0 border border-slate-200">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/dps_shield.png"
                 alt="DPS Indirapuram Emblem"
+                width={36}
+                height={36}
                 className="w-full h-full object-contain"
               />
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { signOutFromFirebase } from '@/lib/firebase';
 import {
@@ -118,8 +119,7 @@ export default function MobileNavMenu() {
       <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-[#f8fafc]/95 dark:bg-[#050811]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/80 pt-safe">
         <div className="flex items-center gap-3">
           <div className="h-8 px-2 py-0.5 rounded-lg bg-white shadow-xs border border-slate-200 flex items-center justify-center shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/dps_shield.png" alt="DPSI" className="h-full w-auto object-contain" />
+            <Image src="/dps_shield.png" alt="DPSI" width={28} height={28} className="h-full w-auto object-contain" />
           </div>
           <div>
             <h2 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">Navigation Menu</h2>

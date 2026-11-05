@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { CategoryType, Project } from '@/types';
@@ -85,16 +86,18 @@ export default function LiveLeaderboard() {
           <div className="p-4 sm:p-5 border-b border-slate-200/90 dark:border-slate-800 bg-gradient-to-r from-amber-100/70 dark:from-amber-500/15 via-white/50 dark:via-[#0b101c] to-amber-100/50 dark:to-amber-500/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-10 px-2 sm:px-2.5 py-1 rounded-xl bg-white shadow-md flex items-center justify-center shrink-0 border border-slate-200">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/dps_shield.png"
                   alt="DPS Indirapuram Emblem"
+                  width={28}
+                  height={28}
                   className="h-full w-auto object-contain block sm:hidden"
                 />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/dps_indirapuram_logo.png"
                   alt="DPS Indirapuram Logo"
+                  width={150}
+                  height={28}
                   className="h-full w-auto max-w-[140px] sm:max-w-[170px] object-contain hidden sm:block"
                 />
               </div>

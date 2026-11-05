@@ -2,6 +2,7 @@
 
 import React, { memo, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { signOutFromFirebase } from '@/lib/firebase';
 import { isSoundEnabled, toggleSound, playClick } from '@/lib/sound';
@@ -16,7 +17,6 @@ import {
   Sun,
   Moon,
   ArrowLeft,
-  Sparkles,
   Compass,
   Volume2,
   VolumeX,
@@ -110,14 +110,18 @@ function TopNavHUD() {
             className="h-8 sm:h-9 px-2 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0 border border-slate-200 hover:opacity-95 transition-opacity"
             title="Reset to 3D Overview"
           >
-            <img
+            <Image
               src="/dps_shield.png"
               alt="DPS Indirapuram Shield"
+              width={24}
+              height={24}
               className="h-6 w-auto object-contain block sm:hidden"
             />
-            <img
+            <Image
               src="/dps_indirapuram_logo.png"
               alt="DPS Indirapuram"
+              width={140}
+              height={24}
               className="h-6 w-auto max-w-[100px] sm:max-w-[130px] md:max-w-[145px] object-contain hidden sm:block"
             />
           </button>

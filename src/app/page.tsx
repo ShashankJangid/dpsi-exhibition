@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -26,6 +27,7 @@ import AuthModal from '@/components/ui/AuthModal';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import SearchModal from '@/components/ui/SearchModal';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
+import ProjectCardSkeleton from '@/components/ui/ProjectCardSkeleton';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
@@ -80,6 +82,7 @@ export default function LandingPage() {
   const [selectedDay, setSelectedDay] = useState<'day1' | 'day2'>('day1');
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
+  const [isProjectsLoading, setIsProjectsLoading] = useState(true);
 
   // Floating Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -128,9 +131,13 @@ export default function LandingPage() {
       if (liveProjects && liveProjects.length > 0) {
         setProjects(liveProjects);
       }
+      setIsProjectsLoading(false);
     });
 
+    const timer = setTimeout(() => setIsProjectsLoading(false), 300);
+
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('keydown', handleKeyDown);
       unsubAuth();
@@ -337,7 +344,7 @@ export default function LandingPage() {
             }`}
           >
             <div className="h-8 px-2 py-0.5 rounded bg-white flex items-center justify-center border border-slate-200 shadow-xs">
-              <img src="/dps_shield.png" alt="DPS Indirapuram" className="h-full w-auto object-contain" />
+              <Image src="/dps_shield.png" alt="DPS Indirapuram" width={28} height={28} className="h-full w-auto object-contain" />
             </div>
             <div className="hidden md:flex flex-col">
               <span className={`text-[12px] font-black tracking-tight uppercase font-mono ${
@@ -852,7 +859,10 @@ export default function LandingPage() {
             </div>
           ) : (
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProjects.map((p) => (
+              {isProjectsLoading ? (
+                <ProjectCardSkeleton count={6} />
+              ) : (
+                filteredProjects.map((p, index) => (
               <div
                 key={p.id}
                 role="button"
@@ -873,12 +883,13 @@ export default function LandingPage() {
                 <div>
                   {/* Small Preview Image Section */}
                   <div className="relative w-full h-36 overflow-hidden bg-slate-100 dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800/80">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={p.image_url}
                       alt={p.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      priority={index < 3}
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
                           'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80';
@@ -1006,7 +1017,8 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
           )}
 
@@ -1448,7 +1460,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-3">
               <div className="h-6 px-1.5 py-0.5 rounded bg-white flex items-center justify-center border border-slate-200">
-                <img src="/dps_shield.png" alt="DPS Indirapuram" className="h-full w-auto object-contain" />
+                <Image src="/dps_shield.png" alt="DPS Indirapuram" width={20} height={20} className="h-full w-auto object-contain" />
               </div>
               <span className={isLight ? 'text-slate-700' : 'text-[#8b949e]'}>
                 © 2026 Delhi Public School Indirapuram.
