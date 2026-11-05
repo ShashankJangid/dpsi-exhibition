@@ -1,0 +1,656 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="dpsi_exhibition_world">
+    <physics type="ode">
+      <max_step_size>0.005</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <!-- Lighting -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 10 25 0 0 0</pose>
+      <diffuse>0.85 0.85 0.85 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>0 -0.5 -1</direction>
+    </light>
+
+    <!-- Static Exhibition Architecture Model -->
+    <model name="exhibition_hall">
+      <static>true</static>
+      <link name="hall_link">
+        <!-- Ground Floor -->
+        <visual name="floor_vis">
+          <pose>-2.0 12.0 -0.05 0 0 0</pose>
+          <geometry><box><size>59.6 45.6 0.1</size></box></geometry>
+          <material><ambient>0.8 0.82 0.86 1</ambient><diffuse>0.8 0.82 0.86 1</diffuse></material>
+        </visual>
+        <collision name="floor_col">
+          <pose>-2.0 12.0 -0.05 0 0 0</pose>
+          <geometry><box><size>59.6 45.6 0.1</size></box></geometry>
+        </collision>
+        <!-- Wall: north_back_wall -->
+        <visual name="north_back_wall_vis">
+          <pose>-2.0 34.8 5.25 0 0 0</pose>
+          <geometry><box><size>59.6 0.4 10.5</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="north_back_wall_col">
+          <pose>-2.0 34.8 5.25 0 0 0</pose>
+          <geometry><box><size>59.6 0.4 10.5</size></box></geometry>
+        </collision>
+        <!-- Wall: west_wall -->
+        <visual name="west_wall_vis">
+          <pose>-31.8 12.0 5.25 0 0 0</pose>
+          <geometry><box><size>0.4 45.6 10.5</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="west_wall_col">
+          <pose>-31.8 12.0 5.25 0 0 0</pose>
+          <geometry><box><size>0.4 45.6 10.5</size></box></geometry>
+        </collision>
+        <!-- Wall: east_wall -->
+        <visual name="east_wall_vis">
+          <pose>27.8 12.0 5.25 0 0 0</pose>
+          <geometry><box><size>0.4 45.6 10.5</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="east_wall_col">
+          <pose>27.8 12.0 5.25 0 0 0</pose>
+          <geometry><box><size>0.4 45.6 10.5</size></box></geometry>
+        </collision>
+        <!-- Wall: south_wall_left -->
+        <visual name="south_wall_left_vis">
+          <pose>-24.0 -10.8 2.5 0 0 0</pose>
+          <geometry><box><size>15.6 0.4 5.0</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="south_wall_left_col">
+          <pose>-24.0 -10.8 2.5 0 0 0</pose>
+          <geometry><box><size>15.6 0.4 5.0</size></box></geometry>
+        </collision>
+        <!-- Wall: south_wall_right -->
+        <visual name="south_wall_right_vis">
+          <pose>20.0 -10.8 2.5 0 0 0</pose>
+          <geometry><box><size>15.6 0.4 5.0</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="south_wall_right_col">
+          <pose>20.0 -10.8 2.5 0 0 0</pose>
+          <geometry><box><size>15.6 0.4 5.0</size></box></geometry>
+        </collision>
+        <!-- Wall: west_partition_north -->
+        <visual name="west_partition_north_vis">
+          <pose>-7.0 21.15 2.5 0 0 0</pose>
+          <geometry><box><size>0.25 27.3 5.0</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="west_partition_north_col">
+          <pose>-7.0 21.15 2.5 0 0 0</pose>
+          <geometry><box><size>0.25 27.3 5.0</size></box></geometry>
+        </collision>
+        <!-- Wall: west_partition_south -->
+        <visual name="west_partition_south_vis">
+          <pose>-7.0 -6.15 2.5 0 0 0</pose>
+          <geometry><box><size>0.25 9.3 5.0</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="west_partition_south_col">
+          <pose>-7.0 -6.15 2.5 0 0 0</pose>
+          <geometry><box><size>0.25 9.3 5.0</size></box></geometry>
+        </collision>
+        <!-- Wall: robotics_balustrade -->
+        <visual name="robotics_balustrade_vis">
+          <pose>10.4 18.9 0.55 0 0 0</pose>
+          <geometry><box><size>32.0 0.08 1.1</size></box></geometry>
+          <material><ambient>0.3 0.35 0.45 1</ambient><diffuse>0.3 0.35 0.45 1</diffuse></material>
+        </visual>
+        <collision name="robotics_balustrade_col">
+          <pose>10.4 18.9 0.55 0 0 0</pose>
+          <geometry><box><size>32.0 0.08 1.1</size></box></geometry>
+        </collision>
+        <!-- Ramp: ascending_ramp -->
+        <visual name="ascending_ramp_vis">
+          <pose>-1.7 27.5 0.325 0 -0.36 0</pose>
+          <geometry><box><size>1.6 1.2 0.65</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="ascending_ramp_col">
+          <pose>-1.7 27.5 0.325 0 -0.36 0</pose>
+          <geometry><box><size>1.6 1.2 0.65</size></box></geometry>
+        </collision>
+        <!-- Ramp: elevated_bridge_deck -->
+        <visual name="elevated_bridge_deck_vis">
+          <pose>0.0 27.5 0.65 0 0.0 0</pose>
+          <geometry><box><size>1.8 1.2 0.1</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="elevated_bridge_deck_col">
+          <pose>0.0 27.5 0.65 0 0.0 0</pose>
+          <geometry><box><size>1.8 1.2 0.1</size></box></geometry>
+        </collision>
+        <!-- Ramp: descending_ramp -->
+        <visual name="descending_ramp_vis">
+          <pose>1.7 27.5 0.325 0 0.36 0</pose>
+          <geometry><box><size>1.6 1.2 0.65</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="descending_ramp_col">
+          <pose>1.7 27.5 0.325 0 0.36 0</pose>
+          <geometry><box><size>1.6 1.2 0.65</size></box></geometry>
+        </collision>
+        <visual name="speedway_wall_n_vis">
+          <pose>-1.0 29.5 0.3 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.6</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="speedway_wall_n_col">
+          <pose>-1.0 29.5 0.3 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.6</size></box></geometry>
+        </collision>
+        <visual name="speedway_wall_s_vis">
+          <pose>-1.0 21.5 0.3 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.6</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="speedway_wall_s_col">
+          <pose>-1.0 21.5 0.3 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.6</size></box></geometry>
+        </collision>
+        <visual name="speedway_wall_w_vis">
+          <pose>-5.0 25.5 0.3 0 0 0</pose>
+          <geometry><box><size>0.15 8.0 0.6</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="speedway_wall_w_col">
+          <pose>-5.0 25.5 0.3 0 0 0</pose>
+          <geometry><box><size>0.15 8.0 0.6</size></box></geometry>
+        </collision>
+        <visual name="speedway_wall_e_vis">
+          <pose>3.0 25.5 0.3 0 0 0</pose>
+          <geometry><box><size>0.15 8.0 0.6</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="speedway_wall_e_col">
+          <pose>3.0 25.5 0.3 0 0 0</pose>
+          <geometry><box><size>0.15 8.0 0.6</size></box></geometry>
+        </collision>
+        <visual name="soccer_wall_n_vis">
+          <pose>18.0 32.5 0.25 0 0 0</pose>
+          <geometry><box><size>10.0 0.12 0.5</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="soccer_wall_n_col">
+          <pose>18.0 32.5 0.25 0 0 0</pose>
+          <geometry><box><size>10.0 0.12 0.5</size></box></geometry>
+        </collision>
+        <visual name="soccer_wall_s_vis">
+          <pose>18.0 18.5 0.25 0 0 0</pose>
+          <geometry><box><size>10.0 0.12 0.5</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="soccer_wall_s_col">
+          <pose>18.0 18.5 0.25 0 0 0</pose>
+          <geometry><box><size>10.0 0.12 0.5</size></box></geometry>
+        </collision>
+        <visual name="soccer_wall_w_vis">
+          <pose>13.0 25.5 0.25 0 0 0</pose>
+          <geometry><box><size>0.12 14.0 0.5</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="soccer_wall_w_col">
+          <pose>13.0 25.5 0.25 0 0 0</pose>
+          <geometry><box><size>0.12 14.0 0.5</size></box></geometry>
+        </collision>
+        <visual name="soccer_wall_e_vis">
+          <pose>23.0 25.5 0.25 0 0 0</pose>
+          <geometry><box><size>0.12 14.0 0.5</size></box></geometry>
+          <material><ambient>0.2 0.25 0.35 1</ambient><diffuse>0.2 0.25 0.35 1</diffuse></material>
+        </visual>
+        <collision name="soccer_wall_e_col">
+          <pose>23.0 25.5 0.25 0 0 0</pose>
+          <geometry><box><size>0.12 14.0 0.5</size></box></geometry>
+        </collision>
+        <!-- Booth P01 -->
+        <visual name="booth_P01_vis">
+          <pose>0.0 14.0 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P01_col">
+          <pose>0.0 14.0 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P02 -->
+        <visual name="booth_P02_vis">
+          <pose>3.2 14.0 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P02_col">
+          <pose>3.2 14.0 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P03 -->
+        <visual name="booth_P03_vis">
+          <pose>6.4 14.0 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P03_col">
+          <pose>6.4 14.0 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P04 -->
+        <visual name="booth_P04_vis">
+          <pose>9.6 14.0 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P04_col">
+          <pose>9.6 14.0 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P05 -->
+        <visual name="booth_P05_vis">
+          <pose>12.8 14.0 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P05_col">
+          <pose>12.8 14.0 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P06 -->
+        <visual name="booth_P06_vis">
+          <pose>0.0 8.5 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P06_col">
+          <pose>0.0 8.5 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P07 -->
+        <visual name="booth_P07_vis">
+          <pose>21.0 14.5 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P07_col">
+          <pose>21.0 14.5 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P08 -->
+        <visual name="booth_P08_vis">
+          <pose>21.0 12.3 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P08_col">
+          <pose>21.0 12.3 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P09 -->
+        <visual name="booth_P09_vis">
+          <pose>21.0 10.1 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P09_col">
+          <pose>21.0 10.1 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P10 -->
+        <visual name="booth_P10_vis">
+          <pose>21.0 7.9 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P10_col">
+          <pose>21.0 7.9 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P11 -->
+        <visual name="booth_P11_vis">
+          <pose>3.2 8.5 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P11_col">
+          <pose>3.2 8.5 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth P12 -->
+        <visual name="booth_P12_vis">
+          <pose>6.4 8.5 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_P12_col">
+          <pose>6.4 8.5 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D01 -->
+        <visual name="booth_D01_vis">
+          <pose>9.6 8.5 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D01_col">
+          <pose>9.6 8.5 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D02 -->
+        <visual name="booth_D02_vis">
+          <pose>12.8 8.5 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D02_col">
+          <pose>12.8 8.5 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D03 -->
+        <visual name="booth_D03_vis">
+          <pose>0.0 3.5 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D03_col">
+          <pose>0.0 3.5 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D04 -->
+        <visual name="booth_D04_vis">
+          <pose>3.2 3.5 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D04_col">
+          <pose>3.2 3.5 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D05 -->
+        <visual name="booth_D05_vis">
+          <pose>6.4 3.5 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D05_col">
+          <pose>6.4 3.5 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D06 -->
+        <visual name="booth_D06_vis">
+          <pose>9.6 3.5 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D06_col">
+          <pose>9.6 3.5 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D07 -->
+        <visual name="booth_D07_vis">
+          <pose>12.8 3.5 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D07_col">
+          <pose>12.8 3.5 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D08 -->
+        <visual name="booth_D08_vis">
+          <pose>0.0 -2.0 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D08_col">
+          <pose>0.0 -2.0 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D09 -->
+        <visual name="booth_D09_vis">
+          <pose>3.2 -2.0 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D09_col">
+          <pose>3.2 -2.0 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D10 -->
+        <visual name="booth_D10_vis">
+          <pose>6.4 -2.0 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D10_col">
+          <pose>6.4 -2.0 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D11 -->
+        <visual name="booth_D11_vis">
+          <pose>21.0 5.7 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D11_col">
+          <pose>21.0 5.7 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth D12 -->
+        <visual name="booth_D12_vis">
+          <pose>21.0 3.5 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_D12_col">
+          <pose>21.0 3.5 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B01 -->
+        <visual name="booth_B01_vis">
+          <pose>21.0 1.3 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B01_col">
+          <pose>21.0 1.3 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B02 -->
+        <visual name="booth_B02_vis">
+          <pose>21.0 -0.9 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B02_col">
+          <pose>21.0 -0.9 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B03 -->
+        <visual name="booth_B03_vis">
+          <pose>21.0 -3.1 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B03_col">
+          <pose>21.0 -3.1 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B04 -->
+        <visual name="booth_B04_vis">
+          <pose>21.0 -5.3 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B04_col">
+          <pose>21.0 -5.3 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B05 -->
+        <visual name="booth_B05_vis">
+          <pose>21.0 -7.5 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B05_col">
+          <pose>21.0 -7.5 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B06 -->
+        <visual name="booth_B06_vis">
+          <pose>9.6 -2.0 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B06_col">
+          <pose>9.6 -2.0 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B07 -->
+        <visual name="booth_B07_vis">
+          <pose>12.8 -2.0 0.72 0 0 -3.1416</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B07_col">
+          <pose>12.8 -2.0 0.75 0 0 -3.1416</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth B08 -->
+        <visual name="booth_B08_vis">
+          <pose>21.0 -9.7 0.72 0 0 1.5708</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_B08_col">
+          <pose>21.0 -9.7 0.75 0 0 1.5708</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST01 -->
+        <visual name="booth_ST01_vis">
+          <pose>-21.96 7.83 0.72 0 0 0.38</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST01_col">
+          <pose>-21.96 7.83 0.75 0 0 0.38</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST02 -->
+        <visual name="booth_ST02_vis">
+          <pose>-18.89 6.6 0.72 0 0 0.38</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST02_col">
+          <pose>-18.89 6.6 0.75 0 0 0.38</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST03 -->
+        <visual name="booth_ST03_vis">
+          <pose>-15.73 5.34 0.72 0 0 0.38</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST03_col">
+          <pose>-15.73 5.34 0.75 0 0 0.38</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST04 -->
+        <visual name="booth_ST04_vis">
+          <pose>-12.67 4.12 0.72 0 0 0.38</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST04_col">
+          <pose>-12.67 4.12 0.75 0 0 0.38</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST05 -->
+        <visual name="booth_ST05_vis">
+          <pose>-24.33 1.88 0.72 0 0 -2.76</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST05_col">
+          <pose>-24.33 1.88 0.75 0 0 -2.76</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST06 -->
+        <visual name="booth_ST06_vis">
+          <pose>-21.27 0.66 0.72 0 0 -2.76</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST06_col">
+          <pose>-21.27 0.66 0.75 0 0 -2.76</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST07 -->
+        <visual name="booth_ST07_vis">
+          <pose>-18.11 -0.6 0.72 0 0 -2.76</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST07_col">
+          <pose>-18.11 -0.6 0.75 0 0 -2.76</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth ST08 -->
+        <visual name="booth_ST08_vis">
+          <pose>-15.04 -1.83 0.72 0 0 -2.76</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_ST08_col">
+          <pose>-15.04 -1.83 0.75 0 0 -2.76</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth R01 -->
+        <visual name="booth_R01_vis">
+          <pose>-5.5 18.4 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_R01_col">
+          <pose>-5.5 18.4 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth R02 -->
+        <visual name="booth_R02_vis">
+          <pose>-2.9 18.4 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_R02_col">
+          <pose>-2.9 18.4 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth S01 -->
+        <visual name="booth_S01_vis">
+          <pose>23.6 18.4 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_S01_col">
+          <pose>23.6 18.4 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+        <!-- Booth S02 -->
+        <visual name="booth_S02_vis">
+          <pose>26.2 18.4 0.72 0 0 -0.0</pose>
+          <geometry><box><size>2.0 0.8 0.05</size></box></geometry>
+          <material><ambient>0.7 0.55 0.35 1</ambient><diffuse>0.7 0.55 0.35 1</diffuse></material>
+        </visual>
+        <collision name="booth_S02_col">
+          <pose>26.2 18.4 0.75 0 0 -0.0</pose>
+          <geometry><box><size>2.2 1.6 1.5</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>

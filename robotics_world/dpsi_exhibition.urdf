@@ -1,0 +1,917 @@
+<?xml version="1.0"?>
+<robot name="dpsi_exhibition_world">
+  <!-- Materials -->
+  <material name="floor_color"><color rgba="0.82 0.85 0.90 1.0"/></material>
+  <material name="wall_color"><color rgba="0.25 0.32 0.42 1.0"/></material>
+  <material name="wood_color"><color rgba="0.65 0.45 0.28 1.0"/></material>
+  <material name="portal_color"><color rgba="0.20 0.25 0.35 1.0"/></material>
+  <material name="glass_color"><color rgba="0.70 0.85 0.95 0.45"/></material>
+  <material name="desk_color"><color rgba="0.78 0.60 0.40 1.0"/></material>
+  <material name="amber_color"><color rgba="0.96 0.62 0.07 1.0"/></material>
+  <material name="cyan_color"><color rgba="0.02 0.52 0.78 1.0"/></material>
+  <material name="emerald_color"><color rgba="0.02 0.59 0.41 1.0"/></material>
+  <material name="purple_color"><color rgba="0.49 0.23 0.93 1.0"/></material>
+  <material name="red_color"><color rgba="0.86 0.15 0.15 1.0"/></material>
+
+  <link name="world"/>
+
+  <!-- Main Exhibition Structure Link -->
+  <link name="exhibition_hall">
+    <!-- Ground Floor -->
+    <visual>
+      <origin xyz="-2.0 12.0 -0.05" rpy="0 0 0"/>
+      <geometry><box size="59.6 45.6 0.1"/></geometry>
+      <material name="floor_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-2.0 12.0 -0.05" rpy="0 0 0"/>
+      <geometry><box size="59.6 45.6 0.1"/></geometry>
+    </collision>
+    <!-- Wall: north_back_wall -->
+    <visual>
+      <origin xyz="-2.0 34.8 5.25" rpy="0 0 0"/>
+      <geometry><box size="59.6 0.4 10.5"/></geometry>
+      <material name="wall_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-2.0 34.8 5.25" rpy="0 0 0"/>
+      <geometry><box size="59.6 0.4 10.5"/></geometry>
+    </collision>
+    <!-- Wall: west_wall -->
+    <visual>
+      <origin xyz="-31.8 12.0 5.25" rpy="0 0 0"/>
+      <geometry><box size="0.4 45.6 10.5"/></geometry>
+      <material name="wall_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-31.8 12.0 5.25" rpy="0 0 0"/>
+      <geometry><box size="0.4 45.6 10.5"/></geometry>
+    </collision>
+    <!-- Wall: east_wall -->
+    <visual>
+      <origin xyz="27.8 12.0 5.25" rpy="0 0 0"/>
+      <geometry><box size="0.4 45.6 10.5"/></geometry>
+      <material name="wood_color"/>
+    </visual>
+    <collision>
+      <origin xyz="27.8 12.0 5.25" rpy="0 0 0"/>
+      <geometry><box size="0.4 45.6 10.5"/></geometry>
+    </collision>
+    <!-- Wall: south_wall_left -->
+    <visual>
+      <origin xyz="-24.0 -10.8 2.5" rpy="0 0 0"/>
+      <geometry><box size="15.6 0.4 5.0"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-24.0 -10.8 2.5" rpy="0 0 0"/>
+      <geometry><box size="15.6 0.4 5.0"/></geometry>
+    </collision>
+    <!-- Wall: south_wall_right -->
+    <visual>
+      <origin xyz="20.0 -10.8 2.5" rpy="0 0 0"/>
+      <geometry><box size="15.6 0.4 5.0"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="20.0 -10.8 2.5" rpy="0 0 0"/>
+      <geometry><box size="15.6 0.4 5.0"/></geometry>
+    </collision>
+    <!-- Wall: west_partition_north -->
+    <visual>
+      <origin xyz="-7.0 21.15 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.25 27.3 5.0"/></geometry>
+      <material name="glass_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-7.0 21.15 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.25 27.3 5.0"/></geometry>
+    </collision>
+    <!-- Wall: west_partition_south -->
+    <visual>
+      <origin xyz="-7.0 -6.15 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.25 9.3 5.0"/></geometry>
+      <material name="glass_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-7.0 -6.15 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.25 9.3 5.0"/></geometry>
+    </collision>
+    <!-- Wall: robotics_balustrade -->
+    <visual>
+      <origin xyz="10.4 18.9 0.55" rpy="0 0 0"/>
+      <geometry><box size="32.0 0.08 1.1"/></geometry>
+      <material name="glass_color"/>
+    </visual>
+    <collision>
+      <origin xyz="10.4 18.9 0.55" rpy="0 0 0"/>
+      <geometry><box size="32.0 0.08 1.1"/></geometry>
+    </collision>
+    <!-- Column: portal_col_south -->
+    <visual>
+      <origin xyz="-7.0 -1.5 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.3 0.3 5.0"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-7.0 -1.5 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.3 0.3 5.0"/></geometry>
+    </collision>
+    <!-- Column: portal_col_north -->
+    <visual>
+      <origin xyz="-7.0 7.5 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.3 0.3 5.0"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-7.0 7.5 2.5" rpy="0 0 0"/>
+      <geometry><box size="0.3 0.3 5.0"/></geometry>
+    </collision>
+    <!-- Column: portal_lintel -->
+    <visual>
+      <origin xyz="-7.0 3.0 4.8" rpy="0 0 0"/>
+      <geometry><box size="0.3 9.0 0.4"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-7.0 3.0 4.8" rpy="0 0 0"/>
+      <geometry><box size="0.3 9.0 0.4"/></geometry>
+    </collision>
+    <!-- Ramp: ascending_ramp -->
+    <visual>
+      <origin xyz="-1.7 27.5 0.325" rpy="0 -0.36 0"/>
+      <geometry><box size="1.6 1.2 0.65"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-1.7 27.5 0.325" rpy="0 -0.36 0"/>
+      <geometry><box size="1.6 1.2 0.65"/></geometry>
+    </collision>
+    <!-- Ramp: elevated_bridge_deck -->
+    <visual>
+      <origin xyz="0.0 27.5 0.65" rpy="0 0.0 0"/>
+      <geometry><box size="1.8 1.2 0.1"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0 27.5 0.65" rpy="0 0.0 0"/>
+      <geometry><box size="1.8 1.2 0.1"/></geometry>
+    </collision>
+    <!-- Ramp: descending_ramp -->
+    <visual>
+      <origin xyz="1.7 27.5 0.325" rpy="0 0.36 0"/>
+      <geometry><box size="1.6 1.2 0.65"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="1.7 27.5 0.325" rpy="0 0.36 0"/>
+      <geometry><box size="1.6 1.2 0.65"/></geometry>
+    </collision>
+    <!-- Arena Boundary: speedway_wall_n -->
+    <visual>
+      <origin xyz="-1.0 29.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="8.0 0.15 0.6"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-1.0 29.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="8.0 0.15 0.6"/></geometry>
+    </collision>
+    <!-- Arena Boundary: speedway_wall_s -->
+    <visual>
+      <origin xyz="-1.0 21.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="8.0 0.15 0.6"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-1.0 21.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="8.0 0.15 0.6"/></geometry>
+    </collision>
+    <!-- Arena Boundary: speedway_wall_w -->
+    <visual>
+      <origin xyz="-5.0 25.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="0.15 8.0 0.6"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-5.0 25.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="0.15 8.0 0.6"/></geometry>
+    </collision>
+    <!-- Arena Boundary: speedway_wall_e -->
+    <visual>
+      <origin xyz="3.0 25.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="0.15 8.0 0.6"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="3.0 25.5 0.3" rpy="0 0 0"/>
+      <geometry><box size="0.15 8.0 0.6"/></geometry>
+    </collision>
+    <!-- Arena Boundary: soccer_wall_n -->
+    <visual>
+      <origin xyz="18.0 32.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="10.0 0.12 0.5"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="18.0 32.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="10.0 0.12 0.5"/></geometry>
+    </collision>
+    <!-- Arena Boundary: soccer_wall_s -->
+    <visual>
+      <origin xyz="18.0 18.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="10.0 0.12 0.5"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="18.0 18.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="10.0 0.12 0.5"/></geometry>
+    </collision>
+    <!-- Arena Boundary: soccer_wall_w -->
+    <visual>
+      <origin xyz="13.0 25.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="0.12 14.0 0.5"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="13.0 25.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="0.12 14.0 0.5"/></geometry>
+    </collision>
+    <!-- Arena Boundary: soccer_wall_e -->
+    <visual>
+      <origin xyz="23.0 25.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="0.12 14.0 0.5"/></geometry>
+      <material name="portal_color"/>
+    </visual>
+    <collision>
+      <origin xyz="23.0 25.5 0.25" rpy="0 0 0"/>
+      <geometry><box size="0.12 14.0 0.5"/></geometry>
+    </collision>
+    <!-- Booth P01: P01 • Stepwise AI: Biomechanical Gait Analysis -->
+    <visual>
+      <origin xyz="0.0 14.0 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="0.0 14.0 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0 14.0 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P02: P02 • Move Smarter: ADAS (Driver Assistance System) -->
+    <visual>
+      <origin xyz="3.2 14.0 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="3.2 14.0 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="3.2 14.0 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P03: P03 • Smart Water Management & Micro-Filtration System -->
+    <visual>
+      <origin xyz="6.4 14.0 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="6.4 14.0 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="6.4 14.0 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P04: P04 • Eco-Composite Smart Trashcan System -->
+    <visual>
+      <origin xyz="9.6 14.0 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="9.6 14.0 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="9.6 14.0 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P05: P05 • Autonomous Medical Supply Drone Delivery -->
+    <visual>
+      <origin xyz="12.8 14.0 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="12.8 14.0 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="12.8 14.0 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P06: P06 • Robotic Smart Moving Bin System -->
+    <visual>
+      <origin xyz="0.0 8.5 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="0.0 8.5 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0 8.5 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P07: P07 • Health Thread: Smart Bio-Sensing Wearable -->
+    <visual>
+      <origin xyz="21.0 14.5 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 14.5 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 14.5 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P08: P08 • Classroom Smart Queue & Flow Management -->
+    <visual>
+      <origin xyz="21.0 12.3 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 12.3 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 12.3 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P09: P09 • Smart IoT Parcel Delivery & Secure Locker Box -->
+    <visual>
+      <origin xyz="21.0 10.1 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 10.1 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 10.1 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P10: P10 • Automated Digital Passes & Campus Access Control -->
+    <visual>
+      <origin xyz="21.0 7.9 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 7.9 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 7.9 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P11: P11 • NeuroScience Brain-Computer Interface (BCI) -->
+    <visual>
+      <origin xyz="3.2 8.5 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="3.2 8.5 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="3.2 8.5 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth P12: P12 • Motorized Indoor Clothes Hanger & Dehumidifier -->
+    <visual>
+      <origin xyz="6.4 8.5 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="6.4 8.5 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="amber_color"/>
+    </visual>
+    <collision>
+      <origin xyz="6.4 8.5 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D01: D01 • Farm To Home: Farmer Verification System -->
+    <visual>
+      <origin xyz="9.6 8.5 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="9.6 8.5 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="9.6 8.5 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D02: D02 • Hetu Setu: Maternal Health System -->
+    <visual>
+      <origin xyz="12.8 8.5 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="12.8 8.5 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="12.8 8.5 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D03: D03 • Rehab 360: AI Prisoner Therapist -->
+    <visual>
+      <origin xyz="0.0 3.5 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="0.0 3.5 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0 3.5 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D04: D04 • Transportation Hub Crowd Management -->
+    <visual>
+      <origin xyz="3.2 3.5 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="3.2 3.5 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="3.2 3.5 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D05: D05 • Move Smarter: CityWatch AI Surveillance -->
+    <visual>
+      <origin xyz="6.4 3.5 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="6.4 3.5 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="6.4 3.5 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D06: D06 • Move Smarter: Smart Exit Transit Station for Airport Authority -->
+    <visual>
+      <origin xyz="9.6 3.5 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="9.6 3.5 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="9.6 3.5 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D07: D07 • Medical Kiosk Health Diagnostic Center -->
+    <visual>
+      <origin xyz="12.8 3.5 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="12.8 3.5 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="12.8 3.5 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D08: D08 • SchoolsOS: Cafeteria & Nutrition Management -->
+    <visual>
+      <origin xyz="0.0 -2.0 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="0.0 -2.0 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -2.0 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D09: D09 • SchoolsOS: Lost & Found Intelligence Network -->
+    <visual>
+      <origin xyz="3.2 -2.0 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="3.2 -2.0 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="3.2 -2.0 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D10: D10 • Move Smarter: Landmark-Based Route Optimization -->
+    <visual>
+      <origin xyz="6.4 -2.0 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="6.4 -2.0 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="6.4 -2.0 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D11: D11 • AI Exam Monitor & Proctoring Intelligence -->
+    <visual>
+      <origin xyz="21.0 5.7 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 5.7 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 5.7 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth D12: D12 • Eagle -->
+    <visual>
+      <origin xyz="21.0 3.5 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 3.5 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="cyan_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 3.5 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B01: B01 • Zap Fit: AI Fitness App & Wellness Platform -->
+    <visual>
+      <origin xyz="21.0 1.3 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 1.3 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 1.3 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B02: B02 • GrowGrid: Urban Hydroponic Farming Solutions -->
+    <visual>
+      <origin xyz="21.0 -0.9 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 -0.9 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 -0.9 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B03: B03 • P&P: PPE Kit & Bio-Safety Gear Solutions -->
+    <visual>
+      <origin xyz="21.0 -3.1 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 -3.1 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 -3.1 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B04: B04 • Tera Mosaic Lounges & Waiting Area Architecture -->
+    <visual>
+      <origin xyz="21.0 -5.3 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 -5.3 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 -5.3 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B05: B05 • Steel & Stack: Next-Gen Enterprise Web Development -->
+    <visual>
+      <origin xyz="21.0 -7.5 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 -7.5 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 -7.5 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B06: B06 • Trading Cards: Collectibles Exchange Platform -->
+    <visual>
+      <origin xyz="9.6 -2.0 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="9.6 -2.0 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="9.6 -2.0 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B07: B07 • WonderTech: K-12 STEM Innovation & Maker Kits -->
+    <visual>
+      <origin xyz="12.8 -2.0 0.72" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="12.8 -2.0 0.03" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="12.8 -2.0 0.75" rpy="0 0 -3.1416"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth B08: B08 • BioHarvest: Smart Automated Hydroponics Farm -->
+    <visual>
+      <origin xyz="21.0 -9.7 0.72" rpy="0 0 1.5708"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="21.0 -9.7 0.03" rpy="0 0 1.5708"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="emerald_color"/>
+    </visual>
+    <collision>
+      <origin xyz="21.0 -9.7 0.75" rpy="0 0 1.5708"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST01: ST01 • Aeroplane Flight Dynamics & Aerodynamics Display -->
+    <visual>
+      <origin xyz="-21.96 7.83 0.72" rpy="0 0 0.38"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-21.96 7.83 0.03" rpy="0 0 0.38"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-21.96 7.83 0.75" rpy="0 0 0.38"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST02: ST02 • Humanoid Robotics Simulation & Motion Synthesis -->
+    <visual>
+      <origin xyz="-18.89 6.6 0.72" rpy="0 0 0.38"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-18.89 6.6 0.03" rpy="0 0 0.38"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-18.89 6.6 0.75" rpy="0 0 0.38"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST03: ST03 • Unitree Go2 Quadruped Robot Demonstration -->
+    <visual>
+      <origin xyz="-15.73 5.34 0.72" rpy="0 0 0.38"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-15.73 5.34 0.03" rpy="0 0 0.38"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-15.73 5.34 0.75" rpy="0 0 0.38"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST04: ST04 • Hand Gesture Controlled Teleoperation Vehicle -->
+    <visual>
+      <origin xyz="-12.67 4.12 0.72" rpy="0 0 0.38"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-12.67 4.12 0.03" rpy="0 0 0.38"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-12.67 4.12 0.75" rpy="0 0 0.38"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST05: ST05 • Wireless RF Telemetry Race Car -->
+    <visual>
+      <origin xyz="-24.33 1.88 0.72" rpy="0 0 -2.76"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-24.33 1.88 0.03" rpy="0 0 -2.76"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-24.33 1.88 0.75" rpy="0 0 -2.76"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST06: ST06 • Gesture Controlled Robotic Arm: Game of Candy -->
+    <visual>
+      <origin xyz="-21.27 0.66 0.72" rpy="0 0 -2.76"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-21.27 0.66 0.03" rpy="0 0 -2.76"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-21.27 0.66 0.75" rpy="0 0 -2.76"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST07: ST07 • Multi-Legged Biomorphic SpiderBot Explorer -->
+    <visual>
+      <origin xyz="-18.11 -0.6 0.72" rpy="0 0 -2.76"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-18.11 -0.6 0.03" rpy="0 0 -2.76"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-18.11 -0.6 0.75" rpy="0 0 -2.76"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth ST08: ST08 • Autonomous Aerial Drone Display & Safety Mesh -->
+    <visual>
+      <origin xyz="-15.04 -1.83 0.72" rpy="0 0 -2.76"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-15.04 -1.83 0.03" rpy="0 0 -2.76"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="purple_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-15.04 -1.83 0.75" rpy="0 0 -2.76"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth R01: R01 • Robo Race: Velocity-X High-Speed Obstacle Rover -->
+    <visual>
+      <origin xyz="-5.5 18.4 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-5.5 18.4 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="red_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-5.5 18.4 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth R02: R02 • Robo Race: Apex Drift Pro Telemetry Kart -->
+    <visual>
+      <origin xyz="-2.9 18.4 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="-2.9 18.4 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="red_color"/>
+    </visual>
+    <collision>
+      <origin xyz="-2.9 18.4 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth S01: S01 • Robo Soccer: StrikerBot Autonomous Vision Attacker -->
+    <visual>
+      <origin xyz="23.6 18.4 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="23.6 18.4 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="red_color"/>
+    </visual>
+    <collision>
+      <origin xyz="23.6 18.4 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+    <!-- Booth S02: S02 • Robo Soccer: TitanKeeper High-Torque Goalkeeper -->
+    <visual>
+      <origin xyz="26.2 18.4 0.72" rpy="0 0 -0.0"/>
+      <geometry><box size="2.0 0.8 0.05"/></geometry>
+      <material name="desk_color"/>
+    </visual>
+    <visual>
+      <origin xyz="26.2 18.4 0.03" rpy="0 0 -0.0"/>
+      <geometry><box size="2.3 1.7 0.06"/></geometry>
+      <material name="red_color"/>
+    </visual>
+    <collision>
+      <origin xyz="26.2 18.4 0.75" rpy="0 0 -0.0"/>
+      <geometry><box size="2.2 1.6 1.5"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="world_to_hall" type="fixed">
+    <parent link="world"/>
+    <child link="exhibition_hall"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+</robot>

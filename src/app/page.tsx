@@ -12,6 +12,8 @@ import {
   Moon,
   Award,
   Search,
+  Trophy,
+  X,
 } from 'lucide-react';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
@@ -19,7 +21,8 @@ import ProjectDetailDrawer from '@/components/ui/ProjectDetailDrawer';
 import AuthModal from '@/components/ui/AuthModal';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import SearchModal from '@/components/ui/SearchModal';
-import { playClick, playBlip } from '@/lib/sound';
+import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
+import { playClick } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 
@@ -60,8 +63,11 @@ export default function LandingPage() {
   const setDeviceFingerprint = useExhibitionStore((state) => state.setDeviceFingerprint);
   const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
   const setSearchModalOpen = useExhibitionStore((state) => state.setSearchModalOpen);
+  const setLeaderboardOpen = useExhibitionStore((state) => state.setLeaderboardOpen);
 
-  const [selectedZone, setSelectedZone] = useState<'all' | 'Physical' | 'Digital' | 'Business'>('all');
+  type FilterCategory = 'all' | 'Physical' | 'Digital' | 'Business' | 'Show & Tell' | 'Robotics';
+  const [selectedZone, setSelectedZone] = useState<FilterCategory>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedDay, setSelectedDay] = useState<'day1' | 'day2'>('day1');
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
@@ -109,12 +115,31 @@ export default function LandingPage() {
       unsubAuth();
       unsubProjects();
     };
-  }, [setIsMobile, setDeviceFingerprint, setUser, setProjects]);
+  }, [setIsMobile, setDeviceFingerprint, setUser, setProjects, setSearchModalOpen]);
 
   const allProjects = storeProjects.length > 0 ? storeProjects : SEED_PROJECTS;
   const filteredProjects = allProjects.filter((p) => {
-    if (selectedZone === 'all') return true;
-    return p.category === selectedZone;
+    // 1. Category / Zone filter
+    if (selectedZone !== 'all') {
+      if (selectedZone === 'Robotics') {
+        if (p.category !== 'Robo Race' && p.category !== 'Robo Soccer') return false;
+      } else if (p.category !== selectedZone) {
+        return false;
+      }
+    }
+    // 2. Search query filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchTitle = p.title.toLowerCase().includes(q);
+      const matchCode = p.booth_code.toLowerCase().includes(q);
+      const matchDesc = p.description.toLowerCase().includes(q);
+      const matchMembers = p.members?.some((m) => m.toLowerCase().includes(q));
+      const matchTech = p.tech_stack?.some((t) => t.toLowerCase().includes(q));
+      if (!matchTitle && !matchCode && !matchDesc && !matchMembers && !matchTech) {
+        return false;
+      }
+    }
+    return true;
   });
 
   const handleRegister = (e: React.FormEvent) => {
@@ -254,6 +279,23 @@ export default function LandingPage() {
             >
               <Award className="w-3.5 h-3.5 text-amber-500" />
               <span className="hidden xl:inline">Delegate Pass</span>
+            </button>
+
+            {/* Live Leaderboard Modal Trigger */}
+            <button
+              onClick={() => {
+                playClick();
+                setLeaderboardOpen(true);
+              }}
+              className={`hidden md:flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
+                isLight
+                  ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
+                  : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
+              }`}
+              title="View Live Voting Leaderboard & Ranks"
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Leaderboard</span>
             </button>
 
             <button
@@ -598,31 +640,85 @@ export default function LandingPage() {
               </h2>
             </div>
 
-            {/* Filter Cells */}
-            <div className={`flex items-center border rounded text-xs font-mono p-0.5 overflow-x-auto max-w-full ${
-              isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
-            }`}>
-              {(['all', 'Physical', 'Digital', 'Business'] as const).map((z) => (
-                <button
-                  key={z}
-                  onClick={() => setSelectedZone(z)}
-                  className={`px-3 py-1.5 rounded transition-colors ${
-                    selectedZone === z
-                      ? 'bg-[#238636] text-white font-bold shadow-xs'
-                      : isLight
-                      ? 'text-slate-600 hover:text-slate-900'
-                      : 'text-[#8b949e] hover:text-white'
+            {/* Controls: Search Bar & Category Filter Tabs */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+              {/* Direct Search Bar */}
+              <div className="relative w-full md:w-64">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search title, stall, team..."
+                  className={`w-full pl-8 pr-7 py-1.5 text-xs font-mono rounded border transition-colors focus:outline-none focus:border-blue-500 ${
+                    isLight
+                      ? 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 shadow-xs'
+                      : 'bg-[#0d1117] border-[#30363d] text-white placeholder-slate-500'
                   }`}
-                >
-                  {z === 'all' ? 'All (35)' : z}
-                </button>
-              ))}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Cells */}
+              <div className={`flex items-center border rounded text-xs font-mono p-0.5 overflow-x-auto max-w-full ${
+                isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+              }`}>
+                {([
+                  { id: 'all', label: `All (${allProjects.length})` },
+                  { id: 'Physical', label: 'Physical' },
+                  { id: 'Digital', label: 'Digital' },
+                  { id: 'Business', label: 'Business' },
+                  { id: 'Show & Tell', label: 'Show & Tell' },
+                  { id: 'Robotics', label: 'Robotics' },
+                ] as const).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setSelectedZone(tab.id)}
+                    className={`px-2.5 py-1.5 rounded transition-colors whitespace-nowrap ${
+                      selectedZone === tab.id
+                        ? 'bg-[#238636] text-white font-bold shadow-xs'
+                        : isLight
+                        ? 'text-slate-600 hover:text-slate-900'
+                        : 'text-[#8b949e] hover:text-white'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* High-Density Session Cards Grid */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProjects.map((p) => (
+          {filteredProjects.length === 0 ? (
+            <div className={`mt-8 p-12 text-center border rounded-xl font-mono ${
+              isLight ? 'border-slate-300/80 bg-white/60' : 'border-[#30363d] bg-[#0d1117]'
+            }`}>
+              <p className={`text-sm ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                No inventions found matching &ldquo;{searchQuery}&rdquo; {selectedZone !== 'all' ? `in category “${selectedZone}”` : ''}.
+              </p>
+              <button
+                onClick={() => {
+                  playClick();
+                  setSearchQuery('');
+                  setSelectedZone('all');
+                }}
+                className="mt-4 px-4 py-2 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold transition-colors shadow-xs"
+              >
+                Clear Search &amp; Filters
+              </button>
+            </div>
+          ) : (
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredProjects.map((p) => (
               <div
                 key={p.id}
                 role="button"
@@ -691,36 +787,56 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className={`mt-6 pt-3 border-t flex items-center justify-between text-xs font-mono ${
-                  isLight ? 'border-slate-100/90' : 'border-[#21262d]'
+                <div className={`mt-5 pt-3 border-t flex items-center justify-between text-xs font-mono ${
+                  isLight ? 'border-slate-200/90' : 'border-[#21262d]'
                 }`}>
-                  <span className={`truncate max-w-[140px] ${isLight ? 'text-slate-500' : 'text-[#8b949e]'}`}>
+                  <span className={`truncate max-w-[130px] text-[11px] ${isLight ? 'text-slate-500' : 'text-[#8b949e]'}`}>
                     {p.members?.join(', ')}
                   </span>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-[11px] font-bold flex items-center gap-0.5 transition-colors ${
-                      isLight
-                        ? 'text-slate-500 group-hover:text-blue-600'
-                        : 'text-slate-400 group-hover:text-[#58a6ff]'
-                    }`}>
-                      <span>Expand</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectProject(p);
+                      }}
+                      className="px-2.5 py-1 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[11px] font-bold font-mono transition-colors shadow-xs active:scale-95"
+                      title={`Cast vote for ${p.booth_code}`}
+                    >
+                      Vote
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectProject(p);
+                      }}
+                      className={`text-[11px] font-bold flex items-center gap-0.5 transition-colors px-2 py-1 rounded ${
+                        isLight
+                          ? 'text-slate-600 hover:text-blue-600 hover:bg-slate-200/60'
+                          : 'text-slate-300 hover:text-[#58a6ff] hover:bg-[#1f242c]'
+                      }`}
+                    >
+                      <span>Details</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />
-                    </span>
+                    </button>
                     <Link
-                      href="/expo"
+                      href={`/expo?booth=${p.booth_code}`}
                       onClick={(e) => e.stopPropagation()}
-                      className={`flex items-center gap-1 font-bold transition-transform hover:scale-105 ${
-                        isLight ? 'text-blue-600 hover:text-blue-700' : 'text-[#58a6ff] hover:text-[#79c0ff]'
+                      title="Explore booth in 3D Virtual Hall"
+                      className={`text-[11px] font-bold flex items-center gap-0.5 transition-colors px-1.5 py-1 rounded ${
+                        isLight
+                          ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                          : 'text-[#58a6ff] hover:text-[#79c0ff] hover:bg-sky-950/40'
                       }`}
                     >
                       <span>3D</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+          )}
 
           <div className="mt-8 text-center">
             <Link
@@ -775,14 +891,23 @@ export default function LandingPage() {
                   and bio-materials engineered by junior innovators.
                 </p>
               </div>
-              <div className={`mt-6 pt-4 border-t ${isLight ? 'border-slate-100/90' : 'border-[#21262d]'}`}>
-                <Link
-                  href="/expo"
-                  className={`flex items-center gap-1.5 text-xs font-mono font-bold hover:underline ${
+              <div className={`mt-6 pt-4 border-t flex items-center justify-between gap-3 ${isLight ? 'border-slate-200/90' : 'border-[#21262d]'}`}>
+                <a
+                  href="#projects"
+                  onClick={() => setSelectedZone('Show & Tell')}
+                  className={`text-xs font-mono font-bold hover:underline ${
                     isLight ? 'text-blue-600' : 'text-[#58a6ff]'
                   }`}
                 >
-                  <span>Enter Zone 1 in 3D</span>
+                  Browse ST01–ST08 Projects ↓
+                </a>
+                <Link
+                  href="/expo?booth=ST01"
+                  className={`flex items-center gap-1 text-xs font-mono font-bold ${
+                    isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>3D Hall</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -808,12 +933,21 @@ export default function LandingPage() {
                   sustainable Business enterprises (B01-07).
                 </p>
               </div>
-              <div className={`mt-6 pt-4 border-t ${isLight ? 'border-slate-100/90' : 'border-[#21262d]'}`}>
-                <Link
-                  href="/expo"
-                  className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#f0883e] hover:underline"
+              <div className={`mt-6 pt-4 border-t flex items-center justify-between gap-3 ${isLight ? 'border-slate-200/90' : 'border-[#21262d]'}`}>
+                <a
+                  href="#projects"
+                  onClick={() => setSelectedZone('all')}
+                  className="text-xs font-mono font-bold text-[#f0883e] hover:underline"
                 >
-                  <span>Enter Zone 2 in 3D</span>
+                  Browse Innovation Pods ↓
+                </a>
+                <Link
+                  href="/expo?booth=P01"
+                  className={`flex items-center gap-1 text-xs font-mono font-bold ${
+                    isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>3D Hall</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -839,12 +973,21 @@ export default function LandingPage() {
                   stations battling in live heats.
                 </p>
               </div>
-              <div className={`mt-6 pt-4 border-t ${isLight ? 'border-slate-100/90' : 'border-[#21262d]'}`}>
-                <Link
-                  href="/expo"
-                  className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#db61a2] hover:underline"
+              <div className={`mt-6 pt-4 border-t flex items-center justify-between gap-3 ${isLight ? 'border-slate-200/90' : 'border-[#21262d]'}`}>
+                <a
+                  href="#projects"
+                  onClick={() => setSelectedZone('Robotics')}
+                  className="text-xs font-mono font-bold text-[#db61a2] hover:underline"
                 >
-                  <span>Enter Zone 3 in 3D</span>
+                  Browse Robotics Arenas ↓
+                </a>
+                <Link
+                  href="/expo?booth=R01"
+                  className={`flex items-center gap-1 text-xs font-mono font-bold ${
+                    isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>3D Hall</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -888,12 +1031,27 @@ export default function LandingPage() {
                   <span className="font-semibold">Weighted Ballots: Faculty Jury (75%) • Community (25%)</span>
                   <span className="text-[#58a6ff] font-bold">[ VERIFIED ]</span>
                 </div>
-                <div className={`p-3 border rounded flex items-center justify-between ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
-                }`}>
-                  <span className="font-semibold">Live Leaderboard Real-Time Streaming</span>
-                  <span className="text-[#d2a8ff] font-bold">[ SYNCED ]</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setLeaderboardOpen(true);
+                  }}
+                  className={`w-full text-left p-3 border rounded flex items-center justify-between transition-colors cursor-pointer group ${
+                    isLight
+                      ? 'border-slate-300/80 bg-[#eef2f6]/90 hover:bg-slate-200/80 text-slate-900 shadow-xs'
+                      : 'border-[#21262d] bg-[#0d1117] hover:bg-[#161b22] text-white'
+                  }`}
+                  title="View Live Leaderboard Ranks Modal"
+                >
+                  <span className="font-semibold flex items-center gap-2">
+                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Live Leaderboard Real-Time Streaming</span>
+                  </span>
+                  <span className="text-[#d2a8ff] font-bold group-hover:underline flex items-center gap-1">
+                    [ VIEW RANKS ↗ ]
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -906,7 +1064,7 @@ export default function LandingPage() {
               <ol className={`space-y-3 text-xs ${isLight ? 'text-slate-700' : 'text-[#c9d1d9]'}`}>
                 <li className="flex items-start gap-2">
                   <span className="text-[#3fb950] font-bold">1.</span>
-                  <span>Enter the 3D floor plan and select any booth.</span>
+                  <span>Select any invention from the directory above or in the 3D hall.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#3fb950] font-bold">2.</span>
@@ -918,13 +1076,42 @@ export default function LandingPage() {
                 </li>
               </ol>
 
-              <Link
-                href="/expo"
-                className="mt-6 w-full flex items-center justify-center gap-2 py-3 bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold uppercase transition-colors rounded shadow-xs"
-              >
-                <span>Go To Voting Portal</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <div className="mt-6 flex flex-col gap-2.5">
+                <a
+                  href="#projects"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold uppercase transition-colors rounded shadow-xs active:scale-98"
+                >
+                  <Vote className="w-3.5 h-3.5" />
+                  <span>Browse Inventions to Vote</span>
+                </a>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      playClick();
+                      setLeaderboardOpen(true);
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 border font-mono text-xs font-bold transition-colors rounded ${
+                      isLight
+                        ? 'border-slate-300 hover:bg-slate-200 text-slate-800'
+                        : 'border-[#30363d] hover:bg-[#161b22] text-slate-200'
+                    }`}
+                  >
+                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                    <span>View Ranks</span>
+                  </button>
+                  <Link
+                    href="/expo"
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 border font-mono text-xs font-bold transition-colors rounded ${
+                      isLight
+                        ? 'border-slate-300 hover:bg-slate-200 text-slate-800'
+                        : 'border-[#30363d] hover:bg-[#161b22] text-slate-200'
+                    }`}
+                  >
+                    <span>3D Hall</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1151,6 +1338,7 @@ export default function LandingPage() {
       <AuthModal />
       <SearchModal />
       <DelegatePassModal />
+      <LiveLeaderboard />
     </div>
   );
 }
