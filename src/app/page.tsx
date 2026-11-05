@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
@@ -14,15 +14,19 @@ import {
   Search,
   Trophy,
   X,
+  Share2,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
+import { Project } from '@/types';
 import ProjectDetailDrawer from '@/components/ui/ProjectDetailDrawer';
 import AuthModal from '@/components/ui/AuthModal';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import SearchModal from '@/components/ui/SearchModal';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
-import { playClick } from '@/lib/sound';
+import { playClick, playChime, triggerHaptic } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 
@@ -64,6 +68,11 @@ export default function LandingPage() {
   const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
   const setSearchModalOpen = useExhibitionStore((state) => state.setSearchModalOpen);
   const setLeaderboardOpen = useExhibitionStore((state) => state.setLeaderboardOpen);
+  const setAuthModalOpen = useExhibitionStore((state) => state.setAuthModalOpen);
+  const user = useExhibitionStore((state) => state.user);
+  const votedProjectIds = useExhibitionStore((state) => state.votedProjectIds);
+  const markProjectVoted = useExhibitionStore((state) => state.markProjectVoted);
+  const incrementProjectVote = useExhibitionStore((state) => state.incrementProjectVote);
 
   type FilterCategory = 'all' | 'Physical' | 'Digital' | 'Business' | 'Show & Tell' | 'Robotics';
   const [selectedZone, setSelectedZone] = useState<FilterCategory>('all');
@@ -71,6 +80,18 @@ export default function LandingPage() {
   const [selectedDay, setSelectedDay] = useState<'day1' | 'day2'>('day1');
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
+
+  // Floating Toast Notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showToast = (msg: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToastMessage(msg);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 3200);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -141,6 +162,119 @@ export default function LandingPage() {
     }
     return true;
   });
+
+  // Deep link support (?booth=P04 or ?booth=ST01) - consumed once per query parameter
+  const handledBoothRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const boothParam = params.get('booth');
+    if (boothParam && handledBoothRef.current !== boothParam.toLowerCase() && allProjects.length > 0) {
+      const match = allProjects.find(
+        (p) => p.booth_code.toLowerCase() === boothParam.toLowerCase()
+      );
+      if (match) {
+        handledBoothRef.current = boothParam.toLowerCase();
+        selectProject(match);
+        const timer = setTimeout(() => {
+          const el = document.getElementById('projects');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+          showToast(`📍 Viewing Booth ${match.booth_code}: ${match.title.replace(/^.+•\s*/, '')}`);
+        }, 150);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [allProjects, selectProject]);
+
+  // Dynamic Category Counts
+  const categoryCounts = useMemo(() => {
+    const counts = {
+      all: allProjects.length,
+      Physical: 0,
+      Digital: 0,
+      Business: 0,
+      'Show & Tell': 0,
+      Robotics: 0,
+    };
+    allProjects.forEach((p) => {
+      if (p.category === 'Physical') counts.Physical++;
+      else if (p.category === 'Digital') counts.Digital++;
+      else if (p.category === 'Business') counts.Business++;
+      else if (p.category === 'Show & Tell') counts['Show & Tell']++;
+      else if (p.category === 'Robo Race' || p.category === 'Robo Soccer') counts.Robotics++;
+    });
+    return counts;
+  }, [allProjects]);
+
+  // Direct Card Voting with Optimistic UI & Confetti
+  const handleDirectVote = async (p: Project, e: React.MouseEvent) => {
+    playClick();
+    if (votedProjectIds.includes(p.id)) {
+      showToast(`Already verified vote for Booth ${p.booth_code}`);
+      return;
+    }
+    if (!user) {
+      setAuthModalOpen(true);
+      showToast('Please sign in or enter guest email to verify ballot');
+      return;
+    }
+
+    try {
+      const fingerprint = await getDeviceFingerprint();
+      const voteApiUrl = process.env.NEXT_PUBLIC_VOTE_API_URL || '/api/vote';
+
+      // Instant optimistic UI update
+      markProjectVoted(p.id);
+      incrementProjectVote(p.id);
+
+      // Confetti burst from button position
+      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      const x = (rect.left + rect.width / 2) / window.innerWidth;
+      const y = (rect.top + rect.height / 2) / window.innerHeight;
+      confetti({
+        particleCount: 55,
+        spread: 60,
+        origin: { x, y },
+        colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899'],
+      });
+      playChime();
+      triggerHaptic(30);
+
+      showToast(`🎉 Verified ballot recorded for Booth ${p.booth_code}!`);
+
+      // Async backend verification
+      fetch(voteApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: p.id,
+          fingerprint,
+          userId: user.id,
+          userEmail: user.email,
+        }),
+      }).catch((err) => console.warn('Vote sync:', err));
+    } catch {
+      showToast(`Vote recorded for Booth ${p.booth_code}!`);
+    }
+  };
+
+  // 1-Click Share Booth
+  const handleShare = async (p: Project) => {
+    playClick();
+    const shareUrl = `${window.location.origin}/?booth=${encodeURIComponent(p.booth_code)}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast(`📋 Copied share link for Booth ${p.booth_code}!`);
+      } else {
+        showToast(`Booth link: ${shareUrl}`);
+      }
+    } catch {
+      showToast(`Booth link: ${shareUrl}`);
+    }
+  };
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -672,17 +806,17 @@ export default function LandingPage() {
                 isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
               }`}>
                 {([
-                  { id: 'all', label: `All (${allProjects.length})` },
-                  { id: 'Physical', label: 'Physical' },
-                  { id: 'Digital', label: 'Digital' },
-                  { id: 'Business', label: 'Business' },
-                  { id: 'Show & Tell', label: 'Show & Tell' },
-                  { id: 'Robotics', label: 'Robotics' },
+                  { id: 'all', label: `All (${categoryCounts.all})` },
+                  { id: 'Physical', label: `Physical (${categoryCounts.Physical})` },
+                  { id: 'Digital', label: `Digital (${categoryCounts.Digital})` },
+                  { id: 'Business', label: `Business (${categoryCounts.Business})` },
+                  { id: 'Show & Tell', label: `Show & Tell (${categoryCounts['Show & Tell']})` },
+                  { id: 'Robotics', label: `Robotics (${categoryCounts.Robotics})` },
                 ] as const).map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setSelectedZone(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap active:scale-[0.97] ${
+                    className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap active:scale-[0.97] tabular-nums ${
                       selectedZone === tab.id
                         ? 'bg-[#238636] text-white font-bold shadow-xs'
                         : isLight
@@ -808,19 +942,39 @@ export default function LandingPage() {
                 <div className={`p-4 pt-3 border-t flex items-center justify-between text-xs font-mono ${
                   isLight ? 'border-slate-100' : 'border-[#21262d]'
                 }`}>
-                  <span className={`truncate max-w-[130px] text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`truncate max-w-[110px] text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                     {p.members?.join(', ')}
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        selectProject(p);
+                        handleDirectVote(p, e);
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-[#238636] hover:bg-[#2ea043] text-white text-[11px] font-bold font-mono transition-all shadow-xs active:scale-95"
-                      title={`Cast vote for ${p.booth_code}`}
+                      disabled={votedProjectIds.includes(p.id)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold font-mono transition-all shadow-xs active:scale-95 ${
+                        votedProjectIds.includes(p.id)
+                          ? 'bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 cursor-default'
+                          : 'bg-[#238636] hover:bg-[#2ea043] text-white'
+                      }`}
+                      title={votedProjectIds.includes(p.id) ? `Already voted for ${p.booth_code}` : `Cast verified vote for ${p.booth_code}`}
                     >
-                      Vote
+                      {votedProjectIds.includes(p.id) ? '✓ Voted' : 'Vote'}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShare(p);
+                      }}
+                      title={`Copy share link for ${p.booth_code}`}
+                      aria-label={`Copy share link for ${p.booth_code}`}
+                      className={`text-[11px] font-medium flex items-center justify-center transition-all p-1 rounded-lg active:scale-95 ${
+                        isLight
+                          ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                          : 'text-slate-400 hover:text-white hover:bg-[#161b22]'
+                      }`}
+                    >
+                      <Share2 className="w-3.5 h-3.5 text-amber-500" />
                     </button>
                     <button
                       onClick={(e) => {
@@ -1328,6 +1482,21 @@ export default function LandingPage() {
       <SearchModal />
       <DelegatePassModal />
       <LiveLeaderboard />
+
+      {/* Dynamic Floating Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-4 py-2.5 rounded-full bg-slate-900/95 dark:bg-slate-100/95 text-white dark:text-slate-900 text-xs font-mono font-medium shadow-2xl border border-white/10 dark:border-slate-800/20 backdrop-blur-md flex items-center gap-2 max-w-[90vw] pointer-events-none"
+          >
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
