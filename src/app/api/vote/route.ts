@@ -17,6 +17,9 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const IP_FLOOD_MAX_REQUESTS = 300; // 300 req/min raw IP ceiling for school Wi-Fi NAT
 const COMPOSITE_MAX_REQUESTS = 10; // 10 req/min per ipHash:deviceFingerprint
 
+const PROJECT_ID_REGEX = /^[a-zA-Z0-9_-]{1,50}$/;
+const FINGERPRINT_REGEX = /^[a-zA-Z0-9_\-+=:.]{8,128}$/;
+
 function checkRateLimit(
   storage: Map<string, number[]>,
   key: string,
@@ -25,6 +28,15 @@ function checkRateLimit(
   const now = Date.now();
   const windowStart = now - RATE_LIMIT_WINDOW_MS;
   const timestamps = (storage.get(key) || []).filter((t) => t > windowStart);
+
+  // Periodic pruning of expired keys when storage grows beyond 1000 items to avoid memory leaks
+  if (storage.size > 1000) {
+    for (const [storedKey, tsList] of storage.entries()) {
+      if (tsList.every((t) => t <= windowStart)) {
+        storage.delete(storedKey);
+      }
+    }
+  }
 
   if (timestamps.length >= maxRequests) {
     const oldestTimestamp = timestamps[0];
@@ -77,6 +89,13 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    const normalizedProjectId = projectId.trim().toLowerCase();
+    if (!PROJECT_ID_REGEX.test(normalizedProjectId)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid projectId format. Must be alphanumeric characters, hyphens, or underscores.' },
+        { status: 400 }
+      );
+    }
 
     const rawFingerprint = typeof deviceFingerprint === 'string' ? deviceFingerprint : fingerprint;
     if (typeof rawFingerprint !== 'string' || rawFingerprint.trim().length < 8 || rawFingerprint.length > 128) {
@@ -86,6 +105,12 @@ export async function POST(req: NextRequest) {
       );
     }
     const normalizedFingerprint = rawFingerprint.replace(/\//g, '_').trim();
+    if (!FINGERPRINT_REGEX.test(normalizedFingerprint)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid device fingerprint format. Must be 8-128 valid characters.' },
+        { status: 400 }
+      );
+    }
 
     if (typeof userId !== 'string' || !userId.trim() || userId.length > 128) {
       return NextResponse.json(
@@ -170,7 +195,7 @@ export async function POST(req: NextRequest) {
           method: 'POST',
           headers: upstreamHeaders,
           body: JSON.stringify({
-            projectId: projectId.trim(),
+            projectId: normalizedProjectId,
             deviceFingerprint: normalizedFingerprint,
             userId: userId.trim(),
             userEmail: sanitizedEmail,
@@ -187,7 +212,7 @@ export async function POST(req: NextRequest) {
     // 5. Local Serverless Atomic Anti-Cheat Checks
     // Layer 2: Check Hardware Device Canvas Fingerprint Collision
     const hasDeviceVoted = localVotesLedger.some(
-      (v) => v.projectId === projectId.trim() && v.deviceFingerprint === normalizedFingerprint
+      (v) => v.projectId === normalizedProjectId && v.deviceFingerprint === normalizedFingerprint
     );
 
     if (hasDeviceVoted) {
@@ -203,7 +228,7 @@ export async function POST(req: NextRequest) {
 
     // Layer 1: Check User Identity Collision
     const hasUserVoted = localVotesLedger.some(
-      (v) => v.projectId === projectId.trim() && v.userId === userId.trim()
+      (v) => v.projectId === normalizedProjectId && v.userId === userId.trim()
     );
 
     if (hasUserVoted) {
@@ -217,9 +242,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Prevent unbounded memory growth in long-running dev servers (FIFO cap at 10,000 records)
+    if (localVotesLedger.length >= 10000) {
+      localVotesLedger.splice(0, 1000);
+    }
+
     // 6. Record Verified Vote in Local Ledger
     localVotesLedger.push({
-      projectId: projectId.trim(),
+      projectId: normalizedProjectId,
       userId: userId.trim(),
       deviceFingerprint: normalizedFingerprint,
       userEmail: sanitizedEmail,

@@ -39,7 +39,7 @@ export function validateVotePayload(body: unknown): ValidationResult {
       error: 'Missing or invalid projectId. Must be a non-empty string.',
     };
   }
-  const projectId = payload.projectId.trim();
+  const projectId = payload.projectId.trim().toLowerCase();
   if (!PROJECT_ID_REGEX.test(projectId)) {
     return {
       isValid: false,
