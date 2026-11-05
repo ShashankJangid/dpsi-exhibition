@@ -622,7 +622,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── GITHUB UNIVERSE STYLE 35 INVENTIONS DIRECTORY ─── */}
-      <section id="projects" className={`border-b pt-6 pb-12 transition-colors duration-300 ${
+      <section id="projects" className={`scroll-mt-16 border-b pt-6 pb-12 transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
@@ -873,7 +873,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── THE THREE EXHIBITION ARENAS ─── */}
-      <section id="arenas" className={`border-b py-12 transition-colors duration-300 ${
+      <section id="arenas" className={`scroll-mt-16 border-b py-12 transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
@@ -1014,124 +1014,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── GUARANTEED FAIR PLAY: ANTI-CHEAT VOTING ─── */}
-      <section id="voting" className={`border-b py-12 transition-colors duration-300 ${
+      {/* ─── LIVE VOTING ─── */}
+      <section id="voting" className={`scroll-mt-16 border-b py-14 transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-white/30 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-7">
-              <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                VERIFIED VOTING PIPELINE
-              </span>
-              <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
-                isLight ? 'text-slate-800' : 'text-white'
-              }`}>
-                Verified Community Ballot &amp; Jury Evaluation
-              </h2>
-              <p className={`mt-3 text-sm font-mono leading-relaxed ${
-                isLight ? 'text-slate-600' : 'text-[#8b949e]'
-              }`}>
-                Ensuring fair recognition for every student team through authenticated, tamper-proof
-                voting powered by Google OAuth and Firebase real-time atomic transactions.
-              </p>
-
-              <div className="mt-6 space-y-3 font-mono text-xs">
-                <div className={`p-3 border rounded flex items-center justify-between ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
-                }`}>
-                  <span className="font-semibold">Single-Device Verification</span>
-                  <span className="text-[#3fb950] font-bold">[ ACTIVE ]</span>
-                </div>
-                <div className={`p-3 border rounded flex items-center justify-between ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
-                }`}>
-                  <span className="font-semibold">Weighted Ballots: Faculty Jury (75%) • Community (25%)</span>
-                  <span className="text-[#58a6ff] font-bold">[ VERIFIED ]</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    playClick();
-                    setLeaderboardOpen(true);
-                  }}
-                  className={`w-full text-left p-3 border rounded flex items-center justify-between transition-colors cursor-pointer group ${
-                    isLight
-                      ? 'border-slate-300/80 bg-[#eef2f6]/90 hover:bg-slate-200/80 text-slate-900 shadow-xs'
-                      : 'border-[#21262d] bg-[#0d1117] hover:bg-[#161b22] text-white'
-                  }`}
-                  title="View Live Leaderboard Ranks Modal"
-                >
-                  <span className="font-semibold flex items-center gap-2">
-                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Live Leaderboard Real-Time Streaming</span>
-                  </span>
-                  <span className="text-[#d2a8ff] font-bold group-hover:underline flex items-center gap-1">
-                    [ VIEW RANKS ↗ ]
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div className={`lg:col-span-5 p-6 border rounded-md font-mono ${
-              isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
-            }`}>
-              <span className={`text-xs block mb-3 font-bold ${isLight ? 'text-slate-600' : 'text-[#8b949e]'}`}>
-                HOW TO CAST BALLOT
-              </span>
-              <ol className={`space-y-3 text-xs ${isLight ? 'text-slate-700' : 'text-[#c9d1d9]'}`}>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#3fb950] font-bold">1.</span>
-                  <span>Select any invention from the directory above or in the 3D hall.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#3fb950] font-bold">2.</span>
-                  <span>Review the pitch deck, schematics, and live demo video.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#3fb950] font-bold">3.</span>
-                  <span>Authenticate with Google to cast your verified ballot.</span>
-                </li>
-              </ol>
-
-              <div className="mt-6 flex flex-col gap-2.5">
-                <a
-                  href="#projects"
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold uppercase transition-colors rounded shadow-xs active:scale-98"
-                >
-                  <Vote className="w-3.5 h-3.5" />
-                  <span>Browse Inventions to Vote</span>
-                </a>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      playClick();
-                      setLeaderboardOpen(true);
-                    }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 border font-mono text-xs font-bold transition-colors rounded ${
-                      isLight
-                        ? 'border-slate-300 hover:bg-slate-200 text-slate-800'
-                        : 'border-[#30363d] hover:bg-[#161b22] text-slate-200'
-                    }`}
-                  >
-                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                    <span>View Ranks</span>
-                  </button>
-                  <Link
-                    href="/expo"
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 border font-mono text-xs font-bold transition-colors rounded ${
-                      isLight
-                        ? 'border-slate-300 hover:bg-slate-200 text-slate-800'
-                        : 'border-[#30363d] hover:bg-[#161b22] text-slate-200'
-                    }`}
-                  >
-                    <span>3D Hall</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="max-w-xl mx-auto px-4 flex items-center justify-center">
+          <a
+            href="#projects"
+            onClick={() => playClick()}
+            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#238636] hover:bg-[#2ea043] text-white font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-95"
+          >
+            <Vote className="w-4 h-4" />
+            <span>Cast Your Vote</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </a>
         </div>
       </section>
 
@@ -1197,7 +1093,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── GITHUB UNIVERSE ITINERARY TABLE ─── */}
-      <section id="schedule" className={`py-12 border-b transition-colors duration-300 ${
+      <section id="schedule" className={`scroll-mt-16 py-12 border-b transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
