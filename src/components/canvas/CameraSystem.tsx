@@ -1,13 +1,45 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { CameraControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
+import { initSpatialAudio, updateSpatialAudio, stopSpatialAudio } from '@/lib/sound';
 
 export default function CameraSystem() {
   const controlsRef = useRef<CameraControls | null>(null);
   const cameraConfig = useExhibitionStore((state) => state.cameraConfig);
   const isMobile = useExhibitionStore((state) => state.isMobile);
+
+  const lastUpdateRef = useRef<number>(0);
+  const targetVec = useRef(new THREE.Vector3());
+
+  useEffect(() => {
+    // Attempt lazy initialization of spatial soundscape (activates on first user gesture)
+    initSpatialAudio();
+    return () => {
+      stopSpatialAudio();
+    };
+  }, []);
+
+  useFrame(({ camera }) => {
+    // Smooth spatial arena audio volume attenuation based on camera coordinates
+    updateSpatialAudio(camera.position.x, camera.position.z);
+
+    // Throttle minimap state updates to ~15fps (66ms) to avoid unnecessary React re-renders
+    const now = performance.now();
+    if (now - lastUpdateRef.current > 66) {
+      lastUpdateRef.current = now;
+      if (controlsRef.current) {
+        controlsRef.current.getTarget(targetVec.current);
+        useExhibitionStore.getState().setLiveCameraTracking(
+          [camera.position.x, camera.position.z],
+          [targetVec.current.x, targetVec.current.z]
+        );
+      }
+    }
+  });
 
   useEffect(() => {
     if (!controlsRef.current) return;

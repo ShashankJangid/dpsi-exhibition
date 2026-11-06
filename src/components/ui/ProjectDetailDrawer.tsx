@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
-import { playChime, triggerHaptic, playClick, playBlip } from '@/lib/sound';
+import { castVoteInFirebase } from '@/lib/firebase';
+import { playChime, triggerHaptic, playClick } from '@/lib/sound';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -22,6 +24,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Award,
+  Share2,
+  Check,
 } from 'lucide-react';
 import { CategoryType } from '@/types';
 
@@ -78,6 +82,54 @@ export default function ProjectDetailDrawer() {
   const [isVoting, setIsVoting] = useState(false);
   const [voteError, setVoteError] = useState<string | null>(null);
   const [voteSuccessMessage, setVoteSuccessMessage] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const isLightboxActive = isDrawerOpen && isLightboxOpen;
+
+  // Keyboard navigation: Left/Right arrow keys to switch booths, Escape to close
+  useEffect(() => {
+    if (!isDrawerOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        selectPrevProject();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        selectNextProject();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        if (isLightboxActive) {
+          setIsLightboxOpen(false);
+        } else {
+          selectProject(null);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDrawerOpen, isLightboxActive, selectPrevProject, selectNextProject, selectProject]);
+
+  const handleShareBooth = async () => {
+    playClick();
+    if (!selectedProject) return;
+    const shareUrl = `${window.location.origin}/?booth=${encodeURIComponent(selectedProject.booth_code)}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard fallback
+    }
+  };
 
   if (!selectedProject) return null;
 
@@ -99,44 +151,30 @@ export default function ProjectDetailDrawer() {
     try {
       const fingerprint = await getDeviceFingerprint();
 
-      const voteApiUrl = process.env.NEXT_PUBLIC_VOTE_API_URL || '/api/vote';
-      const res = await fetch(voteApiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: selectedProject.id,
-          fingerprint,
-          userId: user.id,
-          userEmail: user.email,
-        }),
+      const res = await castVoteInFirebase({
+        projectId: selectedProject.id,
+        fingerprint,
+        userId: user.id,
+        userEmail: user.email,
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (res.status === 409 || data.alreadyVoted) {
+      if (res.alreadyVoted) {
         markProjectVoted(selectedProject.id);
         setVoteError(
-          data.message ||
+          res.message ||
             'A vote has already been recorded for this project from this device or account.'
         );
         return;
       }
 
-      if (res.status === 429) {
-        setVoteError(
-          data.message || 'Rate limit reached: Too many requests. Please wait a moment before trying again.'
-        );
-        return;
-      }
-
-      if (!res.ok || !data.success) {
-        setVoteError(data.message || 'Vote verification failed. Please try again.');
+      if (!res.success) {
+        setVoteError(res.message || 'Vote verification failed. Please try again.');
         return;
       }
 
       markProjectVoted(selectedProject.id);
       incrementProjectVote(selectedProject.id);
-      setVoteSuccessMessage(data.message || 'Vote successfully verified and recorded!');
+      setVoteSuccessMessage(res.message || 'Vote successfully verified and recorded!');
 
       playChime();
       triggerHaptic(30);
@@ -156,28 +194,34 @@ export default function ProjectDetailDrawer() {
   };
 
   return (
-    <AnimatePresence>
-      {isDrawerOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden sm:overflow-y-auto">
-          {/* Backdrop with Blur */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => selectProject(null)}
-            className="fixed inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-md transition-all"
-          />
-
-          {/* Centered Modal Card / Mobile Bottom Sheet */}
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            initial={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 290 }}
-            className="relative z-10 w-full max-w-2xl max-h-[88vh] rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-300/80 dark:border-slate-800 bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 backdrop-blur-2xl shadow-2xl flex flex-col text-slate-800 dark:text-slate-100 overflow-hidden sm:my-auto"
+    <>
+      <AnimatePresence>
+        {isDrawerOpen && (
+          <div
+            key="project-drawer-overlay"
+            className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden sm:overflow-y-auto"
           >
+            {/* Backdrop with Blur */}
+            <motion.div
+              key="project-drawer-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => selectProject(null)}
+              className="fixed inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-md transition-all"
+            />
+
+            {/* Centered Modal Card / Mobile Bottom Sheet */}
+            <motion.div
+              key="project-drawer-card"
+              role="dialog"
+              aria-modal="true"
+              initial={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 290 }}
+              className="relative z-10 w-full max-w-2xl max-h-[88vh] rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-300/80 dark:border-slate-800 bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 backdrop-blur-2xl shadow-2xl flex flex-col text-slate-800 dark:text-slate-100 overflow-hidden sm:my-auto"
+            >
             {/* Mobile Drag Indicator Handle */}
             <div className="sm:hidden pt-2.5 pb-1 flex justify-center w-full">
               <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
@@ -220,6 +264,25 @@ export default function ProjectDetailDrawer() {
                   </button>
                 </div>
 
+                <button
+                  onClick={handleShareBooth}
+                  title="Copy share link for this booth"
+                  aria-label="Copy share link for this booth"
+                  className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-slate-300/80 dark:border-slate-700/60 transition-all active:scale-95"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="hidden sm:inline">Share</span>
+                    </>
+                  )}
+                </button>
+
                 <Link
                   href="/expo"
                   onClick={() => selectProject(null)}
@@ -253,19 +316,39 @@ export default function ProjectDetailDrawer() {
                 )}
               </div>
 
-              {/* High-Resolution Project Photo */}
-              <div className="relative w-full h-44 sm:h-64 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 group shadow-md">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              {/* High-Resolution Project Photo with Lightbox trigger */}
+              <div
+                onClick={() => setIsLightboxOpen(true)}
+                className="relative w-full h-44 sm:h-64 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 group shadow-md cursor-zoom-in"
+              >
+                <Image
                   src={selectedProject.image_url}
                   alt={selectedProject.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 672px"
+                  priority
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80';
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80" />
+
+                {/* Fullscreen Expand Action */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsLightboxOpen(true);
+                  }}
+                  title="Expand Fullscreen Image (Lightbox)"
+                  aria-label="Expand Fullscreen Image (Lightbox)"
+                  className="absolute top-3 right-3 flex items-center gap-1 text-[11px] font-mono font-bold text-white bg-black/70 hover:bg-black/90 px-2.5 py-1 rounded-lg border border-white/20 shadow-md backdrop-blur-md transition-all active:scale-95"
+                >
+                  <Maximize2 className="w-3 h-3 text-amber-400" />
+                  <span>Fullscreen</span>
+                </button>
 
                 <div className="absolute bottom-3 left-3 flex items-center gap-2">
                   <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-200 bg-slate-950/80 px-2.5 py-1 rounded-md border border-slate-700/80 backdrop-blur-md">
@@ -278,10 +361,13 @@ export default function ProjectDetailDrawer() {
 
                 <Link
                   href="/expo"
-                  onClick={() => selectProject(null)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectProject(null);
+                  }}
                   className="absolute bottom-3 right-3 flex items-center gap-1 text-[11px] font-mono font-bold text-white bg-blue-600/90 hover:bg-blue-600 px-3 py-1 rounded-md shadow-md backdrop-blur-md transition-all hover:scale-105"
                 >
-                  <Maximize2 className="w-3 h-3" />
+                  <ArrowUpRight className="w-3 h-3" />
                   <span>Locate in 3D</span>
                 </Link>
               </div>
@@ -385,6 +471,12 @@ export default function ProjectDetailDrawer() {
                 <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 mt-0.5 hidden xs:inline">
                   Co-Engineered by Devansh Grover (Class 7-H, dpsi&apos;31) &amp; Ojas Singh (dpsi&apos;30)
                 </span>
+                <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-1">
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">←</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">→</kbd>
+                  <span>navigate</span>
+                  <kbd className="ml-1 px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">esc</kbd>
+                </div>
               </div>
 
               {hasVoted ? (
@@ -434,5 +526,95 @@ export default function ProjectDetailDrawer() {
         </div>
       )}
     </AnimatePresence>
+
+    {/* Full-Screen Image Lightbox */}
+    <AnimatePresence>
+      {isLightboxActive && selectedProject && (
+        <motion.div
+          key="project-lightbox-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="High-Resolution Project Preview Lightbox"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 sm:p-8 select-none"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+            {/* Lightbox Top Bar */}
+            <div className="w-full max-w-5xl flex items-center justify-between text-white z-10">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-amber-500 text-slate-950">
+                  Booth {selectedProject.booth_code}
+                </span>
+                <span className="text-sm sm:text-base font-semibold truncate max-w-md">
+                  {selectedProject.title.replace(/^.+•\s*/, '')}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-slate-400 hidden sm:inline">
+                  ← / → to switch booths • ESC to close
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsLightboxOpen(false);
+                  }}
+                  aria-label="Close Lightbox"
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/20 active:scale-95"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Lightbox Center Image with Nav Buttons */}
+            <div
+              className="relative max-w-5xl max-h-[75vh] w-full flex items-center justify-center my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.img
+                key={selectedProject.id}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                src={selectedProject.image_url}
+                alt={selectedProject.title}
+                className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-white/15"
+              />
+
+              {/* Prev / Next buttons inside lightbox */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectPrevProject();
+                }}
+                aria-label="Previous Booth"
+                className="absolute left-2 sm:-left-14 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-xl"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectNextProject();
+                }}
+                aria-label="Next Booth"
+                className="absolute right-2 sm:-right-14 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-xl"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Lightbox Bottom Metadata Bar */}
+            <div className="w-full max-w-5xl text-center text-xs font-mono text-slate-400 z-10 flex items-center justify-center gap-4">
+              <span className="text-amber-400 font-bold">{selectedProject.category}</span>
+              <span>•</span>
+              <span className="truncate max-w-md">{selectedProject.members.join(', ')}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

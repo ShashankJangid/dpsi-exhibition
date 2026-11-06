@@ -2,7 +2,7 @@
 
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { signOutFromFirebase } from '@/lib/firebase';
-import { playClick, playBlip } from '@/lib/sound';
+import { playClick } from '@/lib/sound';
 import {
   Trophy,
   Box,

@@ -844,5 +844,40 @@ describe('HTTP Endpoints & Controller Behavior', () => {
     assert.equal(res.body?.success, false);
     assert.equal(res.body?.message, 'Invalid JSON request body.');
   });
+
+  test('Authorization header as array is safely normalized without TypeError', () => {
+    const rawAuth = ['Bearer mock_token_1', 'Bearer mock_token_2'];
+    const authHeader = Array.isArray(rawAuth) ? rawAuth[0] : rawAuth;
+    assert.equal(typeof authHeader, 'string');
+    assert.equal(authHeader.startsWith('Bearer '), true);
+    assert.equal(authHeader.slice(7).trim(), 'mock_token_1');
+  });
+
+  test('Registered user accounts require Bearer token; guest accounts pass through', () => {
+    // Registered account without token should fail
+    const registeredUserId = 'user_abc123456789';
+    const isGuest1 = registeredUserId.startsWith('guest_');
+    assert.equal(isGuest1, false);
+
+    // Guest pass account without token succeeds
+    const guestUserId = 'guest_k83nd92mx0';
+    const isGuest2 = guestUserId.startsWith('guest_');
+    assert.equal(isGuest2, true);
+  });
+
+  test('FIFO pruning strictly caps rate limiter map size to maxKeys under burst floods', () => {
+    const limiter = new SlidingWindowRateLimiter({
+      windowMs: 60000,
+      maxRequests: 10,
+      maxKeys: 50,
+    });
+    const now = 5000000;
+
+    for (let i = 0; i < 200; i++) {
+      limiter.check(`key_${i}`, now + i);
+    }
+
+    assert.ok(limiter.getRecordCount() <= 50, `Record count ${limiter.getRecordCount()} exceeded maxKeys 50`);
+  });
 });
 

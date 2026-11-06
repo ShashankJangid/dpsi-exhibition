@@ -200,6 +200,11 @@ interface ExhibitionState {
   isSoundMuted: boolean;
   isDelegatePassOpen: boolean;
 
+  // Live Minimap & Camera Tracking
+  liveCameraPos: [number, number];
+  liveCameraTarget: [number, number];
+  isMinimapOpen: boolean;
+
   // Projects & Live Data
   projects: Project[];
   votedProjectIds: string[];
@@ -239,6 +244,11 @@ interface ExhibitionState {
   prevTourStep: () => void;
   setDelegatePassOpen: (open: boolean) => void;
   toggleSoundMute: () => void;
+
+  // Live Minimap & Camera Tracking Actions
+  setLiveCameraTracking: (pos: [number, number], target: [number, number]) => void;
+  setIsMinimapOpen: (open: boolean) => void;
+  toggleMinimap: () => void;
 }
 
 export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
@@ -261,6 +271,20 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
   tourStepIndex: 0,
   isSoundMuted: false,
   isDelegatePassOpen: false,
+
+  liveCameraPos: [0.8, 18.5],
+  liveCameraTarget: [0.8, -10.0],
+  isMinimapOpen: true,
+
+  setLiveCameraTracking: (pos, target) => {
+    set({ liveCameraPos: pos, liveCameraTarget: target });
+  },
+  setIsMinimapOpen: (open) => {
+    set({ isMinimapOpen: open });
+  },
+  toggleMinimap: () => {
+    set((state) => ({ isMinimapOpen: !state.isMinimapOpen }));
+  },
 
   projects: SEED_PROJECTS,
   votedProjectIds: [],

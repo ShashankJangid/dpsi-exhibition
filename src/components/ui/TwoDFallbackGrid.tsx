@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { CategoryType } from '@/types';
 import {
@@ -78,8 +79,8 @@ export default function TwoDFallbackGrid() {
             </p>
           </div>
           <div className="relative z-10 shrink-0 flex items-center justify-center px-3 py-2 rounded-2xl bg-white border border-slate-200 shadow-xl max-w-[260px] self-start sm:self-auto">
-            <img src="/dps_shield.png" alt="DPS Indirapuram Emblem" className="h-10 w-auto object-contain block sm:hidden" />
-            <img src="/dps_indirapuram_logo.png" alt="DPS Indirapuram" className="h-10 sm:h-11 w-auto object-contain hidden sm:block" />
+            <Image src="/dps_shield.png" alt="DPS Indirapuram Emblem" width={32} height={40} className="h-10 w-auto object-contain block sm:hidden" />
+            <Image src="/dps_indirapuram_logo.png" alt="DPS Indirapuram" width={160} height={44} className="h-10 sm:h-11 w-auto object-contain hidden sm:block" />
           </div>
         </div>
 
@@ -143,11 +144,12 @@ export default function TwoDFallbackGrid() {
               >
                 {/* Image Banner */}
                 <div className="relative w-full h-40 sm:h-44 overflow-hidden bg-slate-950">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={project.image_url}
                     alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${
                     isLight ? 'from-white/90' : 'from-[#0b101c]'

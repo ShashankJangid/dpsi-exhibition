@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
+import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { Project } from '@/types';
 import {
   X,
@@ -12,14 +12,10 @@ import {
   TrendingUp,
   Bot,
   Sparkles,
-  ChevronRight,
   Eye,
   ThumbsUp,
-  Activity,
   Layers,
-  ArrowRight,
   Radio,
-  ExternalLink,
 } from 'lucide-react';
 
 interface ZoneMeta {
