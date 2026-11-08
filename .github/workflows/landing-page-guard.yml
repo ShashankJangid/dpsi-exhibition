@@ -1,0 +1,47 @@
+name: Landing Page Access Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+      - 'src/app/page.tsx'
+      - 'src/app/globals.css'
+      - 'src/app/layout.tsx'
+      - 'src/components/ui/AmbientBackground.tsx'
+      - 'src/components/ui/CustomCursor.tsx'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  author-gate:
+    name: Verify Landing Page Author Authorization
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Author Authorization
+        id: auth-check
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "Evaluating PR author: $PR_AUTHOR (triggered by: $ACTOR)"
+          ALLOWED_AUTHORS="ShashankJangid Ojas-sta"
+          
+          IS_AUTHORIZED=false
+          for USER in $ALLOWED_AUTHORS; do
+            if [ "$PR_AUTHOR" = "$USER" ]; then
+              IS_AUTHORIZED=true
+              break
+            fi
+          done
+
+          if [ "$IS_AUTHORIZED" = "true" ]; then
+            echo "✅ PR author '$PR_AUTHOR' is authorized to modify core landing page assets."
+            exit 0
+          else
+            echo "::error::⛔ ACCESS RESTRICTED: Changes to landing page assets (src/app/page.tsx, globals.css, layout.tsx, AmbientBackground, CustomCursor) require direct maintainer authorization."
+            echo "PR author '$PR_AUTHOR' is not in the authorized maintainers list ($ALLOWED_AUTHORS)."
+            exit 1
+          fi

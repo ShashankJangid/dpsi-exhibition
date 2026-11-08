@@ -107,22 +107,16 @@ function TopNavHUD() {
           {/* DPS Indirapuram Identity Emblem */}
           <button
             onClick={handleLogoClick}
-            className="h-8 sm:h-9 px-2 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0 border border-slate-200 hover:opacity-95 transition-opacity"
+            className="h-8 sm:h-9 px-1.5 rounded-xl flex items-center justify-center shrink-0 border border-transparent hover:opacity-90 transition-opacity"
             title="Reset to 3D Overview"
           >
             <Image
-              src="/dps_shield.png"
-              alt="DPS Indirapuram Shield"
-              width={24}
-              height={24}
-              className="h-6 w-auto object-contain block sm:hidden"
-            />
-            <Image
-              src="/dps_indirapuram_logo.png"
-              alt="DPS Indirapuram"
-              width={140}
-              height={24}
-              className="h-6 w-auto max-w-[100px] sm:max-w-[130px] md:max-w-[145px] object-contain hidden sm:block"
+              src={isLight ? '/dpsi_shield_26_light.svg' : '/dpsi_shield_26_dark.svg'}
+              alt="DPS Indirapuram '26"
+              width={112}
+              height={44}
+              priority
+              className="h-7 sm:h-8 w-auto object-contain"
             />
           </button>
 

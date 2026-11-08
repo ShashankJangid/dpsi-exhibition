@@ -237,7 +237,9 @@ export default function BlobCursor({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1;
-    renderer.shadowMap.enabled = false;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.VSMShadowMap;
+    renderer.shadowMap.autoUpdate = true;
     const canvas = renderer.domElement;
     canvas.className = 'blob-cursor-canvas';
     canvas.setAttribute('aria-hidden', 'true');
@@ -255,7 +257,11 @@ export default function BlobCursor({
     camera.position.set(0, 0, 2000);
 
     const key = new THREE.DirectionalLight(0xffffff, 1.4);
-    key.castShadow = false;
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.radius = 14;
+    key.shadow.blurSamples = 20;
+    key.shadow.bias = -0.0004;
     scene.add(key, key.target);
 
     const field = {
@@ -336,7 +342,7 @@ export default function BlobCursor({
     const resize = () => {
       view.width = Math.max(1, root.clientWidth);
       view.height = Math.max(1, root.clientHeight);
-      renderer.setPixelRatio(1);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setSize(view.width, view.height, false);
       camera.left = -view.width / 2;
       camera.right = view.width / 2;

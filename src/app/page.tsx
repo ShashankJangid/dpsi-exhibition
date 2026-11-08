@@ -324,7 +324,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE TOP ANNOUNCEMENT TICKER ─── */}
       <div className={`w-full border-b px-4 py-2 flex items-center justify-between text-[11px] font-mono transition-colors duration-300 ${
         isLight
-          ? 'bg-slate-100/90 border-slate-200/80 backdrop-blur-md text-slate-700'
+          ? 'bg-[#dfe3e8]/90 border-slate-300/80 backdrop-blur-md text-slate-700'
           : 'bg-[#0d1117] border-[#21262d] text-[#8b949e]'
       }`}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
@@ -352,34 +352,28 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE GRID NAVBAR ─── */}
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 ${
         isLight
-          ? 'bg-white/90 border-slate-200/80 shadow-xs'
+          ? 'bg-[#dfe3e8]/90 border-slate-300/80 shadow-xs'
           : 'bg-[#000000]/95 border-[#30363d]'
       }`}>
         <div className="max-w-7xl mx-auto flex items-stretch h-14">
-          {/* Brand Cell */}
+          {/* Brand Cell: DPS Shield + '26 (Light & Dark mode) */}
           <Link
             href="/"
-            className={`flex items-center gap-3 px-4 border-r transition-colors shrink-0 ${
+            className={`flex items-center px-4 border-r transition-colors shrink-0 ${
               isLight
                 ? 'border-slate-200/80 hover:bg-slate-200/50'
                 : 'border-[#30363d] hover:bg-[#161b22]'
             }`}
+            title="DPS Indirapuram '26"
           >
-            <div className="h-8 px-2 py-0.5 rounded bg-white flex items-center justify-center border border-slate-200 shadow-xs">
-              <Image src="/dps_shield.png" alt="DPS Indirapuram" width={28} height={28} className="h-full w-auto object-contain" />
-            </div>
-            <div className="hidden md:flex flex-col">
-              <span className={`text-[12px] font-black tracking-tight uppercase font-mono ${
-                isLight ? 'text-slate-800' : 'text-white'
-              }`}>
-                DPSI EXPO &apos;26
-              </span>
-              <span className={`text-[9px] font-mono tracking-widest ${
-                isLight ? 'text-slate-500' : 'text-[#8b949e]'
-              }`}>
-                INDIRAPURAM
-              </span>
-            </div>
+            <Image
+              src={isLight ? '/dpsi_shield_26_light.svg' : '/dpsi_shield_26_dark.svg'}
+              alt="DPS Indirapuram '26"
+              width={124}
+              height={48}
+              priority
+              className="h-8 sm:h-9 w-auto object-contain"
+            />
           </Link>
 
           {/* Navigation Cells */}
@@ -750,14 +744,14 @@ export default function LandingPage() {
             {/* Seamless Top Gradient dissolve into background */}
             <div className={`absolute inset-x-0 top-0 h-24 pointer-events-none z-10 bg-gradient-to-t ${
               isLight
-                ? 'from-transparent to-[#f8fafc]'
+                ? 'from-transparent to-[#dfe3e8]'
                 : 'from-transparent to-[#000000]'
             }`} />
 
             {/* Seamless Bottom Gradient dissolve into background */}
             <div className={`absolute inset-x-0 bottom-0 h-48 pointer-events-none z-10 bg-gradient-to-b ${
               isLight
-                ? 'from-transparent via-[#f8fafc]/70 to-[#f8fafc]'
+                ? 'from-transparent via-[#dfe3e8]/70 to-[#dfe3e8]'
                 : 'from-transparent via-[#000000]/60 to-[#000000]'
             }`} />
 
@@ -1476,7 +1470,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE STYLE MINIMALIST FOOTER ─── */}
       <footer className={`py-10 font-mono text-xs border-t transition-colors duration-300 ${
         isLight
-          ? 'bg-slate-100/90 border-slate-200/80 backdrop-blur-md text-slate-700'
+          ? 'bg-[#dfe3e8]/90 border-slate-300/80 backdrop-blur-md text-slate-700'
           : 'bg-[#000000] border-[#21262d] text-[#8b949e]'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1490,7 +1484,7 @@ export default function LandingPage() {
               </span>
             </div>
             <span className={`text-[11px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-              • Co-Engineered by Devansh Grover (Class 7-H, Class of &apos;31) &amp; Ojas Singh (dpsi&apos;30)
+              • Co-Engineered by Ojas Singh (IX-A) &amp; Devansh Grover (VII-H)
             </span>
           </div>
 
