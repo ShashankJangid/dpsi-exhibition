@@ -2,7 +2,7 @@
 // Adheres to browser autoplay policies by lazily instantiating AudioContext on first user gesture
 
 let audioCtx: AudioContext | null = null;
-let soundEnabled = false;
+let soundEnabled = true;
 
 // Initialize on client
 if (typeof window !== 'undefined') {
