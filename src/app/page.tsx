@@ -356,30 +356,24 @@ export default function LandingPage() {
           : 'bg-[#000000]/95 border-[#30363d]'
       }`}>
         <div className="max-w-7xl mx-auto flex items-stretch h-14">
-          {/* Brand Cell */}
+          {/* Brand Cell: DPS Shield + '26 (Light & Dark mode) */}
           <Link
             href="/"
-            className={`flex items-center gap-3 px-4 border-r transition-colors shrink-0 ${
+            className={`flex items-center px-4 border-r transition-colors shrink-0 ${
               isLight
                 ? 'border-slate-200/80 hover:bg-slate-200/50'
                 : 'border-[#30363d] hover:bg-[#161b22]'
             }`}
+            title="DPS Indirapuram '26"
           >
-            <div className="h-8 px-2 py-0.5 rounded bg-white flex items-center justify-center border border-slate-200 shadow-xs">
-              <Image src="/dps_shield.png" alt="DPS Indirapuram" width={28} height={28} className="h-full w-auto object-contain" />
-            </div>
-            <div className="hidden md:flex flex-col">
-              <span className={`text-[12px] font-black tracking-tight uppercase font-mono ${
-                isLight ? 'text-slate-800' : 'text-white'
-              }`}>
-                DPSI EXPO &apos;26
-              </span>
-              <span className={`text-[9px] font-mono tracking-widest ${
-                isLight ? 'text-slate-500' : 'text-[#8b949e]'
-              }`}>
-                INDIRAPURAM
-              </span>
-            </div>
+            <Image
+              src={isLight ? '/dpsi_shield_26_light.svg' : '/dpsi_shield_26_dark.svg'}
+              alt="DPS Indirapuram '26"
+              width={124}
+              height={48}
+              priority
+              className="h-8 sm:h-9 w-auto object-contain"
+            />
           </Link>
 
           {/* Navigation Cells */}
