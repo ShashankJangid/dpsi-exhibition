@@ -7,7 +7,7 @@ import { useTexture } from '@react-three/drei';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 
 function MilkyWaySphere({ isMobile }: { isMobile: boolean }) {
-  const texturePath = isMobile ? '/textures/milkyway_mobile_smooth.jpg' : '/textures/milkyway_smooth.jpg';
+  const texturePath = isMobile ? '/textures/milkyway-mobile.jpg' : '/textures/milkyway.jpg';
   const texture = useTexture(texturePath);
   const meshRef = useRef<THREE.Mesh>(null);
 
@@ -32,7 +32,7 @@ function MilkyWaySphere({ isMobile }: { isMobile: boolean }) {
   });
 
   return (
-    <mesh ref={meshRef} scale={[-1, 1, 1]} rotation={[0.4, -1.2, 0.1]}>
+    <mesh ref={meshRef} scale={[1, 1, 1]} rotation={[0.4, -1.2, 0.1]}>
       {/* 550-unit celestial dome with filtered, noise-free Milky Way (within 700 far-plane) */}
       <sphereGeometry args={[550, 36, 24]} />
       <meshBasicMaterial
@@ -55,7 +55,7 @@ export default function MilkyWaySky() {
     return (
       <group>
         {/* Modern Architectural Daylight Studio Sky Dome */}
-        <mesh scale={[-1, 1, 1]}>
+        <mesh scale={[1, 1, 1]}>
           <sphereGeometry args={[550, 32, 20]} />
           <meshBasicMaterial
             color="#e2e8f0"
