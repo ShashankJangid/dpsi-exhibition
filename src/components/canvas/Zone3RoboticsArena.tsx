@@ -534,7 +534,7 @@ export default function Zone3RoboticsArena() {
             <meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.12} />
           </mesh>
         ))}
-        <mesh position={[0, 0.019, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh position={[0, 0.021, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[8.6, 2.05]} />
           {roboticsGroundTexture && (
             <meshStandardMaterial
@@ -544,6 +544,9 @@ export default function Zone3RoboticsArena() {
               emissiveIntensity={1.2}
               roughness={0.2}
               toneMapped={false}
+              polygonOffset
+              polygonOffsetFactor={-1}
+              polygonOffsetUnits={-1}
             />
           )}
         </mesh>
@@ -1206,6 +1209,9 @@ export default function Zone3RoboticsArena() {
                 emissiveIntensity={1.05}
                 roughness={0.18}
                 toneMapped={false}
+                polygonOffset
+                polygonOffsetFactor={-1}
+                polygonOffsetUnits={-1}
               />
             ) : (
               <meshStandardMaterial color="#071228" emissive="#0284c7" emissiveIntensity={0.8} />

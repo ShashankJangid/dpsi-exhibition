@@ -63,7 +63,7 @@ function GroundLightBoxPlaque({
         </mesh>
       ))}
       {/* Ultra-Crisp Canvas Ground Poster Face */}
-      <mesh position={[0, 0.019, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0.021, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[8.6, 2.05]} />
         {texture && (
           <meshStandardMaterial
@@ -73,6 +73,9 @@ function GroundLightBoxPlaque({
             emissiveIntensity={1.2}
             roughness={0.2}
             toneMapped={false}
+            polygonOffset
+            polygonOffsetFactor={-1}
+            polygonOffsetUnits={-1}
           />
         )}
       </mesh>

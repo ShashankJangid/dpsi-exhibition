@@ -2,13 +2,11 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import AeroShards from '@/components/reactbits/AeroShards';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 
 export default function AmbientBackground() {
   const pathname = usePathname();
   const theme = useExhibitionStore((state) => state.theme);
-  const isMobile = useExhibitionStore((state) => state.isMobile);
   const isLight = theme === 'light';
 
   // Do not render behind the dedicated 3D exhibition room
@@ -18,20 +16,27 @@ export default function AmbientBackground() {
 
   return (
     <div
-      className={`fixed inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-500 ${
-        isLight ? 'opacity-25' : 'opacity-50'
-      }`}
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
       aria-hidden="true"
     >
-      <AeroShards
-        shardColor={isLight ? '#94a3b8' : '#896ABD'}
-        accentColor={isLight ? '#60a5fa' : '#A855F7'}
-        placement="full"
-        material="glass"
-        count={isLight ? (isMobile ? 120 : 420) : (isMobile ? 250 : 1300)}
-        speed={isLight ? (isMobile ? 0.35 : 0.5) : (isMobile ? 0.5 : 0.8)}
-        lightMode={isLight}
-        style={{ width: '100%', height: '100%' }}
+      {/* Precision Crisp Engineering Blueprint Grid (Zero Blur, Zero Distortion) */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-500 ${
+          isLight
+            ? 'opacity-[0.04] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:32px_32px]'
+            : 'opacity-[0.06] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:32px_32px]'
+        }`}
+      />
+      {/* Subtle Atmospheric Radial Accent Glows */}
+      <div
+        className={`absolute -top-40 -left-40 w-96 h-96 rounded-full transition-opacity duration-500 ${
+          isLight ? 'bg-[radial-gradient(circle,rgba(59,130,246,0.08)_0%,transparent_70%)]' : 'bg-blue-600/10'
+        }`}
+      />
+      <div
+        className={`absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full transition-opacity duration-500 ${
+          isLight ? 'bg-[radial-gradient(circle,rgba(245,158,11,0.06)_0%,transparent_70%)]' : 'bg-purple-600/10'
+        }`}
       />
     </div>
   );

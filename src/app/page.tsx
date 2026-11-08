@@ -324,7 +324,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE TOP ANNOUNCEMENT TICKER ─── */}
       <div className={`w-full border-b px-4 py-2 flex items-center justify-between text-[11px] font-mono transition-colors duration-300 ${
         isLight
-          ? 'bg-[#dfe3e8]/90 border-slate-300/80 backdrop-blur-md text-slate-700'
+          ? 'bg-slate-100/90 border-slate-200/80 backdrop-blur-md text-slate-700'
           : 'bg-[#0d1117] border-[#21262d] text-[#8b949e]'
       }`}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
@@ -352,7 +352,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE GRID NAVBAR ─── */}
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 ${
         isLight
-          ? 'bg-[#dfe3e8]/90 border-slate-300/80 shadow-xs'
+          ? 'bg-white/90 border-slate-200/80 shadow-xs'
           : 'bg-[#000000]/95 border-[#30363d]'
       }`}>
         <div className="max-w-7xl mx-auto flex items-stretch h-14">
@@ -569,10 +569,11 @@ export default function LandingPage() {
                 fontSize={isMobile ? 36 : 74}
                 fontWeight={800}
                 letterSpacing={0}
-                guides={true}
-                specks={isMobile ? 8 : 16}
+                guides={false}
+                specks={0}
                 reach={isMobile ? 120 : 180}
-                bounce={0.4}
+                bounce={0}
+                softness={0}
               />
             </div>
           </div>
@@ -749,14 +750,14 @@ export default function LandingPage() {
             {/* Seamless Top Gradient dissolve into background */}
             <div className={`absolute inset-x-0 top-0 h-24 pointer-events-none z-10 bg-gradient-to-t ${
               isLight
-                ? 'from-transparent to-[#dfe3e8]'
+                ? 'from-transparent to-[#f8fafc]'
                 : 'from-transparent to-[#000000]'
             }`} />
 
             {/* Seamless Bottom Gradient dissolve into background */}
             <div className={`absolute inset-x-0 bottom-0 h-48 pointer-events-none z-10 bg-gradient-to-b ${
               isLight
-                ? 'from-transparent via-[#dfe3e8]/70 to-[#dfe3e8]'
+                ? 'from-transparent via-[#f8fafc]/70 to-[#f8fafc]'
                 : 'from-transparent via-[#000000]/60 to-[#000000]'
             }`} />
 
@@ -1475,7 +1476,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE STYLE MINIMALIST FOOTER ─── */}
       <footer className={`py-10 font-mono text-xs border-t transition-colors duration-300 ${
         isLight
-          ? 'bg-[#dfe3e8]/90 border-slate-300/80 backdrop-blur-md text-slate-700'
+          ? 'bg-slate-100/90 border-slate-200/80 backdrop-blur-md text-slate-700'
           : 'bg-[#000000] border-[#21262d] text-[#8b949e]'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -162,9 +162,11 @@ export function getBoothMonitorTexture(project: Project): THREE.CanvasTexture {
   ctx.textAlign = 'left';
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
-  texture.generateMipmaps = false;
+  texture.generateMipmaps = true;
+  texture.anisotropy = 16;
 
   textureCache.set(project.id, texture);
   return texture;
@@ -435,9 +437,11 @@ export function getStageMediaWallTexture(): THREE.CanvasTexture {
   ctx.fillText('📡 LIVE BALLOT STREAM ACTIVE', panelX + 24, panelY + panelHeight - 24);
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
-  texture.generateMipmaps = false;
+  texture.generateMipmaps = true;
+  texture.anisotropy = 16;
 
   stageTextureCache = texture;
   return texture;
@@ -875,9 +879,11 @@ export function getShowAndTellBannerTexture(): THREE.CanvasTexture {
   ctx.fillText('BOOTHS ST01 – ST08  •  DELHI PUBLIC SCHOOL INDIRAPURAM', 512, 132);
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = true;
+  texture.anisotropy = 16;
 
   showAndTellTextureCache = texture;
   return texture;
@@ -1063,9 +1069,11 @@ export function getGroundPosterTexture(
   ctx.fillRect(256, 214, 512, 3);
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = true;
+  texture.anisotropy = 16;
 
   groundPosterTextureCache.set(zone, texture);
   return texture;
