@@ -126,7 +126,7 @@ function TopNavHUD() {
               Innovation Fest
             </span>
             <span className="flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]" />
               LIVE
             </span>
           </div>
@@ -258,7 +258,7 @@ function TopNavHUD() {
           >
             <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span className="hidden lg:inline text-[11px]">Leaderboard</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+            
           </button>
 
           {/* 3D Guided Virtual Tour Button */}

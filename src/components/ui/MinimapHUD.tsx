@@ -135,7 +135,7 @@ export default function MinimapHUD() {
           aria-label="Expand Minimap"
         >
           <div className="relative flex items-center justify-center w-5 h-5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping absolute" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/25 absolute" />
             <Radio className="w-4 h-4 text-emerald-500 relative z-10" />
           </div>
           <span className="text-[11px] font-mono font-bold tracking-wider uppercase">
@@ -160,7 +160,7 @@ export default function MinimapHUD() {
           >
             <div className="flex items-center gap-2">
               <div className="relative flex items-center justify-center w-3.5 h-3.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping absolute" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500/25 absolute" />
                 <span className="w-2 h-2 rounded-full bg-emerald-500 relative" />
               </div>
               <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-slate-700 dark:text-slate-200">
@@ -415,7 +415,7 @@ export default function MinimapHUD() {
                         fill="none"
                         stroke="#f59e0b"
                         strokeWidth="1.5"
-                        className="animate-ping"
+                        className="animate-pulse opacity-60"
                       />
                     )}
                     <circle

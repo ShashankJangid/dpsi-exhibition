@@ -180,8 +180,8 @@ export function getStageMediaWallTexture(): THREE.CanvasTexture {
   if (stageTextureCache) return stageTextureCache;
 
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 384;
+  canvas.width = 2048;
+  canvas.height = 405;
   const ctx = canvas.getContext('2d');
 
   if (!ctx) {
@@ -189,92 +189,174 @@ export function getStageMediaWallTexture(): THREE.CanvasTexture {
     return fallback;
   }
 
-  // 1. Sleek architectural conference backdrop
-  const bg = ctx.createLinearGradient(0, 0, 1024, 384);
-  bg.addColorStop(0, '#020612');
-  bg.addColorStop(0.3, '#07152c');
-  bg.addColorStop(0.7, '#081833');
-  bg.addColorStop(1, '#020612');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, 1024, 384);
+  // Pure, authentic, executive keynote stage visual — clean, human-designed, and uncluttered
+  const renderVisuals = (logoImg?: HTMLImageElement) => {
+    const width = 2048;
+    const height = 405;
+    const centerX = width / 2;
 
-  // Subtle coordinate grid
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
-  ctx.lineWidth = 1;
-  for (let x = 0; x < 1024; x += 32) {
+    // 1. Deep cinematic midnight obsidian stage backdrop with atmospheric vignette
+    const bg = ctx.createLinearGradient(0, 0, width, height);
+    bg.addColorStop(0, '#02050e');
+    bg.addColorStop(0.3, '#061226');
+    bg.addColorStop(0.5, '#0a1a38');
+    bg.addColorStop(0.7, '#061226');
+    bg.addColorStop(1, '#02050e');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+
+    // Soft overhead stage spotlight flare
+    const spot = ctx.createRadialGradient(centerX, 90, 10, centerX, 120, 560);
+    spot.addColorStop(0, 'rgba(56, 189, 248, 0.18)');
+    spot.addColorStop(0.5, 'rgba(14, 165, 233, 0.05)');
+    spot.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = spot;
+    ctx.fillRect(0, 0, width, height);
+
+    // Subtle fine architectural stage grid (whisper-thin, ultra-subtle)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+    ctx.lineWidth = 1;
+    for (let x = 64; x < width; x += 64) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+
+    // Outer refined bezel frame
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(4, 4, width - 8, height - 8);
+
+    // 2. Top Header Metadata Bar
+    ctx.fillStyle = 'rgba(3, 7, 18, 0.85)';
+    ctx.fillRect(4, 4, width - 8, 38);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+    ctx.fillRect(4, 41, width - 8, 1);
+
+    // Header Left
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '600 12px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('DELHI PUBLIC SCHOOL INDIRAPURAM', 36, 26);
+
+    // Header Center
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText('ANNUAL SCIENCE & TECHNOLOGY SYMPOSIUM • 2026', centerX, 26);
+
+    // Header Right
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#22c55e';
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, 384);
-    ctx.stroke();
-  }
-  for (let y = 0; y < 384; y += 24) {
+    ctx.arc(width - 240, 22, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px monospace';
+    ctx.fillText('MAIN AUDITORIUM • PLENARY STAGE', width - 36, 26);
+
+    // 3. Official DPS Crest / Logo Centerpiece
+    const crestY = 100;
+    const crestR = 36;
+
+    // Elegant glowing halo around crest
     ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(1024, y);
+    ctx.arc(centerX, crestY, crestR + 5, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.lineWidth = 2;
     ctx.stroke();
-  }
 
-  // 2. Top Broadcast Header Bar
-  ctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
-  ctx.fillRect(0, 0, 1024, 46);
-  ctx.fillStyle = '#0284c7';
-  ctx.fillRect(0, 44, 1024, 2);
+    ctx.beginPath();
+    ctx.arc(centerX, crestY, crestR, 0, Math.PI * 2);
+    ctx.fillStyle = '#050c1e';
+    ctx.fill();
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
-  // Live Pulse Dot
-  ctx.beginPath();
-  ctx.arc(36, 23, 6, 0, Math.PI * 2);
-  ctx.fillStyle = '#ef4444';
-  ctx.fill();
+    // Draw authentic logo image if loaded
+    if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, crestY, crestR - 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(logoImg, centerX - (crestR - 2), crestY - (crestR - 2), (crestR - 2) * 2, (crestR - 2) * 2);
+      ctx.restore();
+    } else {
+      // Instant vector crest fallback
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(centerX, crestY, crestR - 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 15px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('DPSI', centerX, crestY + 5);
+    }
 
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 13px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('LIVE BROADCAST • MAIN AUDITORIUM & KEYNOTE STAGE', 54, 28);
+    // 4. Grand Event Typography — Clean, Bold, Human-Designed
+    ctx.textAlign = 'center';
 
-  ctx.textAlign = 'right';
-  ctx.fillStyle = '#f59e0b';
-  ctx.font = 'bold 13px monospace';
-  ctx.fillText('DELHI PUBLIC SCHOOL INDIRAPURAM', 988, 28);
-  ctx.textAlign = 'left';
+    // Overline Badge
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 14px monospace';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('EXCELLENCE IN INNOVATION • RESEARCH • LEADERSHIP', centerX, 172);
+    ctx.letterSpacing = '0px';
 
-  // 3. Grand Event Typography
-  ctx.textAlign = 'center';
+    // Grand Main Event Title (Gleaming white with subtle elegant ambient glow)
+    ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
+    ctx.shadowBlur = 24;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 58px "Segoe UI", system-ui, -apple-system, sans-serif';
+    ctx.fillText('DPSI INNOVATION FEST', centerX, 240);
+    ctx.shadowBlur = 0;
 
-  // Overline Badge
-  ctx.fillStyle = '#38bdf8';
-  ctx.font = 'bold 15px monospace';
-  ctx.letterSpacing = '4px';
-  ctx.fillText('TECH & ROBOTICS EXPO 2026', 512, 110);
-  ctx.letterSpacing = '0px';
+    // Subtitle Theme
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 18px "Segoe UI", system-ui, sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText('EXPLORE  •  INVENT  •  INSPIRE', centerX, 280);
+    ctx.letterSpacing = '0px';
 
-  // Main Event Title (Gleaming white with vibrant blue/gold glow shadow)
-  ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
-  ctx.shadowBlur = 24;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '900 52px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('DPSI INNOVATION FEST', 512, 172);
-  ctx.shadowBlur = 0;
+    // School Motto / Tagline
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '500 13px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('“Service Before Self”   •   Fostering Next-Generation Scientists, Engineers & Visionaries', centerX, 316);
 
-  // Subtitle
-  ctx.fillStyle = '#fbbf24';
-  ctx.font = '700 20px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('ANNUAL STUDENT INVENTIONS • LIVE DEMONSTRATIONS • GRAND JURY EVALUATION', 512, 218);
+    // 5. Bottom Horizon Divider & Footer Strip
+    const footerY = 356;
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
+    ctx.fillRect(4, footerY, width - 8, height - footerY - 4);
 
-  // School crest / credit
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '500 14px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('Igniting Future Engineers & Innovators • Delhi Public School Indirapuram', 512, 252);
+    // Golden horizon hairline
+    const hairGrad = ctx.createLinearGradient(100, footerY, width - 100, footerY);
+    hairGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
+    hairGrad.addColorStop(0.3, 'rgba(56, 189, 248, 0.4)');
+    hairGrad.addColorStop(0.5, 'rgba(251, 191, 36, 0.6)');
+    hairGrad.addColorStop(0.7, 'rgba(56, 189, 248, 0.4)');
+    hairGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+    ctx.fillStyle = hairGrad;
+    ctx.fillRect(100, footerY, width - 200, 1.5);
 
-  // 4. Lower Live Ticker
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-  ctx.fillRect(48, 290, 928, 56);
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(48, 290, 928, 56);
+    // Footer Left
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#64748b';
+    ctx.font = '600 11px monospace';
+    ctx.fillText('EXHIBITION SECTORS: PHYSICAL COMPUTING • DIGITAL SOLUTIONS • BUSINESS VENTURES • ROBOTICS', 36, footerY + 28);
 
-  ctx.fillStyle = '#f8fafc';
-  ctx.font = 'bold 13px monospace';
-  ctx.fillText('🏎️ ARENA 1: ROBO SPEEDWAY RAMP CIRCUIT   |   ⚽ ARENA 2: 2v2 AUTONOMOUS ROBO SOCCER MATCH   |   🏆 35 ACTIVE BOOTHS', 512, 324);
-  ctx.textAlign = 'left';
+    // Footer Right
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#64748b';
+    ctx.font = '600 11px monospace';
+    ctx.fillText('CAMPUS INDIRAPURAM • NEW DELHI NCR', width - 36, footerY + 28);
+    ctx.textAlign = 'left';
+  };
+
+  // Immediate vector render
+  renderVisuals();
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -283,19 +365,27 @@ export function getStageMediaWallTexture(): THREE.CanvasTexture {
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = true;
 
+  // Asynchronously load the official DPS crest image and redraw cleanly when ready
+  if (typeof window !== 'undefined') {
+    const crestImg = new Image();
+    crestImg.crossOrigin = 'anonymous';
+    crestImg.src = '/dpsi_crest.png';
+    crestImg.onload = () => {
+      renderVisuals(crestImg);
+      texture.needsUpdate = true;
+    };
+  }
+
   stageTextureCache = texture;
   return texture;
 }
 
-/**
- * Generates Auxiliary Stage Wall Display texture (flanking side screens from Image 2).
- */
 export function getAuxiliaryStageScreenTexture(): THREE.CanvasTexture {
   if (auxStageTextureCache) return auxStageTextureCache;
 
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 384;
+  canvas.width = 384;
+  canvas.height = 652;
   const ctx = canvas.getContext('2d');
 
   if (!ctx) {
@@ -303,65 +393,131 @@ export function getAuxiliaryStageScreenTexture(): THREE.CanvasTexture {
     return fallback;
   }
 
-  const bg = ctx.createLinearGradient(0, 0, 512, 384);
-  bg.addColorStop(0, '#030816');
-  bg.addColorStop(1, '#081730');
+  // Deep cyber background
+  const bg = ctx.createLinearGradient(0, 0, 384, 652);
+  bg.addColorStop(0, '#020614');
+  bg.addColorStop(0.5, '#07152f');
+  bg.addColorStop(1, '#020614');
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, 512, 384);
+  ctx.fillRect(0, 0, 384, 652);
 
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+  // Subtle vertical grid
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 384; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 652);
+    ctx.stroke();
+  }
+  for (let y = 0; y < 652; y += 32) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(384, y);
+    ctx.stroke();
+  }
+
+  // Outer glowing border
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
   ctx.lineWidth = 3;
-  ctx.strokeRect(4, 4, 504, 376);
+  ctx.strokeRect(3, 3, 378, 646);
 
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-  ctx.fillRect(4, 4, 504, 42);
+  // Header Bar
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+  ctx.fillRect(4, 4, 376, 48);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(4, 50, 376, 2);
+
   ctx.fillStyle = '#38bdf8';
-  ctx.font = 'bold 13px monospace';
-  ctx.fillText('SUMMIT OVERVIEW • DPSI 2026', 20, 30);
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText('⚡ ARENA TELEMETRY HUD', 20, 32);
 
-  ctx.fillStyle = 'rgba(249, 115, 22, 0.15)';
+  // Top Card: Arena Status
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
   ctx.strokeStyle = '#f97316';
   ctx.lineWidth = 1.5;
-  ctx.roundRect(24, 62, 464, 180, 8);
+  ctx.roundRect(16, 68, 352, 230, 8);
   ctx.fill();
   ctx.stroke();
 
   ctx.fillStyle = '#f97316';
-  ctx.font = 'bold 14px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('GLOBAL STUDENT INVENTIONS', 40, 92);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '12px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('• 35 In-person Exhibition Booths', 40, 125);
-  ctx.fillText('• High-Speed Autonomous Robot Race Track', 40, 150);
-  ctx.fillText('• 2v2 Competitive Robo Soccer Arena', 40, 175);
-  ctx.fillText('• Show & Tell Engineering Pavilion', 40, 200);
+  ctx.font = 'bold 13px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('LIVE COMPETITIONS', 32, 98);
 
-  ctx.fillStyle = '#0f172a';
+  const arenaItems = [
+    { label: '🏎️ Speedway Ramps', val: 'CIRCUIT LIVE', col: '#22c55e' },
+    { label: '⚽ Robo Soccer 2v2', val: 'MATCH 4 IN PLAY', col: '#38bdf8' },
+    { label: '🏆 Lap Record', val: '14.28s (B04)', col: '#fbbf24' },
+    { label: '📡 LiDAR Tracking', val: 'LOCK: OPTIMAL', col: '#22c55e' },
+  ];
+
+  arenaItems.forEach((item, idx) => {
+    const iy = 132 + idx * 38;
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '600 12px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(item.label, 32, iy);
+
+    ctx.textAlign = 'right';
+    ctx.fillStyle = item.col;
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText(item.val, 348, iy);
+    ctx.textAlign = 'left';
+  });
+
+  // Middle Card: Innovation Sections
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.roundRect(16, 314, 352, 180, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 13px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('EXHIBIT HALL SECTORS', 32, 344);
+
+  const sectors = [
+    '• Section 1: Physical Computing (P01-P12)',
+    '• Section 2: Digital & AI (D01-D12)',
+    '• Section 3: Business Ventures (B01-B08)',
+    '• Section 4: Show & Tell (ST01-ST08)',
+  ];
+
+  sectors.forEach((txt, idx) => {
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11.5px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(txt, 32, 376 + idx * 26);
+  });
+
+  // Bottom Card: Voting System Call to Action
+  ctx.fillStyle = 'rgba(6, 78, 59, 0.3)';
   ctx.strokeStyle = '#22c55e';
-  ctx.lineWidth = 1;
-  ctx.roundRect(24, 258, 464, 98, 8);
+  ctx.lineWidth = 1.5;
+  ctx.roundRect(16, 510, 352, 122, 8);
   ctx.fill();
   ctx.stroke();
 
   ctx.fillStyle = '#22c55e';
-  ctx.font = 'bold 13px monospace';
-  ctx.fillText('VOTING SYSTEM STATUS: ONLINE', 40, 288);
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '12px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('Tap any stall on the interactive floor plan to inspect', 40, 314);
-  ctx.fillText('architectural hardware and cast verified delegate ballots.', 40, 334);
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText('VOTING SYSTEM: ONLINE', 32, 538);
+
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '11px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('Click any exhibition stall in the 3D hall to', 32, 564);
+  ctx.fillText('inspect engineering hardware, inspect docs,', 32, 584);
+  ctx.fillText('and cast your verified delegate vote.', 32, 604);
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.anisotropy = 16;
+
   auxStageTextureCache = texture;
   return texture;
 }
 
-/**
- * Generates the Telepresence Boardroom Display texture (from Image 1).
- * Features a high-tech video conference grid with remote jury participants and evaluation dashboards.
- */
 export function getTelepresenceScreenTexture(): THREE.CanvasTexture {
   if (telepresenceTextureCache) return telepresenceTextureCache;
 
