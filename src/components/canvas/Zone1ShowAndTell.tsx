@@ -101,7 +101,7 @@ export default function Zone1ShowAndTell() {
             </mesh>
           ))}
           {/* High-Contrast Ground Poster Face */}
-          <mesh position={[0, 0.018, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[7.1, 1.9]} />
             {showAndTellTexture && (
               <meshStandardMaterial
@@ -111,6 +111,9 @@ export default function Zone1ShowAndTell() {
                 emissiveIntensity={1.2}
                 roughness={0.2}
                 toneMapped={false}
+                polygonOffset
+                polygonOffsetFactor={-1}
+                polygonOffsetUnits={-1}
               />
             )}
           </mesh>

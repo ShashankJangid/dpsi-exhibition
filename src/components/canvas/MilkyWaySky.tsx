@@ -7,7 +7,7 @@ import { useTexture } from '@react-three/drei';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 
 function MilkyWaySphere({ isMobile }: { isMobile: boolean }) {
-  const texturePath = isMobile ? '/textures/milkyway_mobile_smooth.jpg' : '/textures/milkyway_smooth.jpg';
+  const texturePath = isMobile ? '/textures/milkyway-mobile.jpg' : '/textures/milkyway.jpg';
   const texture = useTexture(texturePath);
   const meshRef = useRef<THREE.Mesh>(null);
 
@@ -20,6 +20,7 @@ function MilkyWaySphere({ isMobile }: { isMobile: boolean }) {
       texture.minFilter = THREE.LinearMipmapLinearFilter;
       texture.magFilter = THREE.LinearFilter;
       texture.generateMipmaps = true;
+      texture.anisotropy = 16;
     }
   }, [texture]);
 
@@ -31,9 +32,9 @@ function MilkyWaySphere({ isMobile }: { isMobile: boolean }) {
   });
 
   return (
-    <mesh ref={meshRef} scale={[-1, 1, 1]} rotation={[0.4, -1.2, 0.1]}>
-      {/* 950-unit celestial dome with filtered, noise-free Milky Way */}
-      <sphereGeometry args={[950, 48, 32]} />
+    <mesh ref={meshRef} scale={[1, 1, 1]} rotation={[0.4, -1.2, 0.1]}>
+      {/* 550-unit celestial dome with filtered, noise-free Milky Way */}
+      <sphereGeometry args={[550, 36, 24]} />
       <meshBasicMaterial
         map={texture}
         side={THREE.BackSide}
@@ -53,17 +54,18 @@ export default function MilkyWaySky() {
   if (isLight) {
     return (
       <group>
-        {/* Eye-friendly calm architectural drafting slate dome (zero glare) */}
-        <mesh scale={[-1, 1, 1]}>
-          <sphereGeometry args={[950, 32, 24]} />
+        {/* Modern Architectural Daylight Studio Sky Dome */}
+        <mesh scale={[1, 1, 1]}>
+          <sphereGeometry args={[550, 32, 20]} />
           <meshBasicMaterial
-            color="#748596"
+            color="#e2e8f0"
             side={THREE.BackSide}
-            toneMapped={true}
+            toneMapped={false}
             fog={false}
             depthWrite={false}
           />
         </mesh>
+        <ambientLight intensity={0.35} color="#f8fafc" />
       </group>
     );
   }

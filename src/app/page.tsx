@@ -136,7 +136,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE TOP ANNOUNCEMENT TICKER ─── */}
       <div className={`w-full border-b px-4 py-2 flex items-center justify-between text-[11px] font-mono transition-colors duration-300 ${
         isLight
-          ? 'bg-[#dfe3e8]/90 border-slate-300/80 backdrop-blur-md text-slate-700'
+          ? 'bg-slate-100/90 border-slate-200/80 backdrop-blur-md text-slate-700'
           : 'bg-[#0d1117] border-[#21262d] text-[#8b949e]'
       }`}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
@@ -164,7 +164,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE GRID NAVBAR ─── */}
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 ${
         isLight
-          ? 'bg-[#dfe3e8]/90 border-slate-300/80 shadow-xs'
+          ? 'bg-white/90 border-slate-200/80 shadow-xs'
           : 'bg-[#000000]/95 border-[#30363d]'
       }`}>
         <div className="max-w-7xl mx-auto flex items-stretch h-14">
@@ -364,10 +364,11 @@ export default function LandingPage() {
                 fontSize={isMobile ? 36 : 74}
                 fontWeight={800}
                 letterSpacing={0}
-                guides={true}
-                specks={isMobile ? 8 : 16}
+                guides={false}
+                specks={0}
                 reach={isMobile ? 120 : 180}
-                bounce={0.4}
+                bounce={0}
+                softness={0}
               />
             </div>
           </div>
@@ -399,7 +400,7 @@ export default function LandingPage() {
 
               <div className="mt-8 grid grid-cols-2 gap-3 font-mono text-xs">
                 <div className={`p-3 border rounded transition-colors ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
+                  isLight ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
                 }`}>
                   <span className="text-[#3fb950] font-bold block">[ 12 BOOTHS ]</span>
                   <span className={`mt-1 block ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
@@ -407,7 +408,7 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <div className={`p-3 border rounded transition-colors ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
+                  isLight ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
                 }`}>
                   <span className="text-[#58a6ff] font-bold block">[ 12 BOOTHS ]</span>
                   <span className={`mt-1 block ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
@@ -415,7 +416,7 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <div className={`p-3 border rounded transition-colors ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
+                  isLight ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
                 }`}>
                   <span className="text-[#d2a8ff] font-bold block">[ 07 BOOTHS ]</span>
                   <span className={`mt-1 block ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
@@ -423,7 +424,7 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <div className={`p-3 border rounded transition-colors ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
+                  isLight ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs' : 'border-[#21262d] bg-[#0d1117]'
                 }`}>
                   <span className="text-[#f0883e] font-bold block">[ 04 HEATS ]</span>
                   <span className={`mt-1 block ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
@@ -471,7 +472,7 @@ export default function LandingPage() {
                   href="#projects"
                   className={`w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-4 border font-mono font-bold text-xs uppercase tracking-wider transition-all ${
                     isLight
-                      ? 'bg-[#eef2f6]/95 hover:bg-[#e2e8f0] border-slate-300 text-slate-900 shadow-xs'
+                      ? 'bg-white/95 hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
                       : 'bg-[#161b22] hover:bg-[#21262d] border-[#30363d] text-white'
                   }`}
                 >
@@ -490,19 +491,19 @@ export default function LandingPage() {
         <div className="py-2 overflow-hidden">
           <TextLoop
             text="DPSI TECH & INNOVATION EXPO 2026 ✦ 35 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ VERIFIED COMMUNITY BALLOT"
-            shape="wave"
-            speed={90}
+            shape="line"
+            speed={70}
             direction="forward"
             separator="✦"
-            curviness={90}
+            curviness={0}
             tilt={0}
-            fontSize={isMobile ? 26 : 46}
+            fontSize={isMobile ? 22 : 34}
             fontWeight={800}
             letterSpacing={2}
             uppercase
             ribbon
             ribbonColor={isLight ? '#4338ca' : '#5227FF'}
-            ribbonWidth={isMobile ? 54 : 86}
+            ribbonWidth={isMobile ? 44 : 64}
             edgeFade={0}
             cross={false}
             crossAngle={16}
@@ -535,8 +536,9 @@ export default function LandingPage() {
               shape="horizon"
               characters=" =+xX0S8#@"
               cellSize={isMobile ? 14 : 18}
-              density={isMobile ? 0.65 : 0.8}
-              softness={0.7}
+              density={isMobile ? 0.5 : 0.65}
+              softness={0.1}
+              dpr={1}
               gradientOpacity={0.85}
               lightMode={isLight}
             />
@@ -544,14 +546,14 @@ export default function LandingPage() {
             {/* Seamless Top Gradient dissolve into background */}
             <div className={`absolute inset-x-0 top-0 h-24 pointer-events-none z-10 bg-gradient-to-t ${
               isLight
-                ? 'from-transparent to-[#dfe3e8]'
+                ? 'from-transparent to-[#f8fafc]'
                 : 'from-transparent to-[#000000]'
             }`} />
 
             {/* Seamless Bottom Gradient dissolve into background */}
             <div className={`absolute inset-x-0 bottom-0 h-48 pointer-events-none z-10 bg-gradient-to-b ${
               isLight
-                ? 'from-transparent via-[#dfe3e8]/70 to-[#dfe3e8]'
+                ? 'from-transparent via-[#f8fafc]/70 to-[#f8fafc]'
                 : 'from-transparent via-[#000000]/60 to-[#000000]'
             }`} />
 
@@ -600,7 +602,7 @@ export default function LandingPage() {
 
             {/* Filter Cells */}
             <div className={`flex items-center border rounded text-xs font-mono p-0.5 overflow-x-auto max-w-full ${
-              isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+              isLight ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               {(['all', 'Physical', 'Digital', 'Business'] as const).map((z) => (
                 <button
@@ -636,7 +638,7 @@ export default function LandingPage() {
                 }}
                 className={`p-5 border rounded-xl transition-all flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
                   isLight
-                    ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs hover:shadow-md hover:border-blue-400 hover:bg-[#e2e8f0]'
+                    ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs hover:shadow-md hover:border-blue-400 hover:bg-slate-50'
                     : 'border-[#30363d] bg-[#0d1117] hover:border-[#58a6ff] hover:shadow-xl hover:bg-[#161b22]/90'
                 }`}
               >
@@ -727,7 +729,7 @@ export default function LandingPage() {
               href="/expo"
               className={`inline-flex items-center gap-2 px-6 py-3 border font-mono text-xs font-bold uppercase transition-colors rounded ${
                 isLight
-                  ? 'bg-[#eef2f6]/95 hover:bg-[#e2e8f0] border-slate-300 text-slate-900 shadow-xs'
+                  ? 'bg-white/95 hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
                   : 'bg-[#161b22] hover:bg-[#21262d] border-[#30363d] text-white'
               }`}
             >
@@ -758,7 +760,7 @@ export default function LandingPage() {
             {/* Arena 1 */}
             <div className={`p-6 border rounded-lg flex flex-col justify-between ${
               isLight
-                ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs hover:bg-[#e2e8f0]'
+                ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs hover:bg-slate-50'
                 : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <div>
@@ -791,7 +793,7 @@ export default function LandingPage() {
             {/* Arena 2 */}
             <div className={`p-6 border rounded-lg flex flex-col justify-between ${
               isLight
-                ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs hover:bg-[#e2e8f0]'
+                ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs hover:bg-slate-50'
                 : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <div>
@@ -822,7 +824,7 @@ export default function LandingPage() {
             {/* Arena 3 */}
             <div className={`p-6 border rounded-lg flex flex-col justify-between ${
               isLight
-                ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs hover:bg-[#e2e8f0]'
+                ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs hover:bg-slate-50'
                 : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <div>
@@ -877,19 +879,19 @@ export default function LandingPage() {
 
               <div className="mt-6 space-y-3 font-mono text-xs">
                 <div className={`p-3 border rounded flex items-center justify-between ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
+                  isLight ? 'border-slate-300/80 bg-white/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
                 }`}>
                   <span className="font-semibold">Single-Device Verification</span>
                   <span className="text-[#3fb950] font-bold">[ ACTIVE ]</span>
                 </div>
                 <div className={`p-3 border rounded flex items-center justify-between ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
+                  isLight ? 'border-slate-300/80 bg-white/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
                 }`}>
                   <span className="font-semibold">Weighted Ballots: Faculty Jury (75%) • Community (25%)</span>
                   <span className="text-[#58a6ff] font-bold">[ VERIFIED ]</span>
                 </div>
                 <div className={`p-3 border rounded flex items-center justify-between ${
-                  isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
+                  isLight ? 'border-slate-300/80 bg-white/90 backdrop-blur-md text-slate-900 shadow-xs' : 'border-[#21262d] bg-[#0d1117] text-white'
                 }`}>
                   <span className="font-semibold">Live Leaderboard Real-Time Streaming</span>
                   <span className="text-[#d2a8ff] font-bold">[ SYNCED ]</span>
@@ -898,7 +900,7 @@ export default function LandingPage() {
             </div>
 
             <div className={`lg:col-span-5 p-6 border rounded-md font-mono ${
-              isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+              isLight ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <span className={`text-xs block mb-3 font-bold ${isLight ? 'text-slate-600' : 'text-[#8b949e]'}`}>
                 HOW TO CAST BALLOT
@@ -971,7 +973,7 @@ export default function LandingPage() {
               required
               className={`flex-1 px-4 py-3 border rounded focus:outline-none focus:border-blue-500 ${
                 isLight
-                  ? 'bg-[#eef2f6]/95 border-slate-300 text-slate-900 placeholder-slate-500 shadow-xs'
+                  ? 'bg-white/95 border-slate-300 text-slate-900 placeholder-slate-500 shadow-xs'
                   : 'bg-[#0d1117] border-[#30363d] text-white placeholder-[#8b949e]'
               }`}
             />
@@ -1011,7 +1013,7 @@ export default function LandingPage() {
             </div>
 
             <div className={`flex items-center border rounded text-xs font-mono p-0.5 ${
-              isLight ? 'border-slate-300/80 bg-[#eef2f6]/90 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+              isLight ? 'border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <button
                 onClick={() => setSelectedDay('day1')}
@@ -1111,7 +1113,7 @@ export default function LandingPage() {
       {/* ─── GITHUB UNIVERSE STYLE MINIMALIST FOOTER ─── */}
       <footer className={`py-10 font-mono text-xs border-t transition-colors duration-300 ${
         isLight
-          ? 'bg-[#dfe3e8]/90 border-slate-300/80 backdrop-blur-md text-slate-700'
+          ? 'bg-slate-100/90 border-slate-200/80 backdrop-blur-md text-slate-700'
           : 'bg-[#000000] border-[#21262d] text-[#8b949e]'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
