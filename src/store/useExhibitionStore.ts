@@ -274,7 +274,7 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
 
   liveCameraPos: [0.8, 18.5],
   liveCameraTarget: [0.8, -10.0],
-  isMinimapOpen: true,
+  isMinimapOpen: false,
 
   setLiveCameraTracking: (pos, target) => {
     set({ liveCameraPos: pos, liveCameraTarget: target });
