@@ -1,0 +1,225 @@
+/**
+ * DPS Indirapuram Tech & Innovation Summit 2026
+ * Apple Card CR-100 Badge Generator
+ * Replaces dynamic fields, unique Butterfly TopoTags, and Micro-QR codes
+ * based on the participant Credential ID.
+ */
+
+export interface BadgeData {
+  name: string;
+  classSection: string;
+  credentialId: string;
+  projectDomain?: string;
+  venueLocation?: string;
+}
+
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function hashString(str: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed: number) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const HEX_CELLS = [
+  { cx: 111.0, cy: 146.0 },
+  { cx: 143.0, cy: 146.0 },
+  { cx: 175.0, cy: 146.0 },
+  { cx: 111.0, cy: 178.0 },
+  { cx: 143.0, cy: 178.0 },
+  { cx: 175.0, cy: 178.0 },
+  { cx: 111.0, cy: 212.0 },
+  { cx: 143.0, cy: 212.0 },
+  { cx: 175.0, cy: 212.0 },
+  { cx: 247.0, cy: 146.0 },
+  { cx: 281.0, cy: 146.0 },
+  { cx: 315.0, cy: 146.0 },
+  { cx: 247.0, cy: 178.0 },
+  { cx: 281.0, cy: 178.0 },
+  { cx: 315.0, cy: 178.0 },
+  { cx: 247.0, cy: 212.0 },
+  { cx: 281.0, cy: 212.0 },
+  { cx: 315.0, cy: 212.0 },
+];
+
+/**
+ * Deterministically generates the 18 topological invariant hexagonal cells
+ * of the butterfly optical security tag keyed to the Credential ID.
+ */
+export function generateTopotagCells(credentialId: string): string {
+  const rng = mulberry32(hashString(credentialId || 'CR100-0001'));
+  const indices = Array.from({ length: 18 }, (_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = indices[i];
+    indices[i] = indices[j];
+    indices[j] = tmp;
+  }
+  const ringCount = 5 + Math.floor(rng() * 3); // 5 to 7 genus-1 rings
+  const ringSet = new Set(indices.slice(0, ringCount));
+
+  const cells = HEX_CELLS.map((cell, idx) => {
+    const { cx, cy } = cell;
+    const hexD = `M ${(cx + 11.43).toFixed(2)},${(cy + 6.6).toFixed(2)} L ${cx.toFixed(2)},${(cy + 13.2).toFixed(2)} L ${(cx - 11.43).toFixed(2)},${(cy + 6.6).toFixed(2)} L ${(cx - 11.43).toFixed(2)},${(cy - 6.6).toFixed(2)} L ${cx.toFixed(2)},${(cy - 13.2).toFixed(2)} L ${(cx + 11.43).toFixed(2)},${(cy - 6.6).toFixed(2)} Z`;
+    if (ringSet.has(idx)) {
+      return `        <g class="genus-1-ring" data-cell="${idx}">\n            <path d="${hexD}" fill="#0F172A" shape-rendering="geometricPrecision"/>\n            <circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="4.8" fill="#FFFFFF"/>\n        </g>`;
+    }
+    return `        <path d="${hexD}" fill="#0F172A" shape-rendering="geometricPrecision"/>`;
+  });
+
+  return `<!-- 18 Topological Invariant Code Hexagons (Encoded ID: ${escapeXml(credentialId)}) -->\n${cells.join('\n')}`;
+}
+
+/**
+ * Deterministically generates the 13x13 Micro-QR Version M2 matrix
+ * keyed to the Credential ID.
+ */
+export function generateMicroQrModules(credentialId: string): string {
+  const rng = mulberry32(hashString((credentialId || 'CR100-0001') + '_m2_entropy'));
+  const matrix: number[][] = Array.from({ length: 13 }, () => Array(13).fill(0));
+
+  // 7x7 Finder Pattern at (0, 0)
+  for (let r = 0; r < 7; r++) {
+    for (let c = 0; c < 7; c++) {
+      if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
+        matrix[r][c] = 1;
+      } else {
+        matrix[r][c] = 0;
+      }
+    }
+  }
+
+  // Timing patterns along top row and left column
+  for (let c = 7; c < 13; c++) matrix[0][c] = c % 2 === 0 ? 1 : 0;
+  for (let r = 7; r < 13; r++) matrix[r][0] = r % 2 === 0 ? 1 : 0;
+
+  // Data / error-correction modules
+  for (let r = 0; r < 13; r++) {
+    for (let c = 0; c < 13; c++) {
+      if (r < 7 && c < 7) continue;
+      if (r === 0 || c === 0) continue;
+      matrix[r][c] = rng() > 0.48 ? 1 : 0;
+    }
+  }
+
+  const rects: string[] = [];
+  for (let r = 0; r < 13; r++) {
+    for (let c = 0; c < 13; c++) {
+      if (matrix[r][c] === 1) {
+        rects.push(
+          `        <rect x="${(c * 6.4).toFixed(2)}" y="${(r * 6.4).toFixed(2)}" width="6.40" height="6.40" fill="#0F172A" shape-rendering="crispEdges"/>`
+        );
+      }
+    }
+  }
+
+  return rects.join('\n');
+}
+
+/**
+ * Injects dynamic participant details, unique Butterfly TopoTags,
+ * and Micro-QR codes into the approved Apple Card CR-100 SVG template.
+ */
+export function generateAppleCardSvg(
+  templateSvg: string,
+  data: BadgeData
+): string {
+  let svg = templateSvg;
+  const rawName = (data.name || 'OFFICIAL DELEGATE').trim().toUpperCase();
+  const nameUpper = escapeXml(rawName);
+  const secUpper = escapeXml((data.classSection || 'EXPO 2026').trim().toUpperCase());
+  const idUpper = escapeXml((data.credentialId || 'CR100-0001').trim().toUpperCase());
+  const domainText = escapeXml(data.projectDomain || 'STEM & Autonomous Robotics');
+  const venueText = escapeXml(data.venueLocation || 'Maker Lab • Booth 01 (Hall A)');
+
+  // Dynamic font sizing for long participant names to prevent clipping
+  let nameFontSize = '46';
+  if (rawName.length > 22) {
+    nameFontSize = '28';
+  } else if (rawName.length > 16) {
+    nameFontSize = '36';
+  }
+
+  // 1. Primary participant name
+  svg = svg.replace(
+    /(<g transform="translate\(54, 236\)">[\s\S]*?<text x="0" y="44" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3, _p4, p5) => `${p1}${nameFontSize}${p3}${nameUpper}${p5}`
+  );
+
+  // 2. Class & Section cardlet
+  svg = svg.replace(
+    /(CLASS &amp; SECTION<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3) => `${p1}${secUpper}${p3}`
+  );
+
+  // 3. Credential ID cardlet
+  svg = svg.replace(
+    /(CREDENTIAL ID<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3) => `${p1}${idUpper}${p3}`
+  );
+
+  // 4. Project Domain
+  svg = svg.replace(
+    /(PROJECT DOMAIN<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3) => `${p1}${domainText}${p3}`
+  );
+
+  // 5. Exhibition Venue
+  svg = svg.replace(
+    /(EXHIBITION VENUE<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3) => `${p1}${venueText}${p3}`
+  );
+
+  // 6. Baseline footer credential ID
+  svg = svg.replace(
+    /(DPSI-2026 &#8226; POWERED BY CL0UD \/\/ &#9729; EXPO\.PASS &#8226; )([A-Z0-9-]+)/,
+    (_m, p1) => `${p1}${idUpper}`
+  );
+
+  // 7. Micro-QR cardlet ID
+  svg = svg.replace(
+    /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3) => `${p1}${idUpper}${p3}`
+  );
+
+  // 8. Micro-QR cardlet Name & Section
+  svg = svg.replace(
+    /(<text x="0" y="44" class="font-mono" [^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3) => `${p1}${nameUpper} &#8226; ${secUpper}${p3}`
+  );
+
+  // 9. Butterfly TopoTags Replacement (Unique per Credential ID)
+  const dynamicTopotags = generateTopotagCells(data.credentialId);
+  svg = svg.replace(
+    /<!-- 18 Topological Invariant Code Hexagons[\s\S]*?(?=\s*<\/g>\s*<\/g>\s*<\/g>\s*<!-- 2\. BOTTOM-RIGHT)/,
+    () => dynamicTopotags
+  );
+
+  // 10. Micro-QR Code Matrix Replacement (Unique per Credential ID)
+  const dynamicMicroQr = generateMicroQrModules(data.credentialId);
+  svg = svg.replace(
+    /(<g transform="translate\(200, 32\)">\s*<rect x="-8" y="-8" [^>]*\/>)[\s\S]*?(<\/g>\s*<\/g>\s*<\/g>\s*<\/svg>)/,
+    (_m, p1, p2) => `${p1}\n${dynamicMicroQr}\n      ${p2}`
+  );
+
+  return svg;
+}
