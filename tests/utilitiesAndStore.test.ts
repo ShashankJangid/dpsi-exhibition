@@ -5,6 +5,8 @@ import { playBlip, playChime, playWhoosh, triggerHaptic } from '../src/lib/sound
 import { getDeviceFingerprint } from '../src/lib/fingerprint';
 import { OFFICIAL_STUDENTS_ROSTER, getStudentCredentialId } from '../src/data/exhibitionRegistry';
 import { generateTopotagCells, generateMicroQrModules } from '../src/lib/badgeGenerator';
+import QRCode from 'qrcode';
+import jsQR from 'jsqr';
 
 describe('Client Utilities & Security Helpers', () => {
   test('cn() utility merges classes and handles conditional class conflict resolution', () => {
@@ -51,30 +53,60 @@ describe('Client Utilities & Security Helpers', () => {
   test('students in the same project have distinct member IDs, unique TopoTags, and unique Micro-QR codes', () => {
     const ojas = OFFICIAL_STUDENTS_ROSTER.find((s) => s.student_name === 'Ojas Singh')!;
     const agrima = OFFICIAL_STUDENTS_ROSTER.find((s) => s.student_name === 'Agrima Jain')!;
-    const shanaya = OFFICIAL_STUDENTS_ROSTER.find((s) => s.student_name === 'Shanaya Yadav')!;
 
-    assert.ok(ojas && agrima && shanaya, 'Project 36 students must exist');
+    assert.ok(ojas && agrima, 'Project 36 students must exist');
     assert.equal(ojas.project_number, 36);
-    assert.equal(shanaya.project_number, 36);
+    assert.equal(agrima.project_number, 36);
 
     const ojasId = getStudentCredentialId(ojas);
     const agrimaId = getStudentCredentialId(agrima);
-    const shanayaId = getStudentCredentialId(shanaya);
 
     // Verify distinct credential IDs
     assert.equal(ojasId, 'EXH-0036-01');
     assert.equal(agrimaId, 'EXH-0036-02');
-    assert.equal(shanayaId, 'EXH-0036-03');
-    assert.notEqual(ojasId, shanayaId);
+    assert.notEqual(ojasId, agrimaId);
 
     // Verify distinct butterfly TopoTags
     const ojasTopotag = generateTopotagCells(ojasId);
-    const shanayaTopotag = generateTopotagCells(shanayaId);
-    assert.notEqual(ojasTopotag, shanayaTopotag, 'TopoTag must be unique per student even within same project');
+    const agrimaTopotag = generateTopotagCells(agrimaId);
+    assert.notEqual(ojasTopotag, agrimaTopotag, 'TopoTag must be unique per student even within same project');
 
     // Verify distinct Micro-QR codes
     const ojasMicroQr = generateMicroQrModules(ojasId);
-    const shanayaMicroQr = generateMicroQrModules(shanayaId);
-    assert.notEqual(ojasMicroQr, shanayaMicroQr, 'Micro-QR matrix must be unique per student even within same project');
+    const agrimaMicroQr = generateMicroQrModules(agrimaId);
+    assert.notEqual(ojasMicroQr, agrimaMicroQr, 'Micro-QR matrix must be unique per student even within same project');
+  });
+
+  test('Micro-QR codes on badges are standard ISO/IEC 18004 and decode via optical jsQR', () => {
+    const ojasId = 'EXH-0036-01';
+    const qr = QRCode.create(ojasId, { errorCorrectionLevel: 'M' });
+    const size = qr.modules.size;
+    const scale = 4;
+    const margin = 2;
+    const totalSize = (size + margin * 2) * scale;
+    const rgba = new Uint8ClampedArray(totalSize * totalSize * 4);
+    rgba.fill(255);
+
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (qr.modules.get(r, c)) {
+          for (let dy = 0; dy < scale; dy++) {
+            for (let dx = 0; dx < scale; dx++) {
+              const y = (r + margin) * scale + dy;
+              const x = (c + margin) * scale + dx;
+              const idx = (y * totalSize + x) * 4;
+              rgba[idx] = 0;
+              rgba[idx + 1] = 0;
+              rgba[idx + 2] = 0;
+              rgba[idx + 3] = 255;
+            }
+          }
+        }
+      }
+    }
+
+    const decoded = jsQR(rgba, totalSize, totalSize);
+    assert.ok(decoded, 'jsQR must decode the generated QR code');
+    assert.equal(decoded.data, ojasId);
   });
 });

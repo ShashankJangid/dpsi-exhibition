@@ -21,7 +21,6 @@ export interface StudentEntry {
  * e.g., Project 36:
  *       Ojas Singh (Member 1)    -> EXH-0036-01
  *       Agrima Jain (Member 2)   -> EXH-0036-02
- *       Shanaya Yadav (Member 3) -> EXH-0036-03
  */
 const studentCredentialMap = new Map<string, string>();
 const projectMemberCounts = new Map<number, number>();
@@ -586,11 +585,10 @@ export const OFFICIAL_PROJECTS_CATALOG: OfficialProjectEntry[] = [
     "grade": "",
     "mentor": "Shashank",
     "live_link": "",
-    "student_count": 3,
+    "student_count": 2,
     "students": [
       "Ojas Singh (IX-A)",
-      "Agrima Jain (IX-D)",
-      "Shanaya Yadav (IX-E)"
+      "Agrima Jain (IX-D)"
     ]
   }
 ];
@@ -1789,16 +1787,6 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
   {
     "student_name": "Agrima Jain",
     "class_section": "IX-D",
-    "role": "EXHIBITOR",
-    "pass_code": "987654",
-    "project_number": 36,
-    "project_title": "Cloud (GO2)",
-    "solution_type": "",
-    "mentor": "Shashank"
-  },
-  {
-    "student_name": "Shanaya Yadav",
-    "class_section": "IX-E",
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 36,
