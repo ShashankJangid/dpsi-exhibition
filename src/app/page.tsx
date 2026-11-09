@@ -79,7 +79,7 @@ export default function LandingPage() {
   type FilterCategory = 'all' | 'Physical' | 'Digital' | 'Business' | 'Show & Tell' | 'Robotics';
   const [selectedZone, setSelectedZone] = useState<FilterCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDay, setSelectedDay] = useState<'day1' | 'day2'>('day1');
+  const [scheduleFilter, setScheduleFilter] = useState<'all' | 'morning' | 'afternoon'>('all');
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
   const [isProjectsLoading, setIsProjectsLoading] = useState(true);
@@ -334,7 +334,7 @@ export default function LandingPage() {
               ANNUAL TECH &amp; INNOVATION SUMMIT 2026
             </span>
             <span className={`hidden sm:inline ${isLight ? 'text-slate-500' : 'text-[#8b949e]'}`}>
-              NOVEMBER 14–15 • MAIN AUDITORIUM
+              NOVEMBER 14 • MAIN AUDITORIUM
             </span>
           </div>
           <Link
@@ -501,7 +501,7 @@ export default function LandingPage() {
               isLight ? 'text-slate-600' : 'text-[#8b949e]'
             }`}>
               <span className="flex items-center gap-2 text-[#3fb950] font-bold">
-                <span>NOVEMBER 14–15, 2026</span>
+                <span>NOVEMBER 14, 2026</span>
                 <span className="inline-block w-2 h-2 bg-[#3fb950] rounded-xs" />
               </span>
               <span className="hidden sm:inline font-medium">
@@ -1289,46 +1289,58 @@ export default function LandingPage() {
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className={`flex items-center justify-between pb-6 border-b ${
+          <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b gap-4 ${
             isLight ? 'border-slate-200/80' : 'border-[#30363d]'
           }`}>
             <div>
               <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                CONFERENCE TIMETABLE
+                CONFERENCE TIMETABLE • NOVEMBER 14, 2026
               </span>
               <h2 className={`text-3xl font-black uppercase font-sans tracking-tight ${
                 isLight ? 'text-slate-800' : 'text-white'
               }`}>
-                Two-Day Schedule
+                Summit Schedule
               </h2>
             </div>
 
-            <div className={`flex items-center border rounded-xl text-xs font-mono p-1 ${
+            <div className={`flex items-center border rounded-xl text-xs font-mono p-1 self-start sm:self-auto ${
               isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <button
-                onClick={() => setSelectedDay('day1')}
+                onClick={() => setScheduleFilter('all')}
                 className={`px-3 py-1.5 rounded-lg transition-all font-semibold active:scale-[0.97] ${
-                  selectedDay === 'day1'
+                  scheduleFilter === 'all'
                     ? 'bg-[#238636] text-white shadow-xs'
                     : isLight
                     ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     : 'text-[#8b949e] hover:text-white hover:bg-slate-800/50'
                 }`}
               >
-                Day 1 (Nov 14)
+                All Day
               </button>
               <button
-                onClick={() => setSelectedDay('day2')}
+                onClick={() => setScheduleFilter('morning')}
                 className={`px-3 py-1.5 rounded-lg transition-all font-semibold active:scale-[0.97] ${
-                  selectedDay === 'day2'
+                  scheduleFilter === 'morning'
                     ? 'bg-[#238636] text-white shadow-xs'
                     : isLight
-                    ? 'text-slate-600 hover:text-slate-900'
-                    : 'text-[#8b949e]'
+                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    : 'text-[#8b949e] hover:text-white hover:bg-slate-800/50'
                 }`}
               >
-                Day 2 (Nov 15)
+                Morning (08:30–12:30)
+              </button>
+              <button
+                onClick={() => setScheduleFilter('afternoon')}
+                className={`px-3 py-1.5 rounded-lg transition-all font-semibold active:scale-[0.97] ${
+                  scheduleFilter === 'afternoon'
+                    ? 'bg-[#238636] text-white shadow-xs'
+                    : isLight
+                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    : 'text-[#8b949e] hover:text-white hover:bg-slate-800/50'
+                }`}
+              >
+                Afternoon (12:30–17:00)
               </button>
             </div>
           </div>
@@ -1336,13 +1348,13 @@ export default function LandingPage() {
           <div className={`mt-6 divide-y ${
             isLight ? 'divide-slate-200/80' : 'divide-[#21262d]'
           }`}>
-            {selectedDay === 'day1' ? (
+            {(scheduleFilter === 'all' || scheduleFilter === 'morning') && (
               <>
                 <div className={`py-4 px-3 -mx-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-colors ${
                   isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-800/40'
                 }`}>
                   <span className="font-mono text-xs font-bold tabular-nums w-32 shrink-0 text-emerald-600 dark:text-emerald-400">
-                    09:00 - 10:30
+                    08:30 - 09:30
                   </span>
                   <span className={`font-sans font-semibold text-sm flex-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     Student Booth Setup &amp; Electrical Safety Check
@@ -1357,7 +1369,7 @@ export default function LandingPage() {
                   isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-800/40'
                 }`}>
                   <span className="font-mono text-xs font-bold tabular-nums w-32 shrink-0 text-emerald-600 dark:text-emerald-400">
-                    10:30 - 11:30
+                    09:30 - 10:30
                   </span>
                   <span className={`font-sans font-semibold text-sm flex-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     Opening Keynote: Next-Gen Autonomous AI
@@ -1372,7 +1384,7 @@ export default function LandingPage() {
                   isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-800/40'
                 }`}>
                   <span className="font-mono text-xs font-bold tabular-nums w-32 shrink-0 text-emerald-600 dark:text-emerald-400">
-                    11:30 - 14:00
+                    10:30 - 12:00
                   </span>
                   <span className={`font-sans font-semibold text-sm flex-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     Round 1: Faculty &amp; Jury Technical Scoring
@@ -1387,25 +1399,7 @@ export default function LandingPage() {
                   isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-800/40'
                 }`}>
                   <span className="font-mono text-xs font-bold tabular-nums w-32 shrink-0 text-emerald-600 dark:text-emerald-400">
-                    14:30 - 16:30
-                  </span>
-                  <span className={`font-sans font-semibold text-sm flex-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                    Robotics Combat &amp; Obstacle Course Qualifying Heats
-                  </span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono border self-start sm:self-center ${
-                    isLight ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-slate-900/80 border-slate-800 text-slate-400'
-                  }`}>
-                    Zone 3 Battle Pit
-                  </span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className={`py-4 px-3 -mx-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-colors ${
-                  isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-800/40'
-                }`}>
-                  <span className="font-mono text-xs font-bold tabular-nums w-32 shrink-0 text-emerald-600 dark:text-emerald-400">
-                    09:30 - 12:30
+                    11:00 - 15:30
                   </span>
                   <span className={`font-sans font-semibold text-sm flex-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     Public Exhibition &amp; Community Ballot Voting Opens
@@ -1416,11 +1410,31 @@ export default function LandingPage() {
                     Full Floor
                   </span>
                 </div>
+              </>
+            )}
+
+            {(scheduleFilter === 'all' || scheduleFilter === 'afternoon') && (
+              <>
                 <div className={`py-4 px-3 -mx-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-colors ${
                   isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-800/40'
                 }`}>
                   <span className="font-mono text-xs font-bold tabular-nums w-32 shrink-0 text-emerald-600 dark:text-emerald-400">
-                    13:00 - 14:30
+                    12:30 - 13:30
+                  </span>
+                  <span className={`font-sans font-semibold text-sm flex-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                    Robotics Combat &amp; Obstacle Course Qualifying Heats
+                  </span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono border self-start sm:self-center ${
+                    isLight ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-slate-900/80 border-slate-800 text-slate-400'
+                  }`}>
+                    Zone 3 Battle Pit
+                  </span>
+                </div>
+                <div className={`py-4 px-3 -mx-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-colors ${
+                  isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-800/40'
+                }`}>
+                  <span className="font-mono text-xs font-bold tabular-nums w-32 shrink-0 text-emerald-600 dark:text-emerald-400">
+                    13:30 - 15:00
                   </span>
                   <span className={`font-sans font-semibold text-sm flex-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     Student Shark Tank: Finalist Venture Pitches
