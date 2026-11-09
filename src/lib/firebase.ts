@@ -19,9 +19,10 @@ import {
   updateProfile,
   onAuthStateChanged,
   User,
+  browserPopupRedirectResolver,
 } from 'firebase/auth';
-import { Project } from '@/types';
-import { SEED_PROJECTS } from '@/data/seedProjects';
+import { Project } from '../types';
+import { SEED_PROJECTS } from '../data/seedProjects';
 
 const defaultApiKey = 'AIzaSyAhHFaRagTK_99jhT1eJK6lJqzGfxcyGec';
 const rawApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || defaultApiKey;
@@ -56,7 +57,7 @@ export async function signInWithGoogle() {
   if (!isFirebaseConfigured) {
     throw new Error('Google OAuth is not configured in this environment. Please use the Visitor Pass tab to vote.');
   }
-  const result = await signInWithPopup(auth, googleProvider);
+  const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
   return result.user;
 }
 
@@ -67,7 +68,7 @@ export async function signInWithGoogleRedirect() {
   if (!isFirebaseConfigured) {
     throw new Error('Google OAuth is not configured in this environment. Please use the Visitor Pass tab to vote.');
   }
-  await signInWithRedirect(auth, googleProvider);
+  await signInWithRedirect(auth, googleProvider, browserPopupRedirectResolver);
 }
 
 /**
@@ -78,7 +79,7 @@ export async function checkRedirectResult(): Promise<User | null> {
     return null;
   }
   try {
-    const result = await getRedirectResult(auth);
+    const result = await getRedirectResult(auth, browserPopupRedirectResolver);
     return result?.user ?? null;
   } catch (err) {
     console.error('Redirect sign-in resolution error:', err);
@@ -271,7 +272,10 @@ export async function castVoteInFirebase(
   payload: VoteSubmissionPayload
 ): Promise<VoteSubmissionResponse> {
   try {
-    const voteApiUrl = process.env.NEXT_PUBLIC_VOTE_API_URL || '/api/vote';
+    const voteApiUrl =
+      process.env.NEXT_PUBLIC_VOTE_API_URL ||
+      process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL ||
+      '/api/vote';
     const idToken = await getCurrentUserIdToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

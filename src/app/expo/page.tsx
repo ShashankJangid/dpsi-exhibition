@@ -21,6 +21,9 @@ import GuidedTour from '@/components/canvas/GuidedTour';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import { MousePointerClick, Move, ZoomIn } from 'lucide-react';
 
+import WebGLErrorBoundary from '@/components/canvas/WebGLErrorBoundary';
+export { WebGLErrorBoundary };
+
 const ExhibitionCanvas = dynamic(
   () => import('@/components/canvas/ExhibitionCanvas'),
   { ssr: false }
@@ -134,7 +137,9 @@ export default function ExpoFloorPlanPage() {
       {/* Main Exhibition Floor (3D WebGL Hall or 2D Bento Directory) */}
       {viewMode === '3d' ? (
         <div className="relative isolate w-full h-full">
-          <ExhibitionCanvas />
+          <WebGLErrorBoundary fallback={<TwoDFallbackGrid />}>
+            <ExhibitionCanvas />
+          </WebGLErrorBoundary>
 
           {/* Desktop Only: Bottom Left Camera Gesture Legend */}
           <div className={`hidden lg:flex fixed bottom-4 left-6 z-30 items-center gap-4 px-4 py-2.5 rounded-2xl backdrop-blur-md border text-[11px] pointer-events-none shadow-xl font-mono transition-colors duration-300 ${

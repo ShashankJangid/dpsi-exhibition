@@ -34,4 +34,182 @@ describe('Client Utilities & Security Helpers', () => {
     assert.ok(!fp.includes('/'), `Fingerprint must not contain forward slashes: ${fp}`);
     assert.ok(/^[a-zA-Z0-9_\-+=:.]{8,128}$/.test(fp), `Fingerprint contains invalid characters: ${fp}`);
   });
+
+  test('fallback fingerprint uses persistent client entropy to eliminate collisions on identical hardware', async () => {
+    const { getDeviceFingerprint, clearCachedFingerprint } = await import('../src/lib/fingerprint');
+    
+    // Save original globals
+    const origWindow = global.window;
+    const origNavigator = global.navigator;
+    const origScreen = global.screen;
+    const origCrypto = global.crypto;
+
+    try {
+      const storageMock: Record<string, string> = {};
+      let uuidCounter = 1;
+
+      // Mock browser environment with identical Chromebook hardware specs using Object.defineProperty
+      Object.defineProperty(global, 'window', {
+        value: {
+          localStorage: {
+            getItem: (key: string) => storageMock[key] || null,
+            setItem: (key: string, val: string) => { storageMock[key] = val; },
+          },
+        },
+        configurable: true,
+        writable: true,
+      });
+      Object.defineProperty(global, 'navigator', {
+        value: {
+          userAgent: 'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 Chrome/120.0.0.0',
+        },
+        configurable: true,
+        writable: true,
+      });
+      Object.defineProperty(global, 'screen', {
+        value: { width: 1366, height: 768 },
+        configurable: true,
+        writable: true,
+      });
+      Object.defineProperty(global, 'crypto', {
+        value: {
+          randomUUID: () => `uuid-device-seed-${uuidCounter++}`,
+        },
+        configurable: true,
+        writable: true,
+      });
+
+      clearCachedFingerprint();
+      const fp1 = await getDeviceFingerprint();
+      assert.ok(storageMock['dpsi_client_entropy'], 'dpsi_client_entropy must be persisted in localStorage');
+      assert.equal(storageMock['dpsi_client_entropy'], 'uuid-device-seed-1');
+
+      // Subsequent call from the same device (even if cache is cleared) yields the EXACT same fingerprint
+      clearCachedFingerprint();
+      const fp1Repeat = await getDeviceFingerprint();
+      assert.equal(fp1, fp1Repeat, 'Same device must retain stable fingerprint from persisted entropy');
+
+      // Simulate a SECOND Chromebook with the exact same hardware profile (screen 1366x768, same UA, same tz)
+      // but a fresh device localStorage
+      const storageMockDevice2: Record<string, string> = {};
+      Object.defineProperty(global, 'window', {
+        value: {
+          localStorage: {
+            getItem: (key: string) => storageMockDevice2[key] || null,
+            setItem: (key: string, val: string) => { storageMockDevice2[key] = val; },
+          },
+        },
+        configurable: true,
+        writable: true,
+      });
+
+      clearCachedFingerprint();
+      const fp2 = await getDeviceFingerprint();
+      assert.ok(storageMockDevice2['dpsi_client_entropy'], 'Device 2 must generate its own entropy seed');
+      assert.equal(storageMockDevice2['dpsi_client_entropy'], 'uuid-device-seed-2');
+
+      // Crucial anti-cheat property: fp1 and fp2 must NOT collide despite identical hardware!
+      assert.notEqual(fp1, fp2, 'Distinct devices on identical hardware must NOT produce colliding fallback fingerprints');
+    } finally {
+      clearCachedFingerprint();
+      Object.defineProperty(global, 'window', { value: origWindow, configurable: true, writable: true });
+      Object.defineProperty(global, 'navigator', { value: origNavigator, configurable: true, writable: true });
+      Object.defineProperty(global, 'screen', { value: origScreen, configurable: true, writable: true });
+      Object.defineProperty(global, 'crypto', { value: origCrypto, configurable: true, writable: true });
+    }
+  });
+
+  test('WebGLErrorBoundary state transitions properly on error and preserves 2D fallback contract', async () => {
+    const { WebGLErrorBoundary } = await import('../src/components/canvas/WebGLErrorBoundary');
+    assert.ok(WebGLErrorBoundary, 'WebGLErrorBoundary class must be exported');
+
+    // Test static error derivation
+    const testError = new Error('WebGL Context Lost or Not Supported');
+    const derivedState = WebGLErrorBoundary.getDerivedStateFromError(testError);
+    assert.equal(derivedState.hasError, true);
+    assert.equal(derivedState.error, testError);
+
+    // Test initial instance state
+    const boundaryInstance = new WebGLErrorBoundary({ children: null });
+    assert.equal(boundaryInstance.state.hasError, false);
+  });
+
+  test('castVoteInFirebase resolves voting API URL falling back to NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL', async () => {
+    const origVoteUrl = process.env.NEXT_PUBLIC_VOTE_API_URL;
+    const origFunctionsUrl = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL;
+    const origFetch = global.fetch;
+
+    try {
+      const { castVoteInFirebase } = await import('../src/lib/firebase');
+      let requestedUrl = '';
+
+      // @ts-expect-error Mocking fetch
+      global.fetch = async (input: RequestInfo | URL) => {
+        requestedUrl = String(input);
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ success: true, message: 'Vote recorded' }),
+        };
+      };
+
+      // Case 1: NEXT_PUBLIC_VOTE_API_URL takes top precedence
+      process.env.NEXT_PUBLIC_VOTE_API_URL = 'https://custom-vote.api/vote';
+      process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL = 'https://cloud-functions.net/vote';
+      await castVoteInFirebase({ projectId: 'p01', fingerprint: 'fp_12345678', userId: 'u1' });
+      assert.equal(requestedUrl, 'https://custom-vote.api/vote');
+
+      // Case 2: Falls back to NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL when VOTE_API_URL is unset
+      delete process.env.NEXT_PUBLIC_VOTE_API_URL;
+      process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL = 'https://cloud-functions.net/vote';
+      await castVoteInFirebase({ projectId: 'p01', fingerprint: 'fp_12345678', userId: 'u1' });
+      assert.equal(requestedUrl, 'https://cloud-functions.net/vote');
+
+      // Case 3: Defaults to /api/vote when both are unset
+      delete process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL;
+      await castVoteInFirebase({ projectId: 'p01', fingerprint: 'fp_12345678', userId: 'u1' });
+      assert.equal(requestedUrl, '/api/vote');
+    } finally {
+      process.env.NEXT_PUBLIC_VOTE_API_URL = origVoteUrl;
+      process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL = origFunctionsUrl;
+      global.fetch = origFetch;
+    }
+  });
+
+  test('firestore.rules enforces zero-trust lockdown on votes and user_votes collections', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const rulesPath = path.resolve(__dirname, '../firestore.rules');
+    const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
+
+    // Verify /votes/{voteId} disallows direct client creation
+    assert.ok(
+      rulesContent.includes('match /votes/{voteId}'),
+      'Must contain /votes/{voteId} rule block'
+    );
+    assert.ok(
+      !rulesContent.includes('allow create: if isValidVote'),
+      'Direct client create on /votes must be removed'
+    );
+    assert.ok(
+      rulesContent.includes('allow write: if false;'),
+      'Direct client write on /votes must be locked down'
+    );
+
+    // Verify /user_votes/{userVoteId} security rules
+    assert.ok(
+      rulesContent.includes('match /user_votes/{userVoteId}'),
+      'Must contain /user_votes/{userVoteId} rule block'
+    );
+    assert.ok(
+      rulesContent.includes('allow read: if isAuthenticated() && isOwner(resource.data.userId);'),
+      'Must allow reading user vote receipts only for the owner'
+    );
+
+    // Verify isOwner helper exists
+    assert.ok(
+      rulesContent.includes('function isOwner(userId)'),
+      'Must define isOwner helper function'
+    );
+  });
 });

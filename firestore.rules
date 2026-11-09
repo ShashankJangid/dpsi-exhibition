@@ -35,6 +35,14 @@ rules_version = '2';
 //   - userEmail: string or null (optional, <= 128 chars, valid email format)
 //   - createdAt / timestamp: timestamp or number (optional, valid timestamp <= request.time)
 //
+// Collection: user_votes
+// Document ID: Composite string (${projectId}_${userId})
+// Fields:
+//   - projectId: string (required, 1-50 chars)
+//   - userId: string (required, 1-128 chars)
+//   - deviceFingerprint: string (required, 1-128 chars)
+//   - createdAt: timestamp (server-assigned)
+//
 // ===============================================================
 
 service cloud.firestore {
@@ -64,6 +72,11 @@ service cloud.firestore {
             ]
           )
         );
+    }
+
+    // Check if the authenticated user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
     // Validate string length bounds
@@ -194,12 +207,18 @@ service cloud.firestore {
       allow get: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
       allow list: if isAdmin();
 
-      // Votes can be created once if required fields and anti-cheat constraints pass
-      allow create: if isValidVote(request.resource.data, voteId);
+      // Direct client creation is locked down to prevent spoofed fingerprint injection causing 409 collisions.
+      // All legitimate ballots are committed server-side via Cloud Functions using the Firebase Admin SDK.
+      allow write: if false;
+    }
 
-      // Votes are immutable audit records once cast: update and delete are strictly denied
-      allow update: if false;
-      allow delete: if false;
+    // ===============================================================
+    // Collection: user_votes
+    // ===============================================================
+    match /user_votes/{userVoteId} {
+      // Users can only read their own cast vote receipts; writes must be server-side Admin SDK
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow write: if false;
     }
   }
 }
