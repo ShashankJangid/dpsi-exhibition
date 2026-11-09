@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import {
   Printer,
@@ -31,7 +31,6 @@ import {
   Sliders,
   RotateCcw,
   Upload,
-  Scan,
 } from 'lucide-react';
 import jsQR from 'jsqr';
 import {
@@ -40,8 +39,8 @@ import {
   StudentEntry,
   getStudentCredentialId,
 } from '@/data/exhibitionRegistry';
-import { generateAppleCardSvg, generateTopotagCells } from '@/lib/badgeGenerator';
-import { playClick, playChime, triggerHaptic } from '@/lib/sound';
+import { generateAppleCardSvg } from '@/lib/badgeGenerator';
+import { playChime, triggerHaptic } from '@/lib/sound';
 
 export type RoleType = 'EXHIBITOR' | 'JUDGE' | 'VIP' | 'STAFF' | 'INCHARGE' | 'VISITOR';
 export type A4LayoutMode = '8_PER_PAGE' | '4_PER_PAGE' | '1_PER_PAGE';
@@ -429,6 +428,71 @@ function PassAndAttendanceContent() {
     stopCamera();
   };
 
+  // Optical & Manual code scanner check
+  const handleScanCode = useCallback((code: string) => {
+    let clean = code.trim().toUpperCase();
+    if (!clean) return;
+
+    // Handle full URL strings (e.g. https://.../pass?id=EXH-0036-01)
+    const urlParamMatch = clean.match(/[?&]ID=([A-Z0-9-]+)/i);
+    if (urlParamMatch) {
+      clean = urlParamMatch[1].toUpperCase();
+    } else {
+      const exhMatch = clean.match(/EXH-\d{4}(-\d{2})?/i);
+      if (exhMatch) {
+        clean = exhMatch[0].toUpperCase();
+      }
+    }
+
+    // Direct match against authoritative student credential ID or student name
+    const matchedStudent = OFFICIAL_STUDENTS_ROSTER.find(
+      (s) =>
+        getStudentCredentialId(s).toUpperCase() === clean ||
+        s.student_name.toUpperCase() === clean ||
+        (clean.startsWith('EXH-') && clean.includes(String(s.project_number).padStart(4, '0')))
+    );
+
+    const matchedRecord = matchedStudent
+      ? attendanceList.find(
+          (r) =>
+            r.studentName === matchedStudent.student_name &&
+            r.projectNumber === matchedStudent.project_number
+        )
+      : attendanceList.find(
+          (r) =>
+            r.passCode.toUpperCase() === clean ||
+            r.studentName.toUpperCase() === clean
+        );
+
+    const finalStudent = matchedStudent || (matchedRecord
+      ? OFFICIAL_STUDENTS_ROSTER.find(
+          (s) =>
+            s.student_name === matchedRecord.studentName &&
+            s.project_number === matchedRecord.projectNumber
+        )
+      : undefined);
+
+    if (finalStudent || matchedRecord) {
+      setScannedResult({
+        found: true,
+        student: finalStudent,
+        record: matchedRecord,
+        message: 'Valid credential verified on official summit ledger.',
+      });
+    } else {
+      setScannedResult({
+        found: false,
+        message: `Credential code "${clean}" not found. Please verify with the Registration Desk.`,
+      });
+    }
+  }, [attendanceList]);
+
+  const handleScanCodeRef = useRef(handleScanCode);
+
+  useEffect(() => {
+    handleScanCodeRef.current = handleScanCode;
+  }, [handleScanCode]);
+
   useEffect(() => {
     if (!isCameraActive || !streamRef.current || !videoRef.current) return;
     const video = videoRef.current;
@@ -475,7 +539,7 @@ function PassAndAttendanceContent() {
                 triggerHaptic(40);
                 setScanActiveIndicator(true);
                 setTimeout(() => setScanActiveIndicator(false), 1400);
-                handleScanCode(detected);
+                handleScanCodeRef.current(detected);
               }
             }
           }
@@ -754,65 +818,6 @@ function PassAndAttendanceContent() {
       return r;
     });
     saveAttendance(updated);
-  };
-
-  // Optical & Manual code scanner check
-  const handleScanCode = (code: string) => {
-    let clean = code.trim().toUpperCase();
-    if (!clean) return;
-
-    // Handle full URL strings (e.g. https://.../pass?id=EXH-0036-01)
-    const urlParamMatch = clean.match(/[?&]ID=([A-Z0-9-]+)/i);
-    if (urlParamMatch) {
-      clean = urlParamMatch[1].toUpperCase();
-    } else {
-      const exhMatch = clean.match(/EXH-\d{4}(-\d{2})?/i);
-      if (exhMatch) {
-        clean = exhMatch[0].toUpperCase();
-      }
-    }
-
-    // Direct match against authoritative student credential ID or student name
-    const matchedStudent = OFFICIAL_STUDENTS_ROSTER.find(
-      (s) =>
-        getStudentCredentialId(s).toUpperCase() === clean ||
-        s.student_name.toUpperCase() === clean ||
-        (clean.startsWith('EXH-') && clean.includes(String(s.project_number).padStart(4, '0')))
-    );
-
-    const matchedRecord = matchedStudent
-      ? attendanceList.find(
-          (r) =>
-            r.studentName === matchedStudent.student_name &&
-            r.projectNumber === matchedStudent.project_number
-        )
-      : attendanceList.find(
-          (r) =>
-            r.passCode.toUpperCase() === clean ||
-            r.studentName.toUpperCase() === clean
-        );
-
-    const finalStudent = matchedStudent || (matchedRecord
-      ? OFFICIAL_STUDENTS_ROSTER.find(
-          (s) =>
-            s.student_name === matchedRecord.studentName &&
-            s.project_number === matchedRecord.projectNumber
-        )
-      : undefined);
-
-    if (finalStudent || matchedRecord) {
-      setScannedResult({
-        found: true,
-        student: finalStudent,
-        record: matchedRecord,
-        message: 'Valid credential verified on official summit ledger.',
-      });
-    } else {
-      setScannedResult({
-        found: false,
-        message: `Credential code "${clean}" not found. Please verify with the Registration Desk.`,
-      });
-    }
   };
 
   // Start Camera
@@ -2039,7 +2044,11 @@ function PassAndAttendanceContent() {
                             </div>
                             <div>
                               <span className="text-slate-400 block text-[10px]">CREDENTIAL ID</span>
-                              <span className="text-amber-400 font-bold">{getStudentCredentialId(scannedResult.student || ({} as any)) || scannedResult.record?.passCode}</span>
+                              <span className="text-amber-400 font-bold">
+                                {scannedResult.student
+                                  ? getStudentCredentialId(scannedResult.student)
+                                  : scannedResult.record?.passCode || 'N/A'}
+                              </span>
                             </div>
                             <div className="col-span-2 mt-1 pt-2.5 border-t border-emerald-500/20 flex items-center justify-between">
                               <div>
