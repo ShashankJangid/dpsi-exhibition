@@ -23,7 +23,8 @@ import {
 import { Project } from '@/types';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 
-const rawApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+const defaultApiKey = 'AIzaSyAhHFaRagTK_99jhT1eJK6lJqzGfxcyGec';
+const rawApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || defaultApiKey;
 export const isFirebaseConfigured = Boolean(
   rawApiKey &&
     !rawApiKey.includes('placeholder') &&
@@ -31,14 +32,13 @@ export const isFirebaseConfigured = Boolean(
 );
 
 const firebaseConfig = {
-  // Use a format-compliant placeholder key for build-time static prerendering if env is omitted
-  apiKey: rawApiKey || 'AIzaSyDPSIExhibitionBuildPlaceholderKey000',
+  apiKey: rawApiKey,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'smarthome-88486.firebaseapp.com',
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'smarthome-88486',
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'smarthome-88486.firebasestorage.app',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:abcdef',
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || '',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '392256373743',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:392256373743:web:4a43b6001ba3d31afe6c1a',
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-3TF3J2HHGG',
 };
 
 // Initialize Firebase singleton
