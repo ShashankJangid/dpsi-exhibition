@@ -289,7 +289,7 @@ export default function MobileNavMenu() {
                 <h4 className="text-xs font-black text-amber-900 dark:text-amber-300 uppercase tracking-wide">
                   Live Voting Leaderboard
                 </h4>
-                <span className="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.7)]" />
               </div>
               <p className="text-[11px] text-amber-800/80 dark:text-amber-200/70">Inspect real-time student standings</p>
             </div>

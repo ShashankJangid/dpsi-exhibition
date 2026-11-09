@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
-import { getStageMediaWallTexture, getAuxiliaryStageScreenTexture, getGroundPosterTexture } from '@/lib/screenTextures';
+import { getStageMediaWallTexture, getGroundPosterTexture } from '@/lib/screenTextures';
 import BoothMesh from './BoothMesh';
 
 /**
@@ -478,11 +478,6 @@ export default function Zone3RoboticsArena() {
   const stageTexture = useMemo(() => {
     if (typeof window === 'undefined') return null;
     return getStageMediaWallTexture();
-  }, []);
-
-  const auxStageTexture = useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    return getAuxiliaryStageScreenTexture();
   }, []);
 
   const roboticsGroundTexture = useMemo(() => {
@@ -1216,59 +1211,6 @@ export default function Zone3RoboticsArena() {
             ) : (
               <meshStandardMaterial color="#071228" emissive="#0284c7" emissiveIntensity={0.8} />
             )}
-          </mesh>
-        </group>
-
-        {/* Left & Right Angled Stage Wing Screens (Auxiliary Summit Info from Image 2!) */}
-        <group position={[-14.5, 3.4, 0.3]} rotation={[0, 0.32, 0]}>
-          <mesh castShadow>
-            <boxGeometry args={[3.2, 5.4, 0.15]} />
-            <meshStandardMaterial color="#050811" metalness={0.9} roughness={0.2} />
-          </mesh>
-          <mesh position={[0, 0, 0.08]}>
-            <planeGeometry args={[3.0, 5.1]} />
-            {auxStageTexture ? (
-              <meshStandardMaterial
-                map={auxStageTexture}
-                emissive="#ffffff"
-                emissiveMap={auxStageTexture}
-                emissiveIntensity={1.0}
-                roughness={0.2}
-                toneMapped={false}
-              />
-            ) : (
-              <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
-            )}
-          </mesh>
-          <mesh position={[0, 0, 0.085]}>
-            <boxGeometry args={[3.04, 0.04, 0.01]} />
-            <meshBasicMaterial color="#38bdf8" />
-          </mesh>
-        </group>
-
-        <group position={[14.5, 3.4, 0.3]} rotation={[0, -0.32, 0]}>
-          <mesh castShadow>
-            <boxGeometry args={[3.2, 5.4, 0.15]} />
-            <meshStandardMaterial color="#050811" metalness={0.9} roughness={0.2} />
-          </mesh>
-          <mesh position={[0, 0, 0.08]}>
-            <planeGeometry args={[3.0, 5.1]} />
-            {auxStageTexture ? (
-              <meshStandardMaterial
-                map={auxStageTexture}
-                emissive="#ffffff"
-                emissiveMap={auxStageTexture}
-                emissiveIntensity={1.0}
-                roughness={0.2}
-                toneMapped={false}
-              />
-            ) : (
-              <meshStandardMaterial color="#08142c" emissive="#0284c7" emissiveIntensity={0.5} />
-            )}
-          </mesh>
-          <mesh position={[0, 0, 0.085]}>
-            <boxGeometry args={[3.04, 0.04, 0.01]} />
-            <meshBasicMaterial color="#fbbf24" />
           </mesh>
         </group>
 
