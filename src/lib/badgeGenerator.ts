@@ -171,10 +171,12 @@ export function generateAppleCardSvg(
     (_m, p1, _p2, p3) => `${p1}${secUpper}${p3}`
   );
 
-  // 3. Credential ID cardlet
+  // 3. Credential ID cardlet with dynamic scaling for member-indexed IDs (e.g. EXH-0036-01)
+  const credFontSize = idUpper.length > 10 ? '24' : idUpper.length > 8 ? '26' : '30';
+  const credLetterSpacing = idUpper.length > 10 ? '0.4' : '1';
   svg = svg.replace(
-    /(CREDENTIAL ID<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${idUpper}${p3}`
+    /(CREDENTIAL ID<\/text>\s*<text [^>]*)font-size="[^"]*"([^>]*)letter-spacing="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, p2, p3, _p4, p5) => `${p1}font-size="${credFontSize}"${p2}letter-spacing="${credLetterSpacing}"${p3}${idUpper}${p5}`
   );
 
   // 4. Project Domain
@@ -195,10 +197,11 @@ export function generateAppleCardSvg(
     (_m, p1) => `${p1}${idUpper}`
   );
 
-  // 7. Micro-QR cardlet ID
+  // 7. Micro-QR cardlet ID with responsive sizing
+  const qrCredFontSize = idUpper.length > 10 ? '14' : '16';
   svg = svg.replace(
-    /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${idUpper}${p3}`
+    /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3, _p4, p5) => `${p1}${qrCredFontSize}${p3}${idUpper}${p5}`
   );
 
   // 8. Micro-QR cardlet Name & Section

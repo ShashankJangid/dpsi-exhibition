@@ -34,6 +34,7 @@ import {
   OFFICIAL_STUDENTS_ROSTER,
   PROPRIETARY_ACCESS_CODES,
   StudentEntry,
+  getStudentCredentialId,
 } from '@/data/exhibitionRegistry';
 import { generateAppleCardSvg } from '@/lib/badgeGenerator';
 
@@ -214,13 +215,13 @@ function PassAndAttendanceContent() {
         // fallback
       }
     }
-    return OFFICIAL_STUDENTS_ROSTER.map((s, idx) => ({
+    return OFFICIAL_STUDENTS_ROSTER.map((s) => ({
       studentName: s.student_name,
       classSection: s.class_section,
       projectNumber: s.project_number,
       projectTitle: s.project_title,
       mentor: s.mentor,
-      passCode: `DPSI-EXH-${String(idx + 1).padStart(3, '0')}`,
+      passCode: getStudentCredentialId(s),
       accessCode: s.pass_code,
       checkedIn: false,
     }));
@@ -383,7 +384,7 @@ function PassAndAttendanceContent() {
   // Active Credential ID based on role and customizer
   const activeCredentialId = useMemo(() => {
     if (currentRole === 'EXHIBITOR') {
-      return `EXH-${String(selectedStudent.project_number).padStart(4, '0')}`;
+      return getStudentCredentialId(selectedStudent);
     }
     if (currentRole === 'INCHARGE') {
       return (facultyCustomId || 'INC-2026').trim().toUpperCase();
@@ -606,26 +607,37 @@ function PassAndAttendanceContent() {
     const clean = code.trim().toUpperCase();
     if (!clean) return;
 
-    const matchedRecord = attendanceList.find(
-      (r) =>
-        r.passCode.toUpperCase() === clean ||
-        r.studentName.toUpperCase() === clean
+    // Direct match against authoritative student credential ID or student name
+    const matchedStudent = OFFICIAL_STUDENTS_ROSTER.find(
+      (s) =>
+        getStudentCredentialId(s).toUpperCase() === clean ||
+        s.student_name.toUpperCase() === clean
     );
 
-    const matchedStudent = matchedRecord
+    const matchedRecord = matchedStudent
+      ? attendanceList.find(
+          (r) =>
+            r.studentName === matchedStudent.student_name &&
+            r.projectNumber === matchedStudent.project_number
+        )
+      : attendanceList.find(
+          (r) =>
+            r.passCode.toUpperCase() === clean ||
+            r.studentName.toUpperCase() === clean
+        );
+
+    const finalStudent = matchedStudent || (matchedRecord
       ? OFFICIAL_STUDENTS_ROSTER.find(
           (s) =>
             s.student_name === matchedRecord.studentName &&
             s.project_number === matchedRecord.projectNumber
         )
-      : OFFICIAL_STUDENTS_ROSTER.find(
-          (s) => s.student_name.toUpperCase() === clean
-        );
+      : undefined);
 
-    if (matchedStudent || matchedRecord) {
+    if (finalStudent || matchedRecord) {
       setScannedResult({
         found: true,
-        student: matchedStudent,
+        student: finalStudent,
         record: matchedRecord,
         message: 'Valid credential verified on official summit ledger.',
       });
@@ -974,7 +986,7 @@ function PassAndAttendanceContent() {
                                 </span>
                               </span>
                               <span className="text-[10px] shrink-0 font-mono opacity-80">
-                                Booth #{st.project_number}
+                                {getStudentCredentialId(st)} • Booth #{st.project_number}
                               </span>
                             </button>
                           );
@@ -1568,7 +1580,7 @@ function PassAndAttendanceContent() {
                                 <span className="font-bold">{s.student_name}</span>{' '}
                                 <span className="text-[10px] text-slate-500">({s.class_section})</span>
                               </div>
-                              <span className="text-[10px] text-amber-400 shrink-0 font-mono">#{s.project_number}</span>
+                              <span className="text-[10px] text-amber-400 shrink-0 font-mono">{getStudentCredentialId(s)}</span>
                             </div>
                           );
                         })}
@@ -1731,7 +1743,7 @@ function PassAndAttendanceContent() {
                     ? generateAppleCardSvg(badgeTemplates['exhibitor'], {
                         name: st.student_name,
                         classSection: st.class_section,
-                        credentialId: `EXH-${String(st.project_number).padStart(4, '0')}`,
+                        credentialId: getStudentCredentialId(st),
                         projectDomain: st.project_title,
                         venueLocation: `Maker Lab • Booth ${st.project_number}`,
                       })
