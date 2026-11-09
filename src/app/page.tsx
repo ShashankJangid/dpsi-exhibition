@@ -284,8 +284,8 @@ export default function LandingPage() {
           showToast(res.message || 'Vote verification sync warning. Please check connection.');
         }
       });
-    } catch {
-      showToast(`Vote recorded for Booth ${p.booth_code}!`);
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Vote submission failed. Please check connection.');
     }
   };
 

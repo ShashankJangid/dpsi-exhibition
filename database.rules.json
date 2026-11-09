@@ -1,6 +1,6 @@
 {
   "rules": {
-    ".read": "auth != null && (auth.token.email === 'shashankjangidofficial@gmail.com' || auth.token.email === 'admin@dpsi-visitor.in' || auth.token.admin === true)",
-    ".write": "auth != null && (auth.token.email === 'shashankjangidofficial@gmail.com' || auth.token.email === 'admin@dpsi-visitor.in' || auth.token.admin === true)"
+    ".read": "auth != null && (auth.admin === true || auth.token.admin === true || auth.token.email === 'shashankjangidofficial@gmail.com' || auth.token.email === 'admin@dpsi-visitor.in')",
+    ".write": "auth != null && (auth.admin === true || auth.token.admin === true || auth.token.email === 'shashankjangidofficial@gmail.com' || auth.token.email === 'admin@dpsi-visitor.in')"
   }
 }

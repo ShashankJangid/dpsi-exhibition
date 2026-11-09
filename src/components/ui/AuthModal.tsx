@@ -53,8 +53,8 @@ export default function AuthModal() {
       }
 
       const errorMsg =
-        err instanceof Error && err.message.includes('popup-closed-by-user')
-          ? 'Sign-in window was closed before completion. Please try again.'
+        err instanceof Error && (err.message.includes('popup-closed-by-user') || err.message.includes('closed'))
+          ? 'Sign-in window was closed before completion. If the popup had an issue, try Direct Page Redirect below.'
           : err instanceof Error && err.message.includes('cancelled-popup-request')
           ? 'Another sign-in popup is already open.'
           : err instanceof Error && err.message.includes('auth/unauthorized-domain')
@@ -209,16 +209,14 @@ export default function AuthModal() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                {authError.toLowerCase().includes('popup') && (
-                  <button
-                    type="button"
-                    onClick={() => signInWithGoogleRedirect()}
-                    className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 hover:underline"
-                  >
-                    <span>Direct page redirect</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => signInWithGoogleRedirect()}
+                  className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 hover:underline"
+                >
+                  <span>Direct page redirect</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -273,15 +271,36 @@ export default function AuthModal() {
                 <span>{loading ? 'Authenticating...' : 'Continue with Google'}</span>
               </button>
 
-              <div className="pt-2 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-sans">
-                <span>No Google account?</span>
+              {loading && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setLoading(false)}
+                    className="text-[11px] text-rose-500 hover:text-rose-600 font-semibold underline"
+                  >
+                    Cancel authentication
+                  </button>
+                </div>
+              )}
+
+              <div className="pt-1 flex flex-col items-center gap-1.5 text-[11px] text-slate-500 font-sans">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('guest')}
-                  className="text-amber-600 dark:text-amber-400 font-bold hover:underline"
+                  onClick={() => signInWithGoogleRedirect()}
+                  className="text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
                 >
-                  Use instant Visitor Pass →
+                  Popup having issues? <span className="font-bold underline text-amber-600 dark:text-amber-400">Use Direct Redirect →</span>
                 </button>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span>No Google account?</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('guest')}
+                    className="text-amber-600 dark:text-amber-400 font-bold hover:underline"
+                  >
+                    Use instant Visitor Pass →
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
