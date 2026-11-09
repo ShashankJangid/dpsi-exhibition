@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
 import {
@@ -14,6 +15,8 @@ import {
   GraduationCap,
   Briefcase,
   Ticket,
+  Printer,
+  ExternalLink,
 } from 'lucide-react';
 
 export type DelegateRole = 'Judge' | 'Faculty' | 'Student Innovator' | 'Guest';
@@ -450,6 +453,22 @@ export default function DelegatePassModal() {
                 <span>Download Pass (.PNG)</span>
               </button>
             </div>
+          </div>
+
+          {/* Full Credential & Attendance Hub Portal Link */}
+          <div className="mt-4 pt-3 border-t border-slate-800/80 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <span className="text-[11px] font-mono text-slate-400">
+              Need printable physical badges or student attendance check-in?
+            </span>
+            <Link
+              href="/pass"
+              onClick={() => setDelegatePassOpen(false)}
+              className="text-xs font-mono font-bold text-cyan-400 hover:text-cyan-300 flex items-center justify-center sm:justify-start gap-1 px-3 py-1.5 rounded-lg bg-cyan-950/40 border border-cyan-800/60 hover:bg-cyan-900/50 transition-colors shrink-0"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Full Pass & Attendance Portal</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </Link>
           </div>
         </div>
       </div>

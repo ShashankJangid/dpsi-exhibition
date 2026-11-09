@@ -48,6 +48,8 @@ next-env.d.ts
 **/node_modules/
 /firebase-functions/lib/
 .agents/
+__pycache__/
+*.pyc
 
 .maintainer-bot/
 
