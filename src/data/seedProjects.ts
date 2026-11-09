@@ -786,7 +786,7 @@ export const SEED_PROJECTS: Project[] = [
     image_url: 'https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?auto=format&fit=crop&w=800&q=80',
     description: 'Live field test of the high-dexterity Unitree Go2 quadruped robot demonstrating 4D ultra-wide LIDAR terrain mapping, autonomous stair-climbing, and human companion follow-mode powered by the ☁ Expo subsystem.',
     tagline: 'Autonomous quadruped robotics terrain traversal and companion AI',
-    members: ['Ojas Singh (IX-A)', 'Agrima Jain (IX-D)', 'Shanaya Yadav (IX-E)'],
+    members: ['Ojas Singh (IX-A)', 'Agrima Jain (IX-D)'],
     tech_stack: ['Quadruped Kinematics', '4D LiDAR', 'RTK Navigation', 'SLAM', '☁ Expo Subsystem'],
     vote_count: 120,
   },

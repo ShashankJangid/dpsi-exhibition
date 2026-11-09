@@ -5,6 +5,8 @@
  * based on the participant Credential ID.
  */
 
+import QRCode from 'qrcode';
+
 export interface BadgeData {
   name: string;
   classSection: string;
@@ -90,49 +92,32 @@ export function generateTopotagCells(credentialId: string): string {
 }
 
 /**
- * Deterministically generates the 13x13 Micro-QR Version M2 matrix
- * keyed to the Credential ID.
+ * Deterministically generates standard ISO/IEC 18004 QR Code modules
+ * keyed to the Credential ID, optically scannable by camera and phone readers.
  */
 export function generateMicroQrModules(credentialId: string): string {
-  const rng = mulberry32(hashString((credentialId || 'CR100-0001') + '_m2_entropy'));
-  const matrix: number[][] = Array.from({ length: 13 }, () => Array(13).fill(0));
-
-  // 7x7 Finder Pattern at (0, 0)
-  for (let r = 0; r < 7; r++) {
-    for (let c = 0; c < 7; c++) {
-      if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
-        matrix[r][c] = 1;
-      } else {
-        matrix[r][c] = 0;
+  try {
+    const rawId = credentialId || 'CR100-0001';
+    const qr = QRCode.create(rawId, {
+      errorCorrectionLevel: 'M',
+    });
+    const size = qr.modules.size;
+    const moduleSize = 84.0 / size;
+    const rects: string[] = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (qr.modules.get(r, c)) {
+          rects.push(
+            `        <rect x="${(c * moduleSize).toFixed(2)}" y="${(r * moduleSize).toFixed(2)}" width="${moduleSize.toFixed(2)}" height="${moduleSize.toFixed(2)}" fill="#0F172A" shape-rendering="crispEdges"/>`
+          );
+        }
       }
     }
+    return rects.join('\n');
+  } catch (err) {
+    console.error('Failed to generate standard QR code modules:', err);
+    return '';
   }
-
-  // Timing patterns along top row and left column
-  for (let c = 7; c < 13; c++) matrix[0][c] = c % 2 === 0 ? 1 : 0;
-  for (let r = 7; r < 13; r++) matrix[r][0] = r % 2 === 0 ? 1 : 0;
-
-  // Data / error-correction modules
-  for (let r = 0; r < 13; r++) {
-    for (let c = 0; c < 13; c++) {
-      if (r < 7 && c < 7) continue;
-      if (r === 0 || c === 0) continue;
-      matrix[r][c] = rng() > 0.48 ? 1 : 0;
-    }
-  }
-
-  const rects: string[] = [];
-  for (let r = 0; r < 13; r++) {
-    for (let c = 0; c < 13; c++) {
-      if (matrix[r][c] === 1) {
-        rects.push(
-          `        <rect x="${(c * 6.4).toFixed(2)}" y="${(r * 6.4).toFixed(2)}" width="6.40" height="6.40" fill="#0F172A" shape-rendering="crispEdges"/>`
-        );
-      }
-    }
-  }
-
-  return rects.join('\n');
 }
 
 /**
@@ -171,10 +156,12 @@ export function generateAppleCardSvg(
     (_m, p1, _p2, p3) => `${p1}${secUpper}${p3}`
   );
 
-  // 3. Credential ID cardlet
+  // 3. Credential ID cardlet with dynamic scaling for member-indexed IDs (e.g. EXH-0036-01)
+  const credFontSize = idUpper.length > 10 ? '24' : idUpper.length > 8 ? '26' : '30';
+  const credLetterSpacing = idUpper.length > 10 ? '0.4' : '1';
   svg = svg.replace(
-    /(CREDENTIAL ID<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${idUpper}${p3}`
+    /(CREDENTIAL ID<\/text>\s*<text [^>]*)font-size="[^"]*"([^>]*)letter-spacing="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, p2, p3, _p4, p5) => `${p1}font-size="${credFontSize}"${p2}letter-spacing="${credLetterSpacing}"${p3}${idUpper}${p5}`
   );
 
   // 4. Project Domain
@@ -195,10 +182,11 @@ export function generateAppleCardSvg(
     (_m, p1) => `${p1}${idUpper}`
   );
 
-  // 7. Micro-QR cardlet ID
+  // 7. Micro-QR cardlet ID with responsive sizing
+  const qrCredFontSize = idUpper.length > 10 ? '14' : '16';
   svg = svg.replace(
-    /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${idUpper}${p3}`
+    /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, _p2, p3, _p4, p5) => `${p1}${qrCredFontSize}${p3}${idUpper}${p5}`
   );
 
   // 8. Micro-QR cardlet Name & Section

@@ -321,34 +321,6 @@ export default function LandingPage() {
         isLight ? 'text-slate-900' : 'text-[#f0f6fc]'
       }`}
     >
-      {/* ─── GITHUB UNIVERSE TOP ANNOUNCEMENT TICKER ─── */}
-      <div className={`w-full border-b px-4 py-2 flex items-center justify-between text-[11px] font-mono transition-colors duration-300 ${
-        isLight
-          ? 'bg-[#dfe3e8]/90 border-slate-300/80 backdrop-blur-md text-slate-700'
-          : 'bg-[#0d1117] border-[#21262d] text-[#8b949e]'
-      }`}>
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#3fb950] animate-pulse" />
-            <span className={`font-bold ${isLight ? 'text-slate-800' : 'text-[#f0f6fc]'}`}>
-              ANNUAL TECH &amp; INNOVATION SUMMIT 2026
-            </span>
-            <span className={`hidden sm:inline ${isLight ? 'text-slate-500' : 'text-[#8b949e]'}`}>
-              NOVEMBER 14 • MAIN AUDITORIUM
-            </span>
-          </div>
-          <Link
-            href="/expo"
-            className={`flex items-center gap-1 font-semibold hover:underline ${
-              isLight ? 'text-blue-600 hover:text-blue-700' : 'text-[#58a6ff] hover:text-[#79c0ff]'
-            }`}
-          >
-            <span>Launch 3D Exhibition</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </div>
-
       {/* ─── GITHUB UNIVERSE GRID NAVBAR ─── */}
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 ${
         isLight

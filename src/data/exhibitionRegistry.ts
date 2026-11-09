@@ -12,6 +12,36 @@ export interface StudentEntry {
   mentor: string;
 }
 
+/**
+ * Authoritative Student Credential ID Generator
+ * Ensures that EVERY individual exhibitor student has a 100% unique, collision-free credential ID,
+ * even when multiple students belong to the exact same exhibition project / booth.
+ *
+ * Format: EXH-{project_number: 4 digits}-{member_index: 2 digits}
+ * e.g., Project 36:
+ *       Ojas Singh (Member 1)    -> EXH-0036-01
+ *       Agrima Jain (Member 2)   -> EXH-0036-02
+ */
+const studentCredentialMap = new Map<string, string>();
+const projectMemberCounts = new Map<number, number>();
+
+export function getStudentCredentialId(student: StudentEntry): string {
+  if (studentCredentialMap.size === 0) {
+    projectMemberCounts.clear();
+    OFFICIAL_STUDENTS_ROSTER.forEach((s) => {
+      const count = (projectMemberCounts.get(s.project_number) || 0) + 1;
+      projectMemberCounts.set(s.project_number, count);
+      const credId = `EXH-${String(s.project_number).padStart(4, '0')}-${String(count).padStart(2, '0')}`;
+      studentCredentialMap.set(`${s.student_name}__${s.project_number}`, credId);
+    });
+  }
+
+  const key = `${student.student_name}__${student.project_number}`;
+  const cached = studentCredentialMap.get(key);
+  if (cached) return cached;
+  return `EXH-${String(student.project_number).padStart(4, '0')}-01`;
+}
+
 export interface TeacherEntry {
   name: string;
   role: 'INCHARGE' | 'MENTOR';
@@ -555,11 +585,10 @@ export const OFFICIAL_PROJECTS_CATALOG: OfficialProjectEntry[] = [
     "grade": "",
     "mentor": "Shashank",
     "live_link": "",
-    "student_count": 3,
+    "student_count": 2,
     "students": [
       "Ojas Singh (IX-A)",
-      "Agrima Jain (IX-D)",
-      "Shanaya Yadav (IX-E)"
+      "Agrima Jain (IX-D)"
     ]
   }
 ];
@@ -1758,16 +1787,6 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
   {
     "student_name": "Agrima Jain",
     "class_section": "IX-D",
-    "role": "EXHIBITOR",
-    "pass_code": "987654",
-    "project_number": 36,
-    "project_title": "Cloud (GO2)",
-    "solution_type": "",
-    "mentor": "Shashank"
-  },
-  {
-    "student_name": "Shanaya Yadav",
-    "class_section": "IX-E",
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 36,

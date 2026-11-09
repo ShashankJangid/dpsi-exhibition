@@ -25,7 +25,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: |
+          npm ci --legacy-peer-deps
+          npm --prefix firebase-functions ci
 
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
@@ -51,7 +53,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: |
+          npm ci --legacy-peer-deps
+          npm --prefix firebase-functions ci
 
       - name: Run unit & security tests
         run: npm test
