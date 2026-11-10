@@ -49,7 +49,21 @@ jobs:
           key: maintainer-bot-ledger-${{ steps.day.outputs.day }}-${{ github.run_id }}
           restore-keys: maintainer-bot-ledger-${{ steps.day.outputs.day }}-
 
-      - uses: Gathin23/maintainer-bot@4beda3b5778990b44207511dc89155f26073209c # pinned commit of Gathin23/maintainer-bot
+      - name: Verify OG_PC_API_KEY Secret
+        id: check_key
+        env:
+          OG_KEY: ${{ secrets.OG_PC_API_KEY }}
+        run: |
+          if [ -z "$OG_KEY" ]; then
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::OG_PC_API_KEY secret is not configured in repository settings. Skipping maintainer-bot review gracefully."
+          else
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run maintainer-bot review
+        if: steps.check_key.outputs.has_key == 'true'
+        uses: Gathin23/maintainer-bot@4beda3b5778990b44207511dc89155f26073209c # pinned commit of Gathin23/maintainer-bot
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           og-pc-api-key: ${{ secrets.OG_PC_API_KEY }}
