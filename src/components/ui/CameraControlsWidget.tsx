@@ -11,15 +11,19 @@ export default function CameraControlsWidget() {
   const activeZone = useExhibitionStore((state) => state.activeZone);
   const setActiveZone = useExhibitionStore((state) => state.setActiveZone);
   const isDrawerOpen = useExhibitionStore((state) => state.isDrawerOpen);
+  const isSegmentInspectorOpen = useExhibitionStore((state) => state.isSegmentInspectorOpen);
+  const isMobile = useExhibitionStore((state) => state.isMobile);
   const theme = useExhibitionStore((state) => state.theme);
   const isLight = theme === 'light';
 
+  // Do not show in 2D mode, when project detail modal is open, or on mobile when the segment inspector drawer is active
   if (viewMode !== '3d' || isDrawerOpen) return null;
+  if (isMobile && isSegmentInspectorOpen) return null;
 
   const isBlueprint = activeZone === 'blueprint';
 
   return (
-    <div className={`fixed bottom-28 right-3.5 sm:bottom-6 sm:right-6 z-40 flex flex-col items-center gap-1.5 p-1.5 rounded-2xl backdrop-blur-xl border transition-colors duration-300 shadow-2xl pointer-events-auto ${
+    <div className={`fixed bottom-28 right-2.5 sm:bottom-6 sm:right-6 z-40 flex flex-col items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl backdrop-blur-xl border transition-colors duration-300 shadow-2xl pointer-events-auto touch-manipulation ${
       isLight
         ? 'bg-white/90 border-slate-200 shadow-slate-300/40 text-slate-800'
         : 'bg-[#090e1a]/85 border-slate-700/60 shadow-black/80 text-white'
@@ -27,7 +31,7 @@ export default function CameraControlsWidget() {
       {/* Blueprint Top-Down Floor Plan Toggle */}
       <button
         onClick={() => setActiveZone(isBlueprint ? 'overview' : 'blueprint')}
-        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 border ${
+        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 border touch-manipulation ${
           isBlueprint
             ? 'bg-blue-600 text-white border-blue-500 shadow-md ring-2 ring-blue-400/40'
             : isLight
@@ -37,15 +41,15 @@ export default function CameraControlsWidget() {
         title={isBlueprint ? "Switch to 3D Perspective" : "Top-Down Blueprint Floor Plan"}
         aria-label="Blueprint Floor Plan View"
       >
-        {isBlueprint ? <Compass className="w-4 h-4" /> : <Map className="w-4 h-4" />}
+        {isBlueprint ? <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Map className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
       </button>
 
-      <div className={`w-5 h-px my-0.5 ${isLight ? 'bg-slate-200' : 'bg-slate-700/60'}`} />
+      <div className={`w-4 sm:w-5 h-px my-0.5 ${isLight ? 'bg-slate-200' : 'bg-slate-700/60'}`} />
 
       {/* Zoom In Button */}
       <button
         onClick={zoomIn}
-        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
           isLight
             ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950'
             : 'bg-slate-800/80 hover:bg-slate-700/90 text-slate-300 hover:text-white'
@@ -53,13 +57,13 @@ export default function CameraControlsWidget() {
         title="Zoom In"
         aria-label="Zoom In"
       >
-        <ZoomIn className="w-4 h-4" />
+        <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </button>
 
       {/* Zoom Out Button */}
       <button
         onClick={zoomOut}
-        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
           isLight
             ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950'
             : 'bg-slate-800/80 hover:bg-slate-700/90 text-slate-300 hover:text-white'
@@ -67,15 +71,15 @@ export default function CameraControlsWidget() {
         title="Zoom Out"
         aria-label="Zoom Out"
       >
-        <ZoomOut className="w-4 h-4" />
+        <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </button>
 
-      <div className={`w-5 h-px my-0.5 ${isLight ? 'bg-slate-200' : 'bg-slate-700/60'}`} />
+      <div className={`w-4 sm:w-5 h-px my-0.5 ${isLight ? 'bg-slate-200' : 'bg-slate-700/60'}`} />
 
       {/* Reset Overview Camera */}
       <button
         onClick={resetToOverview}
-        className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-90 ${
+        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl border flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
           isLight
             ? 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-800'
             : 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/30 text-amber-300'
@@ -83,7 +87,7 @@ export default function CameraControlsWidget() {
         title="Reset to Full Floor Overview"
         aria-label="Reset Overview"
       >
-        <RotateCcw className="w-4 h-4" />
+        <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </button>
     </div>
   );

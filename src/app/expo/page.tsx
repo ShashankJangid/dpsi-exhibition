@@ -19,10 +19,9 @@ import CameraControlsWidget from '@/components/ui/CameraControlsWidget';
 import MinimapHUD from '@/components/ui/MinimapHUD';
 import GuidedTour from '@/components/canvas/GuidedTour';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
-import { MousePointerClick, Move, ZoomIn } from 'lucide-react';
-
 import WebGLErrorBoundary from '@/components/canvas/WebGLErrorBoundary';
 export { WebGLErrorBoundary };
+import { MousePointerClick, Move, ZoomIn } from 'lucide-react';
 
 const ExhibitionCanvas = dynamic(
   () => import('@/components/canvas/ExhibitionCanvas'),
@@ -31,6 +30,8 @@ const ExhibitionCanvas = dynamic(
 
 export default function ExpoFloorPlanPage() {
   const viewMode = useExhibitionStore((state) => state.viewMode);
+  const setViewMode = useExhibitionStore((state) => state.setViewMode);
+  const selectedProject = useExhibitionStore((state) => state.selectedProject);
   const setDeviceFingerprint = useExhibitionStore((state) => state.setDeviceFingerprint);
   const setIsMobile = useExhibitionStore((state) => state.setIsMobile);
   const setProjects = useExhibitionStore((state) => state.setProjects);
@@ -85,6 +86,7 @@ export default function ExpoFloorPlanPage() {
     });
 
     // 4. URL query deep-linking (?booth=, ?stall=, or ?zone=)
+    let deepLinkTimer: ReturnType<typeof setTimeout> | null = null;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const boothCode = params.get('booth') || params.get('stall');
@@ -97,7 +99,7 @@ export default function ExpoFloorPlanPage() {
           (p) => p.booth_code.toLowerCase() === boothCode.toLowerCase()
         );
         if (match) {
-          setTimeout(() => {
+          deepLinkTimer = setTimeout(() => {
             useExhibitionStore.getState().selectProject(match);
           }, 200);
         }
@@ -113,7 +115,7 @@ export default function ExpoFloorPlanPage() {
           'business',
         ];
         if (validZones.includes(zoneCode as NavZoneId)) {
-          setTimeout(() => {
+          deepLinkTimer = setTimeout(() => {
             useExhibitionStore.getState().setActiveZone(zoneCode as NavZoneId);
           }, 200);
         }
@@ -121,6 +123,7 @@ export default function ExpoFloorPlanPage() {
     }
 
     return () => {
+      if (deepLinkTimer) clearTimeout(deepLinkTimer);
       window.removeEventListener('resize', checkMobile);
       unsubAuth();
       unsubProjects();
@@ -131,6 +134,35 @@ export default function ExpoFloorPlanPage() {
     <main className={`relative w-screen h-[100dvh] overflow-hidden font-sans transition-colors duration-300 ${
       isLight ? 'bg-[#f1f5f9]' : 'bg-[#070b14]'
     }`}>
+      {/* Accessible Skip Link (First keyboard focusable element on /expo) */}
+      <a
+        href="#two-d-floor-plan-grid"
+        onClick={(e) => {
+          e.preventDefault();
+          setViewMode('2d');
+          requestAnimationFrame(() => {
+            const gridEl = document.getElementById('two-d-floor-plan-grid');
+            gridEl?.focus();
+          });
+        }}
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[10001] focus:px-4 focus:py-2.5 focus:rounded-xl focus:bg-amber-500 focus:text-slate-950 focus:font-mono focus:font-bold focus:text-xs focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-slate-950"
+      >
+        Skip to 2D Floor Plan Grid (Accessible)
+      </a>
+
+      {/* Screen-Reader ARIA Live Region for Booth Selection Announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="booth-aria-live-region"
+        className="sr-only"
+      >
+        {selectedProject
+          ? `Selected booth ${selectedProject.booth_code}: ${selectedProject.title}, Category: ${selectedProject.category}`
+          : ''}
+      </div>
+
       {/* Top HUD Navigation Bar */}
       <TopNavHUD />
 

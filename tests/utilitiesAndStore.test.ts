@@ -7,6 +7,8 @@ import { OFFICIAL_STUDENTS_ROSTER, getStudentCredentialId } from '../src/data/ex
 import { generateTopotagCells, generateMicroQrModules } from '../src/lib/badgeGenerator';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
+import { useExhibitionStore } from '../src/store/useExhibitionStore';
+import { SEED_PROJECTS } from '../src/data/seedProjects';
 
 describe('Client Utilities & Security Helpers', () => {
   test('cn() utility merges classes and handles conditional class conflict resolution', () => {
@@ -286,5 +288,34 @@ describe('Client Utilities & Security Helpers', () => {
       rulesContent.includes('function isOwner(userId)'),
       'Must define isOwner helper function'
     );
+  });
+
+  test('useExhibitionStore manages WebGL fallback notice, battery-saver low-FPS mode, and booth selection immutably', () => {
+    const store = useExhibitionStore.getState();
+
+    assert.equal(store.isLowPerformanceMode, false);
+    assert.equal(store.webglFallbackNotice, null);
+
+    store.setLowPerformanceMode(true);
+    assert.equal(useExhibitionStore.getState().isLowPerformanceMode, true);
+
+    const notice = '3D WebGL view is unavailable on this device. Switched to 2D Floor Plan.';
+    store.setWebglFallbackNotice(notice);
+    assert.equal(useExhibitionStore.getState().webglFallbackNotice, notice);
+
+    store.setViewMode('2d');
+    assert.equal(useExhibitionStore.getState().viewMode, '2d');
+
+    const sampleProject = SEED_PROJECTS[0];
+    store.selectProject(sampleProject);
+    assert.equal(useExhibitionStore.getState().selectedProject?.id, sampleProject.id);
+    assert.equal(useExhibitionStore.getState().isDrawerOpen, true);
+
+    // Reset state
+    store.selectProject(null);
+    store.setLowPerformanceMode(false);
+    store.setWebglFallbackNotice(null);
+    store.setViewMode('3d');
+    assert.equal(useExhibitionStore.getState().isDrawerOpen, false);
   });
 });

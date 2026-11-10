@@ -32,6 +32,17 @@ const ZONES: { id: NavZoneId; label: string }[] = [
   { id: 'zone-3', label: 'Robotics' },
 ];
 
+const ZONE_PILL_STYLES: Record<NavZoneId, { active: string; dot: string }> = {
+  overview: { active: 'bg-amber-500 text-slate-950 shadow-amber-500/25', dot: 'bg-slate-950' },
+  blueprint: { active: 'bg-indigo-500 text-white shadow-indigo-500/25', dot: 'bg-white' },
+  'zone-1': { active: 'bg-purple-500 text-white shadow-purple-500/25', dot: 'bg-white' },
+  physical: { active: 'bg-amber-500 text-slate-950 shadow-amber-500/25', dot: 'bg-slate-950' },
+  digital: { active: 'bg-sky-500 text-slate-950 shadow-sky-500/25', dot: 'bg-slate-950' },
+  business: { active: 'bg-emerald-500 text-slate-950 shadow-emerald-500/25', dot: 'bg-slate-950' },
+  'zone-3': { active: 'bg-rose-500 text-white shadow-rose-500/25', dot: 'bg-white' },
+  'zone-2': { active: 'bg-indigo-500 text-white shadow-indigo-500/25', dot: 'bg-white' },
+};
+
 function TopNavHUD() {
   const theme = useExhibitionStore((state) => state.theme);
   const toggleTheme = useExhibitionStore((state) => state.toggleTheme);
@@ -166,6 +177,7 @@ function TopNavHUD() {
             >
               {ZONES.map((zone) => {
                 const isActive = activeZone === zone.id;
+                const pillStyle = ZONE_PILL_STYLES[zone.id] || ZONE_PILL_STYLES.overview;
                 return (
                   <button
                     key={zone.id}
@@ -174,7 +186,7 @@ function TopNavHUD() {
                     onClick={() => setActiveZone(zone.id)}
                     className={`h-6 sm:h-7 flex items-center gap-1 px-2.5 rounded-lg text-xs font-semibold transition-all duration-150 whitespace-nowrap shrink-0 ${
                       isActive
-                        ? 'bg-amber-500 text-slate-950 shadow-sm font-bold scale-[1.02]'
+                        ? `${pillStyle.active} shadow-sm font-bold scale-[1.02]`
                         : isLight
                           ? 'text-slate-600 hover:text-slate-950 hover:bg-slate-200/70'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -182,7 +194,7 @@ function TopNavHUD() {
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        isActive ? 'bg-slate-950' : isLight ? 'bg-slate-400' : 'bg-slate-600'
+                        isActive ? pillStyle.dot : isLight ? 'bg-slate-400' : 'bg-slate-600'
                       }`}
                     />
                     <span>{zone.label}</span>
@@ -292,7 +304,7 @@ function TopNavHUD() {
               const enabled = toggleSound();
               setIsSoundOn(enabled);
             }}
-            className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-xl border flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-xs ${
+            className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-xl border flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-xs touch-manipulation ${
               isLight
                 ? 'bg-slate-100 hover:bg-slate-200/90 border-slate-200 text-slate-700'
                 : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300'
@@ -310,7 +322,7 @@ function TopNavHUD() {
           {/* Light / Dark Mode Toggle */}
           <button
             onClick={toggleTheme}
-            className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-xl border flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-xs ${
+            className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-xl border flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-xs touch-manipulation ${
               isLight
                 ? 'bg-amber-50 hover:bg-amber-100/90 border-amber-300 text-amber-800'
                 : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-700 text-amber-300'
@@ -362,7 +374,7 @@ function TopNavHUD() {
           {/* Mobile Menu Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-            className={`lg:hidden w-8 h-8 rounded-xl border flex items-center justify-center active:scale-95 transition-all shadow-xs shrink-0 ${
+            className={`lg:hidden w-8 h-8 rounded-xl border flex items-center justify-center active:scale-95 transition-all shadow-xs shrink-0 touch-manipulation ${
               isLight
                 ? 'bg-slate-100 border-slate-300 text-slate-800'
                 : 'bg-slate-900/90 border-slate-700/80 text-white'

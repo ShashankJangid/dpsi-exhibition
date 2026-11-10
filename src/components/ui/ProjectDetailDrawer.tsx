@@ -220,7 +220,7 @@ export default function ProjectDetailDrawer() {
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={isMobile ? { y: '100%', opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
               transition={{ type: 'spring', damping: 28, stiffness: 290 }}
-              className="relative z-10 w-full max-w-2xl max-h-[88vh] rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-300/80 dark:border-slate-800 bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 backdrop-blur-2xl shadow-2xl flex flex-col text-slate-800 dark:text-slate-100 overflow-hidden sm:my-auto"
+              className="relative z-10 w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-300/80 dark:border-slate-800 bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 backdrop-blur-2xl shadow-2xl flex flex-col text-slate-800 dark:text-slate-100 overflow-hidden sm:my-auto"
             >
             {/* Mobile Drag Indicator Handle */}
             <div className="sm:hidden pt-2.5 pb-1 flex justify-center w-full">
@@ -229,7 +229,7 @@ export default function ProjectDetailDrawer() {
 
             {/* Header */}
             <div
-              className={`p-4 sm:p-5 border-b border-slate-200/90 dark:border-slate-800/80 bg-gradient-to-r ${theme.glow} flex items-center justify-between`}
+              className={`p-3.5 sm:p-5 border-b border-slate-200/90 dark:border-slate-800/80 bg-gradient-to-r ${theme.glow} flex items-center justify-between gap-1.5`}
             >
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-black px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-900 border border-slate-300/80 dark:border-slate-700 text-amber-700 dark:text-amber-300 shadow-xs">
@@ -457,7 +457,7 @@ export default function ProjectDetailDrawer() {
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/95 dark:bg-[#090d16] flex items-center justify-between gap-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="p-3.5 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/95 dark:bg-[#090d16] flex items-center justify-between gap-3 sm:gap-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <div className="flex flex-col">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
                   Total Verified Votes

@@ -5,8 +5,10 @@ import { useExhibitionStore } from '@/store/useExhibitionStore';
 
 export default function FloorAndEnvironment() {
   const isMobile = useExhibitionStore((state) => state.isMobile);
+  const isLowPerformanceMode = useExhibitionStore((state) => state.isLowPerformanceMode);
   const theme = useExhibitionStore((state) => state.theme);
   const isLight = theme === 'light';
+  const enableShadowsAndPointLights = !isMobile && !isLowPerformanceMode;
 
   return (
     <>
@@ -20,8 +22,8 @@ export default function FloorAndEnvironment() {
         position={[25, 45, 25]}
         intensity={isLight ? 1.05 : 1.5}
         color={isLight ? '#fffdf7' : '#ffffff'}
-        castShadow={!isMobile}
-        shadow-mapSize={isMobile ? [512, 512] : [1024, 1024]}
+        castShadow={enableShadowsAndPointLights}
+        shadow-mapSize={isMobile || isLowPerformanceMode ? [512, 512] : [1024, 1024]}
         shadow-camera-left={-35}
         shadow-camera-right={35}
         shadow-camera-top={35}
@@ -831,72 +833,74 @@ export default function FloorAndEnvironment() {
 
       {/* ========================================================= */}
       {/* 5. STRATEGIC ZONE ARCHITECTURAL DOWNLIGHTS (HIGH FPS OPTIMIZATION: 8 LIGHTS VS 42) */}
-      <group position={[0, 0, 0]}>
-        {/* Main Hall - Quadrant 1 (North-West) */}
-        <pointLight
-          position={[4.0, 5.5, -11.0]}
-          intensity={isLight ? 2.8 : 4.0}
-          distance={22}
-          color="#fff8ed"
-          decay={2}
-        />
-        {/* Main Hall - Quadrant 2 (North-East) */}
-        <pointLight
-          position={[16.0, 5.5, -11.0]}
-          intensity={isLight ? 2.8 : 4.0}
-          distance={22}
-          color="#fff8ed"
-          decay={2}
-        />
-        {/* Main Hall - Quadrant 3 (South-West) */}
-        <pointLight
-          position={[4.0, 5.5, 0.0]}
-          intensity={isLight ? 2.8 : 4.0}
-          distance={22}
-          color="#f0f9ff"
-          decay={2}
-        />
-        {/* Main Hall - Quadrant 4 (South-East) */}
-        <pointLight
-          position={[16.0, 5.5, 0.0]}
-          intensity={isLight ? 2.8 : 4.0}
-          distance={22}
-          color="#ecfdf5"
-          decay={2}
-        />
-        {/* Show & Tell Pavilion - North Bay */}
-        <pointLight
-          position={[-18.5, 5.5, -6.0]}
-          intensity={isLight ? 3.0 : 4.2}
-          distance={20}
-          color="#f3e8ff"
-          decay={2}
-        />
-        {/* Show & Tell Pavilion - South Bay */}
-        <pointLight
-          position={[-18.5, 5.5, 1.5]}
-          intensity={isLight ? 3.0 : 4.2}
-          distance={20}
-          color="#f3e8ff"
-          decay={2}
-        />
-        {/* Concourse West Corridor */}
-        <pointLight
-          position={[-4.0, 5.5, -18.0]}
-          intensity={isLight ? 2.8 : 4.0}
-          distance={18}
-          color="#fffdf5"
-          decay={2}
-        />
-        {/* Concourse East Corridor */}
-        <pointLight
-          position={[20.0, 5.5, -18.0]}
-          intensity={isLight ? 2.8 : 4.0}
-          distance={18}
-          color="#fffdf5"
-          decay={2}
-        />
-      </group>
+      {!isLowPerformanceMode && (
+        <group position={[0, 0, 0]}>
+          {/* Main Hall - Quadrant 1 (North-West) */}
+          <pointLight
+            position={[4.0, 5.5, -11.0]}
+            intensity={isLight ? 2.8 : 4.0}
+            distance={22}
+            color="#fff8ed"
+            decay={2}
+          />
+          {/* Main Hall - Quadrant 2 (North-East) */}
+          <pointLight
+            position={[16.0, 5.5, -11.0]}
+            intensity={isLight ? 2.8 : 4.0}
+            distance={22}
+            color="#fff8ed"
+            decay={2}
+          />
+          {/* Main Hall - Quadrant 3 (South-West) */}
+          <pointLight
+            position={[4.0, 5.5, 0.0]}
+            intensity={isLight ? 2.8 : 4.0}
+            distance={22}
+            color="#f0f9ff"
+            decay={2}
+          />
+          {/* Main Hall - Quadrant 4 (South-East) */}
+          <pointLight
+            position={[16.0, 5.5, 0.0]}
+            intensity={isLight ? 2.8 : 4.0}
+            distance={22}
+            color="#ecfdf5"
+            decay={2}
+          />
+          {/* Show & Tell Pavilion - North Bay */}
+          <pointLight
+            position={[-18.5, 5.5, -6.0]}
+            intensity={isLight ? 3.0 : 4.2}
+            distance={20}
+            color="#f3e8ff"
+            decay={2}
+          />
+          {/* Show & Tell Pavilion - South Bay */}
+          <pointLight
+            position={[-18.5, 5.5, 1.5]}
+            intensity={isLight ? 3.0 : 4.2}
+            distance={20}
+            color="#f3e8ff"
+            decay={2}
+          />
+          {/* Concourse West Corridor */}
+          <pointLight
+            position={[-4.0, 5.5, -18.0]}
+            intensity={isLight ? 2.8 : 4.0}
+            distance={18}
+            color="#fffdf5"
+            decay={2}
+          />
+          {/* Concourse East Corridor */}
+          <pointLight
+            position={[20.0, 5.5, -18.0]}
+            intensity={isLight ? 2.8 : 4.0}
+            distance={18}
+            color="#fffdf5"
+            decay={2}
+          />
+        </group>
+      )}
     </>
   );
 }
