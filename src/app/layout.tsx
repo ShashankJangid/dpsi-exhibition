@@ -19,16 +19,48 @@ const spaceGrotesk = Space_Grotesk({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#070b14',
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://dpsiexibition.pages.dev'),
   title: 'DPSI Tech & Innovation Exhibition | 3D Floor Plan & Live Voting',
   description:
-    'Interactive 3D Virtual Floor Plan matching the physical blueprint: Physical (P01-12), Digital (D01-12), Business (B01-07), and Robotics Arenas for DPS Indirapuram.',
+    'Interactive 3D Virtual Floor Plan & Live Voting Platform matching the physical blueprint: 44 student inventions across Physical (P01–12), Digital (D01–12), Business (B01–08), Show & Tell (ST01–08), and Robotics Arenas for DPS Indirapuram.',
+  keywords: [
+    'DPSI',
+    'DPS Indirapuram',
+    'Tech Exhibition',
+    'Innovation Summit',
+    '3D Floor Plan',
+    'Student Inventions',
+    'Live Voting',
+  ],
+  openGraph: {
+    title: 'DPSI Tech & Innovation Exhibition 2026',
+    description:
+      'Explore 44 breakthrough student inventions across 3 exhibition zones with live anti-cheat voting and an interactive 3D virtual floor plan.',
+    url: 'https://dpsiexibition.pages.dev',
+    siteName: 'DPSI Tech & Innovation Exhibition',
+    images: [
+      {
+        url: '/dps_shield.png',
+        width: 512,
+        height: 512,
+        alt: 'Delhi Public School Indirapuram Crest',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DPSI Tech & Innovation Exhibition 2026',
+    description:
+      'Explore 44 breakthrough student inventions across 3 exhibition zones with live anti-cheat voting and an interactive 3D virtual floor plan.',
+    images: ['/dps_shield.png'],
+  },
   icons: {
     icon: '/dps_shield.png',
     apple: '/dps_shield.png',

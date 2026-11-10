@@ -158,7 +158,7 @@ function TopNavHUD() {
             title="Search Projects (⌘K)"
           >
             <Search className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
-            <span className="hidden 2xl:inline text-[11px] font-medium">Search 35 booths...</span>
+            <span className="hidden 2xl:inline text-[11px] font-medium">Search 44 booths...</span>
             <span className="hidden xl:inline 2xl:hidden text-[11px]">Search...</span>
             <kbd className={`text-[9px] font-mono px-1 py-0.5 rounded border ml-0.5 ${
               isLight ? 'bg-slate-200 text-slate-600 border-slate-300' : 'bg-slate-800 text-slate-400 border-slate-700'

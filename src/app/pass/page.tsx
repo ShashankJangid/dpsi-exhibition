@@ -38,6 +38,7 @@ import {
   PROPRIETARY_ACCESS_CODES,
   StudentEntry,
   getStudentCredentialId,
+  getStudentBoothInfo,
 } from '@/data/exhibitionRegistry';
 import { generateAppleCardSvg } from '@/lib/badgeGenerator';
 import { playChime, triggerHaptic } from '@/lib/sound';
@@ -624,12 +625,13 @@ function PassAndAttendanceContent() {
     if (!template) return '';
 
     if (currentRole === 'EXHIBITOR') {
+      const boothInfo = getStudentBoothInfo(selectedStudent.project_number);
       return generateAppleCardSvg(template, {
         name: selectedStudent.student_name,
         classSection: selectedStudent.class_section,
         credentialId: activeCredentialId,
         projectDomain: selectedStudent.project_title,
-        venueLocation: `Maker Lab • Booth ${selectedStudent.project_number}`,
+        venueLocation: boothInfo.venue_location,
       });
     }
 
@@ -1010,7 +1012,7 @@ function PassAndAttendanceContent() {
                     <div className="flex items-center justify-between text-xs font-mono font-bold text-emerald-400">
                       <span className="flex items-center gap-2">
                         <GraduationCap className="w-4 h-4" />
-                        Student Innovators (121)
+                        Student Innovators ({OFFICIAL_STUDENTS_ROSTER.length})
                       </span>
                       <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full text-[10px] group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
                         987654
@@ -1199,10 +1201,10 @@ function PassAndAttendanceContent() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-400 uppercase">
                           <GraduationCap className="w-4 h-4" />
-                          <span>Student Innovator Directory (121 Registered Exhibitors)</span>
+                          <span>Student Innovator Directory ({OFFICIAL_STUDENTS_ROSTER.length} Registered Exhibitors)</span>
                         </div>
                         <span className="text-[11px] font-mono text-slate-400">
-                          Active: {selectedStudent.student_name} ({selectedStudent.class_section}) • Booth #{selectedStudent.project_number}
+                          Active: {selectedStudent.student_name} ({selectedStudent.class_section}) • {getStudentBoothInfo(selectedStudent.project_number).venue_location}
                         </span>
                       </div>
 
@@ -1242,7 +1244,7 @@ function PassAndAttendanceContent() {
                                 </span>
                               </span>
                               <span className="text-[10px] shrink-0 font-mono opacity-80">
-                                {getStudentCredentialId(st)} • Booth #{st.project_number}
+                                {getStudentCredentialId(st)} • Booth {getStudentBoothInfo(st.project_number).booth_code}
                               </span>
                             </button>
                           );
@@ -2096,7 +2098,7 @@ function PassAndAttendanceContent() {
                         classSection: st.class_section,
                         credentialId: getStudentCredentialId(st),
                         projectDomain: st.project_title,
-                        venueLocation: `Maker Lab • Booth ${st.project_number}`,
+                        venueLocation: getStudentBoothInfo(st.project_number).venue_location,
                       })
                     : '';
                   return (
