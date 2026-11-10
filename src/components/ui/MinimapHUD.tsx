@@ -112,8 +112,8 @@ export default function MinimapHUD() {
   return (
     <aside
       aria-label="3D Exhibition Floor Radar Minimap"
-      className={`fixed top-16 right-3 sm:top-20 sm:right-6 z-30 transition-all duration-300 font-sans pointer-events-auto ${
-        isExpanded ? 'w-64 sm:w-72' : 'w-auto'
+      className={`fixed top-16 right-2.5 sm:top-20 sm:right-6 z-30 transition-all duration-300 font-sans pointer-events-auto ${
+        isExpanded ? 'w-[calc(100vw-1.25rem)] max-w-[280px] sm:w-72' : 'w-auto'
       }`}
     >
       {/* Collapsed Radar Beacon Trigger */}
@@ -398,11 +398,22 @@ export default function MinimapHUD() {
                 return (
                   <g
                     key={p.id}
-                    className="cursor-pointer transition-transform hover:scale-125"
+                    data-testid={`minimap-booth-${p.booth_code}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Select booth ${p.booth_code}`}
+                    className="cursor-pointer transition-transform hover:scale-125 outline-none"
                     onClick={(e) => {
                       e.stopPropagation();
                       playBlip(720);
                       selectProject(p);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        playBlip(720);
+                        selectProject(p);
+                      }
                     }}
                     onMouseEnter={() => setHoveredProject(p)}
                     onMouseLeave={() => setHoveredProject(null)}

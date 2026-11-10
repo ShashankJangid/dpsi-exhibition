@@ -1202,7 +1202,7 @@ export default function Zone3RoboticsArena() {
                 emissive="#ffffff"
                 emissiveMap={stageTexture}
                 emissiveIntensity={1.05}
-                roughness={0.18}
+                roughness={0.75}
                 toneMapped={false}
                 polygonOffset
                 polygonOffsetFactor={-1}

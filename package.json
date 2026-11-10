@@ -11,7 +11,8 @@
     "start": "next start",
     "deploy": "next build && npx wrangler pages deploy out --project-name=dpsiexibition --commit-dirty=true",
     "lint": "eslint",
-    "test": "node --import jiti/register --test tests/*.test.ts && npm --prefix firebase-functions test"
+    "test": "node --import jiti/register --test tests/*.test.ts && npm --prefix firebase-functions test",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",
@@ -41,6 +42,7 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",

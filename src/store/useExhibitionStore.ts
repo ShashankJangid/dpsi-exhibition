@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { Project, CategoryType, CameraViewConfig } from '@/types';
-import { SEED_PROJECTS } from '@/data/seedProjects';
+import { Project, CategoryType, CameraViewConfig } from '../types';
+import { SEED_PROJECTS } from '../data/seedProjects';
 
 export type NavZoneId =
   | 'overview'
@@ -205,6 +205,10 @@ interface ExhibitionState {
   liveCameraTarget: [number, number];
   isMinimapOpen: boolean;
 
+  // Performance, WebGL & Fallbacks
+  isLowPerformanceMode: boolean;
+  webglFallbackNotice: string | null;
+
   // Projects & Live Data
   projects: Project[];
   votedProjectIds: string[];
@@ -249,6 +253,10 @@ interface ExhibitionState {
   setLiveCameraTracking: (pos: [number, number], target: [number, number]) => void;
   setIsMinimapOpen: (open: boolean) => void;
   toggleMinimap: () => void;
+
+  // Performance & WebGL Actions
+  setLowPerformanceMode: (low: boolean) => void;
+  setWebglFallbackNotice: (notice: string | null) => void;
 }
 
 export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
@@ -275,6 +283,16 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
   liveCameraPos: [0.8, 18.5],
   liveCameraTarget: [0.8, -10.0],
   isMinimapOpen: false,
+
+  isLowPerformanceMode: false,
+  webglFallbackNotice: null,
+
+  setLowPerformanceMode: (low) => {
+    set({ isLowPerformanceMode: low });
+  },
+  setWebglFallbackNotice: (notice) => {
+    set({ webglFallbackNotice: notice });
+  },
 
   setLiveCameraTracking: (pos, target) => {
     set({ liveCameraPos: pos, liveCameraTarget: target });

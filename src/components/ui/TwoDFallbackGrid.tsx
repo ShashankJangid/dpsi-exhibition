@@ -10,6 +10,8 @@ import {
   ArrowRight,
   CheckCircle2,
   Users,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 
 const CATEGORIES: { label: string; value: CategoryType | 'All' }[] = [
@@ -26,6 +28,8 @@ export default function TwoDFallbackGrid() {
   const projects = useExhibitionStore((state) => state.projects);
   const selectProject = useExhibitionStore((state) => state.selectProject);
   const votedProjectIds = useExhibitionStore((state) => state.votedProjectIds);
+  const webglFallbackNotice = useExhibitionStore((state) => state.webglFallbackNotice);
+  const setWebglFallbackNotice = useExhibitionStore((state) => state.setWebglFallbackNotice);
   const theme = useExhibitionStore((state) => state.theme);
   const isLight = theme === 'light';
 
@@ -52,10 +56,43 @@ export default function TwoDFallbackGrid() {
   }, [projects, selectedCategory, searchQuery]);
 
   return (
-    <div className={`w-full min-h-screen transition-colors duration-300 pt-20 pb-36 pb-safe px-3 sm:px-6 lg:px-8 ${
-      isLight ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#070b14] text-slate-100'
-    }`}>
+    <div
+      id="two-d-floor-plan-grid"
+      tabIndex={-1}
+      data-testid="two-d-fallback-grid"
+      className={`w-full min-h-screen outline-none transition-colors duration-300 pt-20 pb-36 pb-safe px-3 sm:px-6 lg:px-8 ${
+        isLight ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#070b14] text-slate-100'
+      }`}
+    >
       <div className="max-w-7xl mx-auto space-y-5">
+        {/* WebGL Fallback Notice Banner */}
+        {webglFallbackNotice && (
+          <div
+            role="alert"
+            data-testid="webgl-fallback-notice"
+            className={`p-4 rounded-2xl border flex items-start justify-between gap-3 shadow-lg ${
+              isLight
+                ? 'bg-amber-50 border-amber-300 text-amber-950'
+                : 'bg-amber-950/40 border-amber-500/40 text-amber-200'
+            }`}
+          >
+            <div className="flex items-start gap-2.5 text-xs sm:text-sm">
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">2D Interactive Floor Plan Active</p>
+                <p className="text-xs opacity-90 mt-0.5">{webglFallbackNotice}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setWebglFallbackNotice(null)}
+              aria-label="Dismiss notice"
+              className="p-1 rounded-lg hover:bg-amber-500/20 transition-colors shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         
         {/* Banner Section */}
         <div className={`p-5 sm:p-7 rounded-3xl border shadow-2xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
@@ -93,6 +130,7 @@ export default function TwoDFallbackGrid() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Search projects by booth code, title, or student name"
               placeholder="Search by booth code (e.g. P01, D05, B02), title, student..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -105,14 +143,16 @@ export default function TwoDFallbackGrid() {
           </div>
 
           {/* Category Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x pb-1 max-w-full">
             {CATEGORIES.map((cat) => {
               const active = selectedCategory === cat.value;
               return (
                 <button
                   key={cat.value}
+                  type="button"
+                  aria-pressed={active}
                   onClick={() => setSelectedCategory(cat.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all touch-manipulation active:scale-95 ${
                     active
                       ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                       : isLight
@@ -135,7 +175,16 @@ export default function TwoDFallbackGrid() {
             return (
               <div
                 key={project.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Inspect ${project.title} (${project.booth_code})`}
                 onClick={() => selectProject(project)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectProject(project);
+                  }
+                }}
                 className={`group relative rounded-2xl border transition-all duration-300 overflow-hidden flex flex-col shadow-xl cursor-pointer ${
                   isLight
                     ? 'bg-white border-slate-200 hover:border-amber-500/60 hover:shadow-2xl'
