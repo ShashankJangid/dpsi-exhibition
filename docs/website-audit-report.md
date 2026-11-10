@@ -462,3 +462,13 @@ To resolve all discrepancies, use this authoritative mapping table linking physi
 | `🟢 NICE TO HAVE` | **Standardize UK/Indian English** ("Center" → "Centre", "Program" → "Programme", "In-charge") | Copy Polish | Multiple files |
 | `🟢 NICE TO HAVE` | **Add cutting guidelines and crop marks** for A4 physical badge batch printing | Operational Polish | `src/app/pass/page.tsx` |
 | `🟢 NICE TO HAVE` | **Generate `robots.txt` and `sitemap.ts`** for search engine indexing | Technical SEO | `public/robots.txt`, `src/app/sitemap.ts` |
+
+---
+
+## Visual Verification & Screenshot Artifacts
+
+The following visual artifacts document the before-and-after remediations:
+- `screenshots/audit_after_voting_protocol.png` — Verified community voting protocol breakdown with 4-layer anti-cheat architecture.
+- `screenshots/audit_after_hero_44.png` — Synchronized 44 Inventions across top navigation, hero counters, and filter pills.
+- `screenshots/audit_after_pass_unlocked.png` — Physical hall booth codes (`Zone 2 • Booth B02`) and 120 registered exhibitors on `/pass`.
+- `screenshots/audit_after_not_found_404.png` — Atmospheric DPS Indirapuram coordinate recovery screen.
