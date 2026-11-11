@@ -2500,7 +2500,12 @@ function PassAndAttendanceContent() {
             stroke-dasharray: 6 4 !important;
           }
 
-          .apple-card-base {
+          .apple-card-base,
+          #dpsi-shield,
+          [filter*="shield-shadow"],
+          [filter*="plateShadow"],
+          .single-badge-svg-container [filter],
+          .a4-badge-cell [filter] {
             filter: none !important;
           }
         }
