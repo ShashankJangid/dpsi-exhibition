@@ -155,16 +155,11 @@ function TopNavHUD() {
                 ? 'bg-slate-100 hover:bg-slate-200/90 border-slate-200 text-slate-700 hover:text-slate-950'
                 : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200'
             }`}
-            title="Search Projects (⌘K)"
+            title="Search Projects"
           >
             <Search className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
             <span className="hidden 2xl:inline text-[11px] font-medium">Search 35 booths...</span>
             <span className="hidden xl:inline 2xl:hidden text-[11px]">Search...</span>
-            <kbd className={`text-[9px] font-mono px-1 py-0.5 rounded border ml-0.5 ${
-              isLight ? 'bg-slate-200 text-slate-600 border-slate-300' : 'bg-slate-800 text-slate-400 border-slate-700'
-            }`}>
-              ⌘K
-            </kbd>
           </button>
 
           {/* Clean Segment Navigation Pills */}

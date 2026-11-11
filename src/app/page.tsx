@@ -417,13 +417,10 @@ export default function LandingPage() {
                   ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
                   : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
               }`}
-              title="Search Projects (⌘K)"
+              title="Search Projects"
             >
               <Search className="w-3.5 h-3.5 text-amber-500" />
               <span className="hidden xl:inline">Search</span>
-              <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                ⌘K
-              </kbd>
             </button>
 
             {/* Delegate Pass Modal Trigger */}
@@ -547,9 +544,6 @@ export default function LandingPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 <span className="truncate font-bold tracking-tight">DELHI PUBLIC SCHOOL INDIRAPURAM</span>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono tracking-wider">
-                MAIN AUDITORIUM • 28.6479° N, 77.3764° E
-              </span>
             </div>
 
             {/* Canvas Container with Balanced Proportions */}
@@ -606,7 +600,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#3fb950] font-bold block tabular-nums">[ 12 BOOTHS ]</span>
+                  <span className="text-[#3fb950] font-bold block tabular-nums">12 BOOTHS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Physical Computing (P)
                   </span>
@@ -614,7 +608,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#58a6ff] font-bold block tabular-nums">[ 12 BOOTHS ]</span>
+                  <span className="text-[#58a6ff] font-bold block tabular-nums">12 BOOTHS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Digital &amp; AI Software (D)
                   </span>
@@ -622,7 +616,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#d2a8ff] font-bold block tabular-nums">[ 07 BOOTHS ]</span>
+                  <span className="text-[#d2a8ff] font-bold block tabular-nums">07 BOOTHS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Business Ventures (B)
                   </span>
@@ -630,7 +624,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#f0883e] font-bold block tabular-nums">[ 04 HEATS ]</span>
+                  <span className="text-[#f0883e] font-bold block tabular-nums">04 HEATS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Robotics Battle Arena
                   </span>
@@ -680,7 +674,7 @@ export default function LandingPage() {
                       : 'bg-[#161b22] hover:bg-[#21262d] border-[#30363d] text-white'
                   }`}
                 >
-                  <span>Browse 35 Projects [ ⌘K ]</span>
+                  <span>Browse 35 Projects</span>
                 </a>
               </div>
             </div>
