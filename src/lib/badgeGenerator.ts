@@ -268,7 +268,7 @@ export function generateAppleCardSvg(
   );
 
   // 8. Micro-QR cardlet Name & Section with responsive sizing and width containment (< 160px)
-  const qrNameSec = `${nameUpper} &#8226; ${secUpper}`;
+  const qrNameSec = secUpper ? `${nameUpper} &#8226; ${secUpper}` : nameUpper;
   const qrNameFontSize = qrNameSec.length > 26 ? '7.5' : qrNameSec.length > 20 ? '8.5' : '9';
   const qrNameLengthAttr = qrNameSec.length > 30 ? ' textLength="160" lengthAdjust="spacingAndGlyphs"' : '';
   svg = svg.replace(

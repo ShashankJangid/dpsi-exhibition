@@ -35,8 +35,10 @@ import {
 import jsQR from 'jsqr';
 import {
   OFFICIAL_STUDENTS_ROSTER,
+  OFFICIAL_TEACHERS_AND_INCHARGES,
   PROPRIETARY_ACCESS_CODES,
   StudentEntry,
+  TeacherEntry,
   getStudentCredentialId,
   getStudentBoothInfo,
 } from '@/data/exhibitionRegistry';
@@ -276,6 +278,30 @@ function PassAndAttendanceContent() {
   });
   const [authError, setAuthError] = useState('');
 
+  // Synchronize authentication state when URL query access code parameter changes
+  useEffect(() => {
+    const code = (searchParams.get('code') || '').trim().toUpperCase();
+    if (code) {
+      setAccessCode(code);
+      if (code === PROPRIETARY_ACCESS_CODES.STUDENT_DEFAULT) {
+        setIsCodeUnlocked(true);
+        setUnlockedRole('EXHIBITOR');
+      } else if (code === PROPRIETARY_ACCESS_CODES.TEACHER_INCHARGE) {
+        setIsCodeUnlocked(true);
+        setUnlockedRole('INCHARGE');
+      } else if (code === PROPRIETARY_ACCESS_CODES.STAFF_OPS) {
+        setIsCodeUnlocked(true);
+        setUnlockedRole('STAFF');
+      } else if (code === PROPRIETARY_ACCESS_CODES.JUDGE_PANEL) {
+        setIsCodeUnlocked(true);
+        setUnlockedRole('JUDGE');
+      } else if (code === PROPRIETARY_ACCESS_CODES.VIP_DELEGATE) {
+        setIsCodeUnlocked(true);
+        setUnlockedRole('VIP');
+      }
+    }
+  }, [searchParams]);
+
   // Active Tab
   const [activeTab, setActiveTab] = useState<'pass' | 'attendance' | 'batch_print' | 'scanner'>('pass');
 
@@ -283,12 +309,13 @@ function PassAndAttendanceContent() {
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<StudentEntry>(() => OFFICIAL_STUDENTS_ROSTER[0]);
 
-  // Customizable Fields for Teachers (Faculty Incharges)
-  const [facultyCustomName, setFacultyCustomName] = useState('Dr. Priya Verma');
+  // Faculty Incharge / Teacher Pass State
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherEntry>(() => OFFICIAL_TEACHERS_AND_INCHARGES[0]);
+  const [facultyCustomName, setFacultyCustomName] = useState('Shashank Jandge');
   const [facultyCustomRole, setFacultyCustomRole] = useState('Faculty Incharge');
-  const [facultyCustomDept, setFacultyCustomDept] = useState('Department of Science & Innovation');
-  const [facultyCustomVenue, setFacultyCustomVenue] = useState('Faculty Command Desk • Central Atrium');
-  const [facultyCustomId, setFacultyCustomId] = useState('INC-2026');
+  const [facultyCustomDept, setFacultyCustomDept] = useState('');
+  const [facultyCustomVenue, setFacultyCustomVenue] = useState('');
+  const [facultyCustomId, setFacultyCustomId] = useState('INC-0001');
 
   // Customizable Fields for Other Logged-in Roles (Judge, VIP, Staff)
   const [otherCustomName, setOtherCustomName] = useState('');
@@ -458,23 +485,33 @@ function PassAndAttendanceContent() {
       }
     }
 
-    // A. Recognition of Faculty In-Charge passes
+    // A. Recognition of Faculty In-Charge passes (8 Registered Teachers & INC- IDs)
+    const matchedTeacher = OFFICIAL_TEACHERS_AND_INCHARGES.find(
+      (t) =>
+        t.credential_id.toUpperCase() === clean ||
+        t.name.trim().toUpperCase() === clean ||
+        (decodedUrlName && t.name.trim().toUpperCase() === decodedUrlName)
+    );
+
     if (
-      clean === 'INC-2026' ||
+      matchedTeacher ||
+      clean.startsWith('INC-') ||
       clean === PROPRIETARY_ACCESS_CODES.TEACHER_INCHARGE ||
       clean.includes('INCHARGE') ||
       clean.includes('FACULTY')
     ) {
+      const teacherName = matchedTeacher?.name || selectedTeacher?.name || facultyCustomName || 'FACULTY IN-CHARGE';
+      const teacherId = matchedTeacher?.credential_id || selectedTeacher?.credential_id || 'INC-0001';
       setScannedResult({
         found: true,
         specialRole: {
           title: 'DELHI PUBLIC SCHOOL INDIRAPURAM',
-          name: facultyCustomName.trim() || 'FACULTY IN-CHARGE',
-          role: 'TEACHER-IN-CHARGE • FACULTY LEADERSHIP',
-          credentialId: 'INC-2026',
-          venueLocation: 'Faculty Command Desk • Central Atrium',
+          name: teacherName,
+          role: 'FACULTY INCHARGE • 2026',
+          credentialId: teacherId,
+          venueLocation: 'Exhibition Floor',
         },
-        message: 'Verified Faculty In-charge credentials authenticated for exhibition floor access.',
+        message: `Verified Faculty In-charge (${teacherName}) authenticated for exhibition floor access.`,
       });
       return;
     }
@@ -744,23 +781,31 @@ function PassAndAttendanceContent() {
   const currentRole: RoleType = unlockedRole || 'EXHIBITOR';
   const roleConfig = ROLE_CONFIG[currentRole];
 
+  // Enforce teacher-only access to optical live scanner
+  useEffect(() => {
+    if (currentRole !== 'INCHARGE' && activeTab === 'scanner') {
+      stopCamera();
+      setActiveTab('pass');
+    }
+  }, [currentRole, activeTab]);
+
   // Active Credential ID based on role and customizer
   const activeCredentialId = useMemo(() => {
     if (currentRole === 'EXHIBITOR') {
       return getStudentCredentialId(selectedStudent);
     }
     if (currentRole === 'INCHARGE') {
-      return (facultyCustomId || 'INC-2026').trim().toUpperCase();
+      return (selectedTeacher?.credential_id || facultyCustomId || 'INC-0001').trim().toUpperCase();
     }
     return (otherCustomId || `${roleConfig.codePrefix}-0001`).trim().toUpperCase();
-  }, [currentRole, selectedStudent, facultyCustomId, otherCustomId, roleConfig]);
+  }, [currentRole, selectedStudent, selectedTeacher, facultyCustomId, otherCustomId, roleConfig]);
 
   // Display name of the active credential holder
   const activeHolderName = useMemo(() => {
     if (currentRole === 'EXHIBITOR') return selectedStudent.student_name;
-    if (currentRole === 'INCHARGE') return facultyCustomName || 'FACULTY INCHARGE';
+    if (currentRole === 'INCHARGE') return selectedTeacher?.name || facultyCustomName || 'Shashank Jandge';
     return otherCustomName || roleConfig.classDefault;
-  }, [currentRole, selectedStudent, facultyCustomName, otherCustomName, roleConfig]);
+  }, [currentRole, selectedStudent, selectedTeacher, facultyCustomName, otherCustomName, roleConfig]);
 
   // Dynamic SVG for the active pass
   const activeBadgeSvg = useMemo(() => {
@@ -780,12 +825,13 @@ function PassAndAttendanceContent() {
     }
 
     if (currentRole === 'INCHARGE') {
+      const teacherName = (selectedTeacher?.name || facultyCustomName || 'SHASHANK JANDGE').trim().toUpperCase();
       return generateAppleCardSvg(template, {
-        name: facultyCustomName.trim() || 'FACULTY INCHARGE',
-        classSection: facultyCustomRole.trim() || 'SUPERVISORY COMMAND PASS',
+        name: teacherName,
+        classSection: '',
         credentialId: activeCredentialId,
-        projectDomain: facultyCustomDept.trim() || 'Department of Science & Innovation',
-        venueLocation: facultyCustomVenue.trim() || 'Faculty Command Desk • Central Atrium',
+        projectDomain: '',
+        venueLocation: '',
       });
     }
 
@@ -800,12 +846,10 @@ function PassAndAttendanceContent() {
     badgeTemplates,
     currentRole,
     selectedStudent,
+    selectedTeacher,
     roleConfig,
     activeCredentialId,
     facultyCustomName,
-    facultyCustomRole,
-    facultyCustomDept,
-    facultyCustomVenue,
     otherCustomName,
     otherCustomRole,
     otherCustomOrg,
@@ -1310,27 +1354,29 @@ function PassAndAttendanceContent() {
                     </button>
                   )}
 
-                  {/* Tab 4: Optical Scanner */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      stopCamera();
-                      setActiveTab('scanner');
-                    }}
-                    className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
-                      activeTab === 'scanner' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    {activeTab === 'scanner' && (
-                      <motion.div
-                        layoutId="activeTabPill"
-                        className="absolute inset-0 bg-white/[0.1] rounded-xl shadow-sm border border-white/[0.12]"
-                        transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                      />
-                    )}
-                    <Camera className="w-4 h-4 relative z-10 text-emerald-400" />
-                    <span className="relative z-10">Live Scanner</span>
-                  </button>
+                  {/* Tab 4: Optical Scanner (Restricted Exclusively to Teachers / Incharges) */}
+                  {currentRole === 'INCHARGE' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        stopCamera();
+                        setActiveTab('scanner');
+                      }}
+                      className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
+                        activeTab === 'scanner' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {activeTab === 'scanner' && (
+                        <motion.div
+                          layoutId="activeTabPill"
+                          className="absolute inset-0 bg-white/[0.1] rounded-xl shadow-sm border border-white/[0.12]"
+                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                        />
+                      )}
+                      <Camera className="w-4 h-4 relative z-10 text-emerald-400" />
+                      <span className="relative z-10">Live Scanner</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1397,120 +1443,58 @@ function PassAndAttendanceContent() {
                     </div>
                   )}
 
-                  {/* Customizable Form for Faculty Incharges */}
+                  {/* Faculty Incharge / Teacher Directory (8 Registered Teachers) */}
                   {currentRole === 'INCHARGE' && (
                     <div className="bg-white/[0.03] p-4 sm:p-5 rounded-3xl border border-white/[0.08] space-y-4 backdrop-blur-xl">
-                      <div className="flex items-center gap-2 text-xs font-mono font-bold text-purple-400 uppercase">
-                        <Sliders className="w-4 h-4" />
-                        <span>Customize Faculty Incharge / Mentor Pass</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-purple-400 uppercase">
+                          <Users className="w-4 h-4" />
+                          <span>Faculty Incharge Directory ({OFFICIAL_TEACHERS_AND_INCHARGES.length} Registered Teachers)</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-purple-300">
+                          Active Pass: {selectedTeacher.name} • {selectedTeacher.credential_id}
+                        </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
-                            FACULTY / MENTOR NAME
-                          </label>
-                          <input
-                            type="text"
-                            value={facultyCustomName}
-                            onChange={(e) => setFacultyCustomName(e.target.value)}
-                            placeholder="e.g. Dr. Priya Verma"
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-                          />
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {['Shashank Jangid', 'Shubham', 'Divya', 'Vaibhav & Ajay', 'Dana', 'Avneet', 'Krishna'].map((name) => (
-                              <button
-                                key={name}
-                                type="button"
-                                onClick={() => setFacultyCustomName(name)}
-                                className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.05] hover:bg-purple-900/40 text-slate-300 hover:text-purple-200 border border-white/[0.08] transition-colors"
-                              >
-                                {name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
-                            DESIGNATION / ROLE TITLE
-                          </label>
-                          <input
-                            type="text"
-                            value={facultyCustomRole}
-                            onChange={(e) => setFacultyCustomRole(e.target.value)}
-                            placeholder="e.g. Faculty Incharge / Head of CS"
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-                          />
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {['Faculty Incharge', 'Head of CS & AI', 'Senior Physics Mentor', 'ATL Coordinator'].map((role) => (
-                              <button
-                                key={role}
-                                type="button"
-                                onClick={() => setFacultyCustomRole(role)}
-                                className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.05] hover:bg-purple-900/40 text-slate-300 hover:text-purple-200 border border-white/[0.08] transition-colors"
-                              >
-                                {role}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
-                            DEPARTMENT / INNOVATION DIVISION
-                          </label>
-                          <input
-                            type="text"
-                            value={facultyCustomDept}
-                            onChange={(e) => setFacultyCustomDept(e.target.value)}
-                            placeholder="e.g. Department of Science & Innovation"
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
-                            STATION / COMMAND DESK
-                          </label>
-                          <input
-                            type="text"
-                            value={facultyCustomVenue}
-                            onChange={(e) => setFacultyCustomVenue(e.target.value)}
-                            placeholder="e.g. Faculty Command Desk • Central Atrium"
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
-                            FACULTY CREDENTIAL ID (AUTO-HASHED)
-                          </label>
-                          <input
-                            type="text"
-                            value={facultyCustomId}
-                            onChange={(e) => setFacultyCustomId(e.target.value)}
-                            placeholder="e.g. INC-2026"
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-amber-300 placeholder-slate-500 focus:outline-none focus:border-purple-500 uppercase"
-                          />
-                        </div>
-
-                        <div className="flex items-end">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFacultyCustomName('Dr. Priya Verma');
-                              setFacultyCustomRole('Faculty Incharge');
-                              setFacultyCustomDept('Department of Science & Innovation');
-                              setFacultyCustomVenue('Faculty Command Desk • Central Atrium');
-                              setFacultyCustomId('INC-2026');
-                            }}
-                            className="px-3 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 text-xs font-mono font-bold border border-white/[0.08] transition-colors w-full flex items-center justify-center gap-1.5 active:scale-95"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Reset Defaults</span>
-                          </button>
-                        </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        {OFFICIAL_TEACHERS_AND_INCHARGES.map((teacher) => {
+                          const isSelected = selectedTeacher.name === teacher.name;
+                          return (
+                            <button
+                              key={teacher.credential_id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedTeacher(teacher);
+                                setFacultyCustomName(teacher.name);
+                                setFacultyCustomId(teacher.credential_id);
+                              }}
+                              className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+                                isSelected
+                                  ? 'bg-purple-600/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10 ring-1 ring-purple-400'
+                                  : 'bg-black/30 border-white/[0.08] text-slate-300 hover:bg-white/[0.05] hover:border-white/[0.15]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                                  isSelected ? 'bg-purple-500 text-white' : 'bg-white/10 text-slate-400'
+                                }`}>
+                                  {teacher.credential_id}
+                                </span>
+                                {isSelected && (
+                                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34D399]" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs sm:text-sm font-sans font-bold leading-tight">
+                                  {teacher.name}
+                                </p>
+                                <p className="text-[10px] font-mono text-slate-400 mt-0.5">
+                                  Faculty Incharge
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -2033,9 +2017,9 @@ function PassAndAttendanceContent() {
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 4: OPTICAL CAMERA SCANNER & INSTANT VERIFICATION                      */}
+              {/* TAB 4: OPTICAL CAMERA SCANNER & INSTANT VERIFICATION (TEACHERS ONLY)      */}
               {/* ========================================================================= */}
-              {activeTab === 'scanner' && (
+              {activeTab === 'scanner' && currentRole === 'INCHARGE' && (
                 <div className="max-w-2xl mx-auto space-y-6">
                   <div className="bg-white/[0.03] p-5 sm:p-6 rounded-3xl border border-white/[0.08] space-y-5 backdrop-blur-xl">
                     <div className="text-center space-y-1">

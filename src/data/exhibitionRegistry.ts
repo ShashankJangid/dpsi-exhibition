@@ -123,8 +123,9 @@ export interface TeacherEntry {
   name: string;
   role: 'INCHARGE' | 'MENTOR';
   pass_code: string;
-  department: string;
-  assigned_projects: number[];
+  credential_id: string;
+  department?: string;
+  assigned_projects?: number[];
 }
 
 export interface OfficialProjectEntry {
@@ -147,13 +148,14 @@ export const PROPRIETARY_ACCESS_CODES = {
 } as const;
 
 export const OFFICIAL_TEACHERS_AND_INCHARGES: TeacherEntry[] = [
-  { name: 'Shashank Jangid', role: 'INCHARGE', pass_code: 'TEACHER2026', department: 'Computer Science & AI', assigned_projects: [3, 9, 10, 12, 16, 26, 30, 35, 36] },
-  { name: 'Shubham', role: 'INCHARGE', pass_code: 'TEACHER2026', department: 'Robotics & Physical Systems', assigned_projects: [7, 8, 13, 15, 25, 27, 29, 33] },
-  { name: 'Divya', role: 'INCHARGE', pass_code: 'TEACHER2026', department: 'Digital Systems & Software', assigned_projects: [11, 13, 14, 17, 18, 19, 25, 31] },
-  { name: 'Vaibhav & Ajay', role: 'INCHARGE', pass_code: 'TEACHER2026', department: 'Applied Tech & Electronics', assigned_projects: [2, 4, 6, 20, 23, 24, 28] },
-  { name: 'Dana', role: 'MENTOR', pass_code: 'TEACHER2026', department: 'Business & Ventures', assigned_projects: [1] },
-  { name: 'Avneet', role: 'MENTOR', pass_code: 'TEACHER2026', department: 'Business & Design', assigned_projects: [5] },
-  { name: 'Krishna', role: 'MENTOR', pass_code: 'TEACHER2026', department: 'Eco & Physical Sciences', assigned_projects: [22] },
+  { name: 'Shashank Jandge', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0001' },
+  { name: 'Shubham', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0002' },
+  { name: 'Divya', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0003' },
+  { name: 'Vaibhav', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0004' },
+  { name: 'Ajay', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0005' },
+  { name: 'Dana', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0006' },
+  { name: 'Amit', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0007' },
+  { name: 'Krishna', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0008' },
 ];
 
 export const OFFICIAL_PROJECTS_CATALOG: OfficialProjectEntry[] = [
