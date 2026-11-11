@@ -1,97 +1,42 @@
-# Project: DPSI Exhibition Platform Productionization
+# Project: DPS Indirapuram Exhibition - PictureRailGallery Integration
 
 ## Architecture
-The DPSI Exhibition platform is a real-time web application built with Next.js (App Router, React 19, Three.js) backed natively and securely by Google Firebase services:
-- **Firebase Authentication**: Native Google OAuth (`signInWithPopup`) and Anonymous/Guest (`signInAnonymously`) authentication. All client session states are tied to `auth.currentUser`.
-- **Cloud Firestore**: Real-time document database storing `projects` (exhibition booth showcase and atomic vote counter) and `votes` (immutable append-only audit records).
-- **Cloud Functions for Firebase (v2)**: Standalone TypeScript codebase in `functions/` (Node.js 22, `firebase-functions` v6+, `firebase-admin` v13+) providing the authoritative `vote` HTTPS endpoint with multi-layer anti-cheat (schema validation, salted SHA-256 IP hashing + rate limiting, canvas hardware fingerprint collision check, and atomic Firestore transactions).
-- **Firestore Security Rules**: Zero-trust default-deny rules (`firestore.rules`) enforcing domain type guards, atomic counter increment validation (+1 strictly on `projects.vote_count`), immutable append-only semantics on `votes`, and PII lockdown.
-- **Project Configuration**: Declarative `firebase.json` and `.firebaserc` targeting active project `smarthome-88486`.
+- **Framework**: Next.js 16.4.3 (Turbopack, App Router, static export `output: 'export'`), React 19.3.0.
+- **Styling**: Tailwind CSS v4 with `@custom-variant dark`, CSS Color Level 4 (`color-mix(in oklab, ...)`), dynamic CSS variables in `:root` and `html.dark`, and `@theme` semantic color tokens.
+- **Component**: `PictureRailGallery` (`src/components/ui/picture-rail-gallery.tsx`) - zero-external-dependency, physics-driven interactive picture rail gallery with sub-step Euler momentum simulation, responsive carousel fallback on narrow viewports, and detail close-up modal via portal.
+- **Dataset**: `EXHIBITION_GALLERY_ITEMS` (`src/components/ui/demo.tsx` & `src/data/exhibitionGalleryData.ts`) - 7 curated DPS Indirapuram student exhibits with aspect ratios, realistic mat boards, frame styles (`black`, `oak`, `white`), tags, and technical specs.
+- **Main Page Flow**: `src/app/page.tsx` - Dedicated `#gallery` Photo View section plus `#projects` directory view toggle.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Firebase Project Config | Declarative `firebase.json` linking `firestore`, `functions` (Node 22, predeploy), and `auth.providers` | M1 | ORIGINAL_REQUEST §R4 |
-| 2 | Active Project Linkage | Verified binding to default project `smarthome-88486` in `.firebaserc` | M1 | ORIGINAL_REQUEST §R4 |
-| 3 | Functions Package Scaffold | Standalone `functions/package.json` and `tsconfig.json` targeting Node 22 and ES2022 | M1 | ORIGINAL_REQUEST §R2 |
-| 4 | Cloud Functions v2 Vote Handler | Serverless HTTPS function using `firebase-admin` and `firebase-functions` v6+ | M2 | ORIGINAL_REQUEST §R2 |
-| 5 | Anti-Cheat Schema Validation | Rigorous payload validation for `projectId`, `deviceFingerprint`, `userId`, `userEmail` | M2 | ORIGINAL_REQUEST §R2 |
-| 6 | IP Rate Limiting & Hashing | Volumetric flood protection (30-60 req/min/IP) with salted SHA-256 hashing | M2 | ORIGINAL_REQUEST §R2 |
-| 7 | Atomic Firestore Transaction | Deduplicating votes by `${projectId}_${deviceFingerprint}` and atomic `+1` on `projects.vote_count` | M2 | ORIGINAL_REQUEST §R2 |
-| 8 | Production Firestore Security Rules | Zero-trust default deny, domain validators, +1 counter isolation, PII lockdown | M3 | ORIGINAL_REQUEST §R3 |
-| 9 | Native Firebase Auth Client | Google OAuth and Anonymous visitor sign-in in `src/lib/firebase.ts` | M4 | ORIGINAL_REQUEST §R1 |
-| 10 | Auth UI & Session Management | Remove mock fallbacks in `AuthModal.tsx`, add proper sign-out in `TopNavHUD.tsx`, single listener | M4 | ORIGINAL_REQUEST §R1 |
-| 11 | Client Voting Integration | Wire `ProjectDetailDrawer.tsx` to Cloud Functions v2 endpoint, remove duplicate client writes | M4 | ORIGINAL_REQUEST §R1/R2 |
-| 12 | Build & Verification Integrity | Clean compilation of root Next.js (`npm run build`) and functions (`npm --prefix functions run build`) | M5 | ORIGINAL_REQUEST AC |
+| 1 | PictureRailGallery Component | Physics-driven hanging picture rail with interactive swing, tilt, drag, autoplay, and detail modal | M1 | Survey 1 |
+| 2 | Exhibition Gallery Demo Data | 7 curated student inventions with specs, frame styles, and secure HTTPS images | M1 | Survey 2 |
+| 3 | Dedicated Photo View Section | Dedicated `#gallery` section in `src/app/page.tsx` with responsive layout and navigation integration | M1 | Survey 2 |
+| 4 | CSS Variables & Theme Tokens | Configure all required CSS variables and `@theme` tokens in `src/app/globals.css` for light and dark modes | M1 | Survey 3 |
+| 5 | Unit Testing & Verification | Comprehensive unit tests for gallery items, security, CSS variables, and page integration passing `npm test` | M1 | Survey 3 |
+| 6 | Production Readiness | `npm run lint` and `npm run build` exit cleanly with zero errors | M1 | Survey 3 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Firebase Config & Functions Scaffolding | `firebase.json`, `.firebaserc`, `functions/package.json`, `functions/tsconfig.json` | none | DONE |
-| M2 | Cloud Functions v2 Anti-Cheat Voting Codebase | `functions/src/index.ts` with atomic transaction, rate limiting, validation, clean build | M1 | DONE |
-| M3 | Production-Grade Firestore Security Rules | Authoring and compiling `firestore.rules` via `firestore-rules-author` | M1 | DONE |
-| M4 | Native Firebase Auth & Client Integration | `src/lib/firebase.ts`, `AuthModal.tsx`, `TopNavHUD.tsx`, `page.tsx`, `ProjectDetailDrawer.tsx` | M2, M3 | DONE |
-| M5 | Build Integrity & E2E Verification | Root Next.js build, functions build, rules dry-run, full AC verification | M4 | DONE |
+| 1 | Gallery Integration & Verification | Refine CSS variables in `globals.css`, finalize header nav & photo view integration in `page.tsx`, expand unit tests in `tests/pictureRailGallery.test.ts`, and verify via lint, test, build, challenger, and forensic audit | none | DONE |
 
 ## Interface Contracts
-### Client ↔ Cloud Functions v2 (`/api/vote` or Cloud Functions URL)
-- Request:
-  ```json
-  {
-    "projectId": "p01",
-    "fingerprint": "canvas_hash_string",
-    "userId": "firebase_auth_uid",
-    "userEmail": "visitor@example.com"
-  }
-  ```
-- Response (200 OK):
-  ```json
-  {
-    "success": true,
-    "message": "Vote recorded successfully",
-    "newVoteCount": 42
-  }
-  ```
-- Response (409 Conflict):
-  ```json
-  {
-    "success": false,
-    "alreadyVoted": true,
-    "message": "You have already voted for this project"
-  }
-  ```
-- Response (429 Too Many Requests):
-  ```json
-  {
-    "success": false,
-    "message": "Too many requests. Please wait before submitting another vote."
-  }
-  ```
-
-### Cloud Functions ↔ Firestore Data Model
-- Collection `projects/{projectId}`:
-  - Document fields: `id`, `title`, `zone`, `category`, `booth_code`, `booth_number`, `position_x`, `position_y`, `position_z`, `image_url`, `description`, `members`, `vote_count` (number, incremented via `FieldValue.increment(1)`).
-- Collection `votes/{projectId}_{deviceFingerprint}`:
-  - Document fields:
-    - `projectId`: string
-    - `userId`: string
-    - `deviceFingerprint`: string
-    - `ipHash`: string (SHA-256 salted hash)
-    - `userEmail`: string | null
-    - `createdAt`: FieldValue.serverTimestamp()
+### `src/components/ui/picture-rail-gallery.tsx` ↔ `src/app/page.tsx`
+- **Component**: `PictureRailGallery(props: PictureRailGalleryProps): JSX.Element`
+- **Props**:
+  - `items: PictureRailItem[]` (required: id, title, image; optional: artist, year, aspect, frame, mat, drop, tag, details)
+  - `eyebrow?: string`, `heading?: string`, `caption?: string`, `action?: React.ReactNode`
+  - `autoplay?: boolean`, `interval?: number`
+- **CSS Variables Expected**:
+  - `--color-foreground`, `--color-card`, `--color-muted`, `--wash`
+  - Semantic Tailwind v4 tokens: `--color-background`, `--color-foreground`, `--color-card`, `--color-card-foreground`, `--color-muted`, `--color-muted-foreground`, `--color-border`, `--color-ring`
 
 ## Code Layout
-- `firebase.json`: Declarative Firebase configuration (Firestore, Functions, Auth providers).
-- `.firebaserc`: Active project alias (`default: smarthome-88486`).
-- `firestore.rules`: Security rules for Cloud Firestore.
-- `firestore.indexes.json`: Firestore indexing configuration.
-- `functions/`:
-  - `package.json`: Node 22, firebase-functions v6+, firebase-admin, typescript.
-  - `tsconfig.json`: TypeScript configuration for Cloud Functions.
-  - `src/index.ts`: Cloud Functions v2 entrypoint (`vote` HTTPS function).
-- `src/`:
-  - `lib/firebase.ts`: Client Firebase SDK initialization, auth helpers, real-time listeners.
-  - `components/ui/AuthModal.tsx`: Native Google & Anonymous sign-in modal.
-  - `components/ui/TopNavHUD.tsx`: HUD navigation, user profile display, and sign-out handler.
-  - `components/ui/ProjectDetailDrawer.tsx`: Project details and serverless vote submission.
-  - `app/page.tsx`: Main exhibition canvas and synchronized auth state listener.
+- `src/components/ui/picture-rail-gallery.tsx`: Gallery component
+- `src/components/ui/demo.tsx`: Demo export & re-export of curated data
+- `src/data/exhibitionGalleryData.ts`: 7 curated student exhibits dataset
+- `src/app/globals.css`: Design tokens, dark mode variants, and CSS variables
+- `src/app/page.tsx`: Exhibition main page containing `#gallery` photo view section
+- `tests/pictureRailGallery.test.ts`: Integration & unit tests for gallery

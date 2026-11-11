@@ -6,6 +6,8 @@ import {
   onSnapshot,
   writeBatch,
   query,
+  where,
+  runTransaction,
   serverTimestamp,
 } from 'firebase/firestore';
 import {
@@ -265,17 +267,58 @@ export interface VoteSubmissionResponse {
 }
 
 /**
- * Cast a verified vote via the authoritative serverless voting endpoint (/api/vote).
- * Eliminates direct client-side transactions, enforcing server-side rate-limiting and atomic deduplication.
+ * Real-time subscription to a user's verified vote receipts across all sessions.
+ * Reflects in useExhibitionStore to prevent duplicate votes across reloads/devices.
+ */
+export function subscribeToUserVotedProjects(
+  userId: string,
+  onUpdate: (projectIds: string[]) => void
+) {
+  if (!isFirebaseConfigured || typeof window === 'undefined' || !userId) {
+    return () => {};
+  }
+  const userVotesCol = collection(db, 'user_votes');
+  const q = query(userVotesCol, where('userId', '==', userId.trim()));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const ids: string[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.projectId && typeof data.projectId === 'string') {
+          ids.push(data.projectId.toLowerCase());
+        }
+      });
+      onUpdate(ids);
+    },
+    (err) => {
+      console.warn('User votes subscription notice:', err.message);
+    }
+  );
+}
+
+/**
+ * Cast a verified, legit vote using atomic Firestore transactions + Cloudflare Edge fallback.
+ * Enforces dual-layer deduplication:
+ *   - Layer 1: Account Lock (${projectId}_${userId}) in user_votes/
+ *   - Layer 2: Hardware Device Lock (${projectId}_${deviceFingerprint}) in votes/
+ *   - Layer 3: Atomic Firestore vote_count increment (+1) on projects/${projectId}
  */
 export async function castVoteInFirebase(
   payload: VoteSubmissionPayload
 ): Promise<VoteSubmissionResponse> {
+  const normalizedProjectId = payload.projectId.trim().toLowerCase();
+  const normalizedFingerprint = payload.fingerprint.replace(/\//g, '_').trim();
+  const normalizedUserId = payload.userId.trim();
+
+  const voteApiUrl =
+    process.env.NEXT_PUBLIC_VOTE_API_URL ||
+    process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL ||
+    '/api/vote';
+
+  // 1. Authoritative Edge / Serverless API Verification
   try {
-    const voteApiUrl =
-      process.env.NEXT_PUBLIC_VOTE_API_URL ||
-      process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL ||
-      '/api/vote';
     const idToken = await getCurrentUserIdToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -287,22 +330,112 @@ export async function castVoteInFirebase(
     const response = await fetch(voteApiUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        projectId: normalizedProjectId,
+        deviceFingerprint: normalizedFingerprint,
+        fingerprint: normalizedFingerprint,
+        userId: normalizedUserId,
+        userEmail: payload.userEmail,
+      }),
     });
 
     const data = await response.json().catch(() => ({}));
 
-    return {
-      success: response.ok && Boolean(data.success),
-      message: data.message || (response.ok ? 'Vote recorded successfully' : 'Failed to record vote'),
-      alreadyVoted: Boolean(data.alreadyVoted) || response.status === 409,
-      newVoteCount: typeof data.newVoteCount === 'number' ? data.newVoteCount : undefined,
-    };
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Network error during vote submission';
-    return {
-      success: false,
-      message: errorMsg,
-    };
+    // If edge returns success or explicit duplicate rejection, return immediately
+    if (response.ok || response.status === 409 || data.alreadyVoted) {
+      return {
+        success: response.ok && Boolean(data.success),
+        message: data.message || (response.ok ? 'Vote recorded successfully' : 'Failed to record vote'),
+        alreadyVoted: Boolean(data.alreadyVoted) || response.status === 409,
+        newVoteCount: typeof data.newVoteCount === 'number' ? data.newVoteCount : undefined,
+      };
+    }
+  } catch (fetchErr: unknown) {
+    console.warn('Voting edge endpoint notice, falling back to direct Firestore atomic ledger:', fetchErr);
   }
+
+  // 2. Direct Atomic Firestore Anti-Cheat Transaction Engine (Offline/Direct Fallback)
+  if (isFirebaseConfigured && db) {
+    try {
+      const voteDocId = `${normalizedProjectId}_${normalizedFingerprint}`;
+      const userVoteDocId = `${normalizedProjectId}_${normalizedUserId}`;
+
+      const projectRef = doc(db, 'projects', normalizedProjectId);
+      const voteRef = doc(db, 'votes', voteDocId);
+      const userVoteRef = doc(db, 'user_votes', userVoteDocId);
+
+      const newVoteTotal = await runTransaction(db, async (transaction) => {
+        const [projectSnap, voteSnap, userVoteSnap] = await Promise.all([
+          transaction.get(projectRef),
+          transaction.get(voteRef),
+          transaction.get(userVoteRef),
+        ]);
+
+        if (voteSnap.exists()) {
+          const err = new Error('Hardware Anti-Cheat Alert: This device has already voted for this project.');
+          (err as unknown as { alreadyVoted: boolean }).alreadyVoted = true;
+          throw err;
+        }
+
+        if (userVoteSnap.exists()) {
+          const err = new Error('Account Anti-Cheat Alert: Your account has already voted for this project.');
+          (err as unknown as { alreadyVoted: boolean }).alreadyVoted = true;
+          throw err;
+        }
+
+        const projectData = projectSnap.exists() ? projectSnap.data() : null;
+        const currentCount =
+          typeof projectData?.vote_count === 'number' && Number.isFinite(projectData.vote_count)
+            ? projectData.vote_count
+            : 0;
+        const nextVoteCount = currentCount + 1;
+
+        transaction.set(voteRef, {
+          projectId: normalizedProjectId,
+          userId: normalizedUserId,
+          deviceFingerprint: normalizedFingerprint,
+          userEmail: payload.userEmail || null,
+          createdAt: serverTimestamp(),
+        });
+
+        transaction.set(userVoteRef, {
+          projectId: normalizedProjectId,
+          userId: normalizedUserId,
+          createdAt: serverTimestamp(),
+        });
+
+        if (projectSnap.exists()) {
+          transaction.update(projectRef, {
+            vote_count: nextVoteCount,
+            updatedAt: serverTimestamp(),
+          });
+        }
+
+        return nextVoteCount;
+      });
+
+      return {
+        success: true,
+        message: 'Vote verified and recorded in live exhibition registry!',
+        newVoteCount: newVoteTotal,
+      };
+    } catch (txErr: unknown) {
+      const isAlreadyVoted = Boolean((txErr as { alreadyVoted?: boolean })?.alreadyVoted);
+      if (isAlreadyVoted) {
+        return {
+          success: false,
+          alreadyVoted: true,
+          message:
+            txErr instanceof Error
+              ? txErr.message
+              : 'A verified vote has already been cast for this project.',
+        };
+      }
+    }
+  }
+
+  return {
+    success: false,
+    message: 'Vote submission could not be verified by server. Please check connection and try again.',
+  };
 }

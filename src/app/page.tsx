@@ -19,6 +19,8 @@ import {
   ShieldCheck,
   Layers,
   Lock,
+  LayoutGrid,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -31,8 +33,10 @@ import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import SearchModal from '@/components/ui/SearchModal';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
 import ProjectCardSkeleton from '@/components/ui/ProjectCardSkeleton';
+import PictureRailGallery, { type PictureRailItem, type PictureFrameStyle } from '@/components/ui/picture-rail-gallery';
+import { EXHIBITION_GALLERY_ITEMS } from '@/components/ui/demo';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
-import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult } from '@/lib/firebase';
+import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult, subscribeToUserVotedProjects } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 
 // React Bits Components loaded dynamically for SSR safety
@@ -81,6 +85,7 @@ export default function LandingPage() {
 
   type FilterCategory = 'all' | 'Physical' | 'Digital' | 'Business' | 'Show & Tell' | 'Robotics';
   const [selectedZone, setSelectedZone] = useState<FilterCategory>('all');
+  const [directoryView, setDirectoryView] = useState<'grid' | 'rail'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
@@ -168,6 +173,37 @@ export default function LandingPage() {
     };
   }, [setIsMobile, setDeviceFingerprint, setUser, setProjects, setSearchModalOpen]);
 
+  // Load locally saved votes from localStorage on client mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('dpsi_voted_project_ids');
+      if (stored) {
+        const ids = JSON.parse(stored);
+        if (Array.isArray(ids)) {
+          ids.forEach((id: string) => markProjectVoted(id));
+        }
+      }
+    } catch {
+      // LocalStorage access fallback
+    }
+  }, [markProjectVoted]);
+
+  // Subscribe to verified user votes from Firestore when user identity is present
+  useEffect(() => {
+    if (!user?.id) return;
+    const unsub = subscribeToUserVotedProjects(user.id, (ids) => {
+      ids.forEach((id) => markProjectVoted(id));
+      try {
+        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
+        const merged = Array.from(new Set([...existing, ...ids]));
+        localStorage.setItem('dpsi_voted_project_ids', JSON.stringify(merged));
+      } catch {
+        // localStorage fallback
+      }
+    });
+    return () => unsub();
+  }, [user?.id, markProjectVoted]);
+
   const allProjects = storeProjects.length > 0 ? storeProjects : SEED_PROJECTS;
   const filteredProjects = allProjects.filter((p) => {
     // 1. Category / Zone filter
@@ -192,6 +228,33 @@ export default function LandingPage() {
     }
     return true;
   });
+
+  const projectRailItems: PictureRailItem[] = useMemo(() => {
+    const list = filteredProjects.length > 0 ? filteredProjects : allProjects;
+    return list.map((p, idx) => {
+      const styles: PictureFrameStyle[] = ['black', 'oak', 'white'];
+      const frame = styles[idx % styles.length];
+      const drops = [-0.05, 0.08, -0.02, 0.12, -0.08, 0.04, -0.04, 0.06];
+      return {
+        id: p.id,
+        title: p.title.replace(/^[A-Z0-9]+\s*•\s*/, ''),
+        artist: p.members?.length ? p.members.join(', ') : 'Student Innovators',
+        year: '2026',
+        image: p.image_url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=85',
+        aspect: 0.8,
+        frame,
+        mat: idx % 2 === 0,
+        drop: drops[idx % drops.length],
+        tag: `Booth ${p.booth_code} • ${p.category}`,
+        details: [
+          `Booth: ${p.booth_code} • Category: ${p.category}`,
+          `Tech Stack: ${p.tech_stack?.join(', ') || 'Embedded Systems'}`,
+          `Community Votes: ${p.vote_count} ballots cast`,
+          `Venue: DPS Indirapuram Innovation Fest`,
+        ],
+      };
+    });
+  }, [filteredProjects, allProjects]);
 
   // Deep link support (?booth=P04 or ?booth=ST01) - consumed once per query parameter
   const handledBoothRef = useRef<string | null>(null);
@@ -354,6 +417,7 @@ export default function LandingPage() {
           <nav className="hidden lg:flex items-stretch text-xs font-mono">
             {[
               { href: '#stage', label: 'Stage' },
+              { href: '#gallery', label: 'Photo View' },
               { href: '#projects', label: '44 Inventions' },
               { href: '#arenas', label: '3 Arenas' },
               { href: '#voting', label: 'Live Voting' },
@@ -386,13 +450,10 @@ export default function LandingPage() {
                   ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
                   : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
               }`}
-              title="Search Projects (⌘K)"
+              title="Search Projects"
             >
               <Search className="w-3.5 h-3.5 text-amber-500" />
               <span className="hidden xl:inline">Search</span>
-              <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                ⌘K
-              </kbd>
             </button>
 
             {/* Delegate Pass Modal Trigger */}
@@ -516,9 +577,6 @@ export default function LandingPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 <span className="truncate font-bold tracking-tight">DELHI PUBLIC SCHOOL INDIRAPURAM</span>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono tracking-wider">
-                MAIN AUDITORIUM • 28.6479° N, 77.3764° E
-              </span>
             </div>
 
             {/* Canvas Container with Balanced Proportions */}
@@ -575,7 +633,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#3fb950] font-bold block tabular-nums">[ 12 BOOTHS ]</span>
+                  <span className="text-[#3fb950] font-bold block tabular-nums">12 BOOTHS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Physical Computing (P)
                   </span>
@@ -583,7 +641,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#58a6ff] font-bold block tabular-nums">[ 12 BOOTHS ]</span>
+                  <span className="text-[#58a6ff] font-bold block tabular-nums">12 BOOTHS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Digital &amp; AI Software (D)
                   </span>
@@ -591,7 +649,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#d2a8ff] font-bold block tabular-nums">[ 08 BOOTHS ]</span>
+                  <span className="text-[#d2a8ff] font-bold block tabular-nums">08 BOOTHS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Business Ventures (B)
                   </span>
@@ -599,7 +657,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#f0883e] font-bold block tabular-nums">[ 04 HEATS ]</span>
+                  <span className="text-[#f0883e] font-bold block tabular-nums">04 HEATS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Robotics Battle Arena
                   </span>
@@ -753,6 +811,56 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ─── DEDICATED PHOTO VIEW SECTION: INNOVATION PICTURE RAIL GALLERY ─── */}
+      <section id="gallery" className={`scroll-mt-16 border-b py-12 transition-colors duration-300 w-full overflow-hidden ${
+        isLight ? 'border-slate-200/80 bg-slate-100/40' : 'border-[#30363d] bg-[#02040a]'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 mb-6">
+          <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b ${
+            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
+          }`}>
+            <div>
+              <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
+                PHOTO VIEW GALLERY
+              </span>
+              <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
+                isLight ? 'text-slate-800' : 'text-white'
+              }`}>
+                Innovation Picture Rail
+              </h2>
+              <p className={`mt-2 text-xs sm:text-sm font-mono max-w-xl ${
+                isLight ? 'text-slate-600' : 'text-slate-400'
+              }`}>
+                Experience all 44 student inventions suspended on a continuous brass gallery rail. Drag any wire to propagate physical momentum; click any frame to lift into high-resolution focus or flip for technical dossiers.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href="#projects"
+                className={`px-3.5 py-2 rounded-xl border text-xs font-mono font-medium transition-all ${
+                  isLight
+                    ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
+                    : 'border-[#30363d] bg-[#0d1117] text-slate-300 hover:text-white'
+                }`}
+              >
+                Browse Booth Directory &darr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Spans full display width seamlessly without inner box borders or card container */}
+        <div className="w-full">
+          <PictureRailGallery
+            items={EXHIBITION_GALLERY_ITEMS}
+            eyebrow="DPS INDIRAPURAM • SUMMIT 2026"
+            heading="Curated Innovation Prints"
+            caption="Physics-driven pendulum swinging with sub-step Euler momentum. Click any frame to lift and examine."
+            className="bg-transparent"
+          />
+        </div>
+      </section>
+
       {/* ─── GITHUB UNIVERSE STYLE 44 INVENTIONS DIRECTORY ─── */}
       <section id="projects" className={`scroll-mt-16 border-b pt-6 pb-12 transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
@@ -826,10 +934,54 @@ export default function LandingPage() {
                   </button>
                 ))}
               </div>
+
+              {/* View Mode Toggle: Grid vs Hanging Picture Rail */}
+              <div className={`flex items-center border rounded-xl p-1 shrink-0 ${
+                isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+              }`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setDirectoryView('grid');
+                  }}
+                  aria-label="Grid card view"
+                  title="Grid Card View"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                    directoryView === 'grid'
+                      ? 'bg-[#238636] text-white font-bold shadow-xs'
+                      : isLight
+                      ? 'text-slate-600 hover:text-slate-900'
+                      : 'text-[#8b949e] hover:text-white'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Grid</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setDirectoryView('rail');
+                  }}
+                  aria-label="Picture rail gallery view"
+                  title="Interactive Hanging Picture Rail View"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                    directoryView === 'rail'
+                      ? 'bg-[#238636] text-white font-bold shadow-xs'
+                      : isLight
+                      ? 'text-slate-600 hover:text-slate-900'
+                      : 'text-[#8b949e] hover:text-white'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Photo Rail</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* High-Density Session Cards Grid */}
+          {/* High-Density Session Cards Grid OR Picture Rail Gallery */}
           {filteredProjects.length === 0 ? (
             <div className={`mt-8 p-12 text-center border rounded-xl font-mono ${
               isLight ? 'border-slate-300/80 bg-white/60' : 'border-[#30363d] bg-[#0d1117]'
@@ -847,6 +999,16 @@ export default function LandingPage() {
               >
                 Clear Search &amp; Filters
               </button>
+            </div>
+          ) : directoryView === 'rail' ? (
+            <div className="mt-8 w-full overflow-hidden">
+              <PictureRailGallery
+                items={projectRailItems}
+                eyebrow="INVENTIONS PICTURE RAIL"
+                heading={selectedZone === 'all' ? 'All Inventions Gallery' : `${selectedZone} Inventions Gallery`}
+                caption="Drag any brass wire to swing the prints along the rail. Click any frame to lift it into 3D view or flip to study specifications."
+                className="bg-transparent"
+              />
             </div>
           ) : (
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1410,6 +1572,9 @@ export default function LandingPage() {
             <Link href="/expo" className={`hover:underline ${isLight ? 'text-blue-600 font-semibold' : 'text-white'}`}>
               3D Floor Plan
             </Link>
+            <a href="#gallery" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
+              Photo View
+            </a>
             <a href="#projects" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
               44 Inventions
             </a>
