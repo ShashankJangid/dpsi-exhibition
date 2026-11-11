@@ -33,6 +33,7 @@ import {
   Upload,
 } from 'lucide-react';
 import jsQR from 'jsqr';
+import { detectTopotagFailsafe } from '@/lib/topotagDetector';
 import {
   OFFICIAL_STUDENTS_ROSTER,
   OFFICIAL_TEACHERS_AND_INCHARGES,
@@ -491,6 +492,8 @@ function PassAndAttendanceContent() {
   const [scannerInputCode, setScannerInputCode] = useState('');
   const [scannedResult, setScannedResult] = useState<{
     found: boolean;
+    scanMethod?: 'QR_CODE' | 'TOPOTAG_FAILSAFE';
+    hammingDistance?: number;
     student?: StudentEntry;
     record?: AttendanceRecord;
     specialRole?: {
@@ -604,7 +607,7 @@ function PassAndAttendanceContent() {
   }, [juryAttendanceList]);
 
   // Optical & Manual code scanner check
-  const handleScanCode = useCallback((code: string) => {
+  const handleScanCode = useCallback((code: string, scanMethod: 'QR_CODE' | 'TOPOTAG_FAILSAFE' = 'QR_CODE', hammingDistance?: number) => {
     let clean = code.trim().toUpperCase();
     if (!clean) return;
 
@@ -664,6 +667,8 @@ function PassAndAttendanceContent() {
 
       setScannedResult({
         found: true,
+        scanMethod,
+        hammingDistance,
         specialRole: {
           title: 'DELHI PUBLIC SCHOOL INDIRAPURAM',
           name: teacherName,
@@ -671,7 +676,9 @@ function PassAndAttendanceContent() {
           credentialId: teacherId,
           venueLocation: 'Exhibition Floor',
         },
-        message: `Verified Faculty In-charge (${teacherName}) attendance authenticated as PRESENT.`,
+        message: scanMethod === 'TOPOTAG_FAILSAFE'
+          ? `[TOPOTAG OPTICAL RECOVERY] Verified Faculty In-charge (${teacherName}) attendance authenticated as PRESENT via TopoTag invariant matrix.`
+          : `Verified Faculty In-charge (${teacherName}) attendance authenticated as PRESENT.`,
       });
       return;
     }
@@ -712,6 +719,8 @@ function PassAndAttendanceContent() {
 
       setScannedResult({
         found: true,
+        scanMethod,
+        hammingDistance,
         specialRole: {
           title: 'DPSI TECH & INNOVATION EXHIBITION 2026',
           name: juryName,
@@ -719,7 +728,9 @@ function PassAndAttendanceContent() {
           credentialId: juryId,
           venueLocation: 'VIP & Evaluation Pavilion • Main Stage',
         },
-        message: `Verified Grand Jury Evaluator (${juryName}) attendance authenticated as PRESENT.`,
+        message: scanMethod === 'TOPOTAG_FAILSAFE'
+          ? `[TOPOTAG OPTICAL RECOVERY] Verified Grand Jury Evaluator (${juryName}) attendance authenticated as PRESENT via TopoTag invariant matrix.`
+          : `Verified Grand Jury Evaluator (${juryName}) attendance authenticated as PRESENT.`,
       });
       return;
     }
@@ -759,6 +770,8 @@ function PassAndAttendanceContent() {
 
       setScannedResult({
         found: true,
+        scanMethod,
+        hammingDistance,
         specialRole: {
           title: 'DISTINGUISHED SUMMIT DELEGATE',
           name: vipName,
@@ -766,7 +779,9 @@ function PassAndAttendanceContent() {
           credentialId: vipId,
           venueLocation: 'Main Auditorium VIP Enclosure',
         },
-        message: `Distinguished VIP Delegate (${vipName}) attendance authenticated as PRESENT.`,
+        message: scanMethod === 'TOPOTAG_FAILSAFE'
+          ? `[TOPOTAG OPTICAL RECOVERY] Distinguished VIP Delegate (${vipName}) attendance authenticated as PRESENT via TopoTag invariant matrix.`
+          : `Distinguished VIP Delegate (${vipName}) attendance authenticated as PRESENT.`,
       });
       return;
     }
@@ -779,6 +794,8 @@ function PassAndAttendanceContent() {
     ) {
       setScannedResult({
         found: true,
+        scanMethod,
+        hammingDistance,
         specialRole: {
           title: 'OPERATIONS & MARSHAL CREW',
           name: 'SUMMIT OPERATIONS STAFF',
@@ -786,7 +803,9 @@ function PassAndAttendanceContent() {
           credentialId: 'STAFF-2026',
           venueLocation: 'Central Event Operations Desk',
         },
-        message: 'Summit Operations & Event Control credentials authenticated.',
+        message: scanMethod === 'TOPOTAG_FAILSAFE'
+          ? '[TOPOTAG OPTICAL RECOVERY] Summit Operations & Event Control credentials authenticated via TopoTag.'
+          : 'Summit Operations & Event Control credentials authenticated.',
       });
       return;
     }
@@ -854,6 +873,8 @@ function PassAndAttendanceContent() {
 
       setScannedResult({
         found: true,
+        scanMethod,
+        hammingDistance,
         student: finalStudent,
         record: {
           studentName: finalStudent.student_name,
@@ -865,13 +886,16 @@ function PassAndAttendanceContent() {
           checkInTime: wasAlreadyCheckedIn ? (matchedRecord?.checkInTime || nowTime) : nowTime,
           timestamp: wasAlreadyCheckedIn ? (matchedRecord?.timestamp || nowTime) : nowTime,
         },
-        message: wasAlreadyCheckedIn
+        message: scanMethod === 'TOPOTAG_FAILSAFE'
+          ? `[TOPOTAG OPTICAL RECOVERY] Authenticated! Student ${finalStudent.student_name} recorded as PRESENT via TopoTag invariant matrix.`
+          : wasAlreadyCheckedIn
           ? `Verified! Student was already checked in at ${matchedRecord?.timestamp || nowTime}.`
           : `Authenticated! Attendance recorded as PRESENT on the official summit ledger.`,
       });
     } else {
       setScannedResult({
         found: false,
+        scanMethod,
         message: `Credential code "${clean}" not found on the official summit registry. Please verify with the Registration Desk.`,
       });
     }
@@ -916,8 +940,24 @@ function PassAndAttendanceContent() {
               inversionAttempts: 'attemptBoth',
             });
 
+            let detected: string | null = null;
+            let method: 'QR_CODE' | 'TOPOTAG_FAILSAFE' = 'QR_CODE';
+            let hammingDist: number | undefined = undefined;
+
             if (code && code.data && code.data.trim()) {
-              const detected = code.data.trim();
+              detected = code.data.trim();
+              method = 'QR_CODE';
+            } else {
+              // Optical Failsafe: evaluate TopoTag invariant matrix
+              const topotagResult = detectTopotagFailsafe(imageData);
+              if (topotagResult && topotagResult.credentialId) {
+                detected = topotagResult.credentialId;
+                method = 'TOPOTAG_FAILSAFE';
+                hammingDist = topotagResult.hammingDistance;
+              }
+            }
+
+            if (detected) {
               if (
                 detected !== lastScannedCodeRef.current ||
                 now - lastDetectedTimeRef.current > 2500
@@ -929,7 +969,7 @@ function PassAndAttendanceContent() {
                 triggerHaptic(40);
                 setScanActiveIndicator(true);
                 setTimeout(() => setScanActiveIndicator(false), 1400);
-                handleScanCodeRef.current(detected);
+                handleScanCodeRef.current(detected, method, hammingDist);
               }
             }
           }
@@ -1167,20 +1207,20 @@ function PassAndAttendanceContent() {
         const vipName = (selectedVip?.name || 'DR. V. K. SHARMA').trim().toUpperCase();
         return generateAppleCardSvg(template, {
           name: vipName,
-          classSection: 'DISTINGUISHED VIP',
+          classSection: '',
           credentialId: activeCredentialId,
-          projectDomain: selectedVip?.designation || 'Director & Chief Patron',
-          venueLocation: selectedVip?.organization || 'Delhi Public School Society',
+          projectDomain: '',
+          venueLocation: '',
         });
       }
       if (inchargePassRoster === 'GRAND_JURY') {
         const judgeName = (selectedJudge?.name || 'PROF. RAJESH K. PATHAK').trim().toUpperCase();
         return generateAppleCardSvg(template, {
           name: judgeName,
-          classSection: 'GRAND JURY',
+          classSection: '',
           credentialId: activeCredentialId,
-          projectDomain: selectedJudge?.specialization || 'Applied Robotics & Automation',
-          venueLocation: selectedJudge?.institution || 'IIT Delhi / Robotics Division',
+          projectDomain: '',
+          venueLocation: '',
         });
       }
       const teacherName = (selectedTeacher?.name || facultyCustomName || 'SHASHANK JANGID').trim().toUpperCase();
@@ -1197,10 +1237,10 @@ function PassAndAttendanceContent() {
       const judgeName = (selectedJudge?.name || otherCustomName || 'PROF. RAJESH K. PATHAK').trim().toUpperCase();
       return generateAppleCardSvg(template, {
         name: judgeName,
-        classSection: 'GRAND JURY',
+        classSection: '',
         credentialId: activeCredentialId,
-        projectDomain: selectedJudge?.specialization || otherCustomOrg || 'Applied Robotics & Automation',
-        venueLocation: selectedJudge?.institution || otherCustomVenue || 'IIT Delhi / Robotics Division',
+        projectDomain: '',
+        venueLocation: '',
       });
     }
 
@@ -1208,10 +1248,10 @@ function PassAndAttendanceContent() {
       const vipName = (selectedVip?.name || otherCustomName || 'DR. V. K. SHARMA').trim().toUpperCase();
       return generateAppleCardSvg(template, {
         name: vipName,
-        classSection: 'DISTINGUISHED VIP',
+        classSection: '',
         credentialId: activeCredentialId,
-        projectDomain: selectedVip?.designation || otherCustomOrg || 'Director & Chief Patron',
-        venueLocation: selectedVip?.organization || otherCustomVenue || 'Delhi Public School Society',
+        projectDomain: '',
+        venueLocation: '',
       });
     }
 
@@ -1260,10 +1300,10 @@ function PassAndAttendanceContent() {
         .map((v) => ({
           key: v.credential_id,
           name: v.name.toUpperCase(),
-          classSection: 'DISTINGUISHED VIP',
+          classSection: '',
           credentialId: v.credential_id,
-          projectDomain: v.designation,
-          venueLocation: v.organization,
+          projectDomain: '',
+          venueLocation: '',
           templateKey: 'vip' as const,
         }));
     }
@@ -1273,10 +1313,10 @@ function PassAndAttendanceContent() {
         .map((j) => ({
           key: j.credential_id,
           name: j.name.toUpperCase(),
-          classSection: 'GRAND JURY',
+          classSection: '',
           credentialId: j.credential_id,
-          projectDomain: j.specialization,
-          venueLocation: j.institution,
+          projectDomain: '',
+          venueLocation: '',
           templateKey: 'judge' as const,
         }));
     }
@@ -1697,15 +1737,26 @@ function PassAndAttendanceContent() {
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: 'attemptBoth',
         });
-        if (code && code.data) {
+        if (code && code.data && code.data.trim()) {
           playChime();
           triggerHaptic(40);
           setScanActiveIndicator(true);
           setTimeout(() => setScanActiveIndicator(false), 1400);
           setScannerInputCode(code.data.trim());
-          handleScanCode(code.data.trim());
+          handleScanCode(code.data.trim(), 'QR_CODE');
         } else {
-          alert('No readable QR code or TopoTag signature detected in this image. Please ensure the cardlet is clear and well-lit.');
+          // TopoTag Failsafe fallback
+          const topotagResult = detectTopotagFailsafe(imageData);
+          if (topotagResult && topotagResult.credentialId) {
+            playChime();
+            triggerHaptic(40);
+            setScanActiveIndicator(true);
+            setTimeout(() => setScanActiveIndicator(false), 1400);
+            setScannerInputCode(topotagResult.credentialId);
+            handleScanCode(topotagResult.credentialId, 'TOPOTAG_FAILSAFE', topotagResult.hammingDistance);
+          } else {
+            alert('No readable QR code or TopoTag signature detected in this image. Please ensure the cardlet is clear and well-lit.');
+          }
         }
       };
       img.src = event.target?.result as string;
@@ -3546,7 +3597,7 @@ function PassAndAttendanceContent() {
                         {/* Top Live Status Indicator */}
                         <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-2 text-[10px] font-mono text-emerald-300">
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                          <span>OPTICAL ENGINE ACTIVE (jsQR + Camera)</span>
+                          <span>OPTICAL ENGINE ACTIVE (jsQR + TopoTag Failsafe Engine)</span>
                         </div>
 
                         {/* Bottom Action Controls */}
@@ -3645,6 +3696,12 @@ function PassAndAttendanceContent() {
                           {scannedResult.found ? <Check className="w-5 h-5 text-emerald-400" /> : <X className="w-5 h-5 text-rose-400" />}
                           <span>{scannedResult.found ? 'AUTHENTICATED CREDENTIAL' : 'VERIFICATION FAILED'}</span>
                         </div>
+                        {scannedResult.scanMethod === 'TOPOTAG_FAILSAFE' && (
+                          <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-mono font-semibold">
+                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            OPTICAL FAILSAFE: VERIFIED VIA TOPOTAG INVARIANT MATRIX {scannedResult.hammingDistance !== undefined && scannedResult.hammingDistance > 0 ? `(${scannedResult.hammingDistance}-BIT CORRECTION)` : '(EXACT MATCH)'}
+                          </div>
+                        )}
                         <p className="text-xs mt-1 text-slate-300 font-mono">{scannedResult.message}</p>
 
                         {scannedResult.found && scannedResult.specialRole && (

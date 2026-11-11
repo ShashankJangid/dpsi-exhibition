@@ -150,41 +150,14 @@
     </g>
   </g>
 
-  <!-- 4. Key Identification Grid (Class & Section, ID Number) -->
+  <!-- 4. Key Identification (Credential ID Only - No Designation, Department or Station) -->
   <g transform="translate(54, 340)">
-    <!-- Class & Section -->
-    <rect width="210" height="88" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
-    <g transform="translate(22, 28)">
-      <text x="0" y="0" class="font-sans" font-size="10" font-weight="700" fill="#94A3B8" letter-spacing="1.4">CLASS &amp; SECTION</text>
-      <text x="0" y="34" class="font-sans" font-size="30" font-weight="900" fill="#78350F" letter-spacing="0.5">IX - A</text>
-    </g>
-
-    <!-- Credential ID -->
-    <g transform="translate(226, 0)">
-      <rect width="245" height="88" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
-      <g transform="translate(22, 28)">
-        <text x="0" y="0" class="font-mono" font-size="10" font-weight="700" fill="#94A3B8" letter-spacing="1.4">CREDENTIAL ID</text>
-        <text x="0" y="34" class="font-mono" font-size="30" font-weight="900" fill="#0F172A" letter-spacing="1">VIP-0001</text>
-      </g>
+    <rect width="471" height="88" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <g transform="translate(24, 28)">
+      <text x="0" y="0" class="font-mono" font-size="10.5" font-weight="700" fill="#94A3B8" letter-spacing="1.4">CREDENTIAL ID</text>
+      <text x="0" y="34" class="font-mono" font-size="30" font-weight="900" fill="#0F172A" letter-spacing="1">VIP-0001</text>
     </g>
   </g>
-
-  <!-- 5. Exhibition Allocation & Category with Holographic Security Seal -->
-  <g transform="translate(54, 452)">
-    <rect width="471" height="135" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
-    
-    <g transform="translate(24, 30)">
-      <text x="0" y="0" class="font-sans" font-size="9.5" font-weight="700" fill="#94A3B8" letter-spacing="1.4">PROJECT DOMAIN</text>
-      <g clip-path="url(#projectDomainClip)">
-        <text x="0" y="20" class="font-sans" font-size="15" font-weight="800" fill="#0F172A">Distinguished Keynote &amp; Patron</text>
-      </g>
-
-      <text x="0" y="58" class="font-sans" font-size="9.5" font-weight="700" fill="#94A3B8" letter-spacing="1.4">EXHIBITION VENUE</text>
-      <g clip-path="url(#venueLocationClip)">
-        <text x="0" y="78" class="font-sans" font-size="13.5" font-weight="700" fill="#92400E">VIP Lounge &#8226; Auditorium 1</text>
-      </g>
-    </g>
-</g>
 
   <!-- ================= 6. BOTTOM BASELINE & CL0UD FOOTER ATTRIBUTION ================= -->
   <g transform="translate(54, 622)">
