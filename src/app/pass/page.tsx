@@ -226,6 +226,8 @@ function InteractiveAppleCard({
   const [glare, setGlare] = useState({ x: 50, y: 50, opacity: 0 });
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Disable gyroscopic 3D tilt on touch devices so vertical page scrolling is never blocked
+    if (e.pointerType === 'touch') return;
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -254,7 +256,7 @@ function InteractiveAppleCard({
   return (
     <div
       style={{ perspective: '1400px' }}
-      className="relative w-full max-w-4xl mx-auto flex items-center justify-center p-2 sm:p-4 select-none"
+      className="relative w-full max-w-4xl mx-auto flex items-center justify-center p-2 sm:p-4 select-none touch-pan-y"
     >
       {/* Dynamic Ambient Role Glow (Subtle velvet spotlight) */}
       <div
@@ -273,6 +275,7 @@ function InteractiveAppleCard({
           transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1, 1, 1)`,
           transition: rotateX === 0 && rotateY === 0 ? 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
           transformStyle: 'preserve-3d',
+          touchAction: 'pan-y',
         }}
         className="relative w-full aspect-[985/670] rounded-2xl sm:rounded-[28px] overflow-hidden bg-white shadow-[0_30px_70px_-15px_rgba(0,0,0,0.65)] will-change-transform border border-slate-200/50"
       >
@@ -695,6 +698,7 @@ function PassAndAttendanceContent() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileCameraInputRef = useRef<HTMLInputElement | null>(null);
   const lastScannedCodeRef = useRef<string | null>(null);
   const lastDetectedTimeRef = useRef<number>(0);
 
@@ -1947,10 +1951,16 @@ function PassAndAttendanceContent() {
     saveAttendance(updated);
   };
 
-  // Start Camera
+  // Start Camera (With mobile HTTP fallback detection)
   const startCamera = async () => {
     setCameraError(null);
     try {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError(
+          'Mobile Security Notice: Mobile browsers disable live video on local HTTP IPs. Tap "Take Photo with Phone Camera" below to scan passes with your camera!'
+        );
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: 'environment' },
@@ -1962,7 +1972,7 @@ function PassAndAttendanceContent() {
       setIsCameraActive(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Camera access denied or unavailable.';
-      setCameraError(msg);
+      setCameraError(`${msg}. Tap "Take Photo with Phone Camera" below to snap and verify passes.`);
       console.error('Camera access error:', err);
     }
   };
@@ -2205,18 +2215,19 @@ function PassAndAttendanceContent() {
             </div>
 
             {isCodeUnlocked && (
-              <div className="flex items-center gap-2.5">
-                <span className={`px-3 py-1 rounded-full text-xs font-mono font-semibold border ${roleConfig.pillClass}`}>
-                  {roleConfig.label}
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-mono font-semibold border ${roleConfig.pillClass}`}>
+                  <span className="hidden sm:inline">{roleConfig.label}</span>
+                  <span className="sm:hidden">{currentRole}</span>
                 </span>
                 <button
                   type="button"
                   onClick={handleLockSession}
-                  className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 border border-white/[0.08] hover:border-rose-500/30 text-xs font-mono font-medium flex items-center gap-1.5 active:scale-95 transition-all"
+                  className="px-2.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 border border-white/[0.08] hover:border-rose-500/30 text-xs font-mono font-medium flex items-center gap-1.5 active:scale-95 transition-all"
                   title="Lock session and switch access key"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Lock Session</span>
+                  <span className="hidden sm:inline">Lock</span>
                 </button>
               </div>
             )}
@@ -2295,7 +2306,10 @@ function PassAndAttendanceContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div
-                    onClick={() => setAccessCode('987654')}
+                    onClick={() => {
+                      setAccessCode('987654');
+                      handleVerifyCode('987654');
+                    }}
                     className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-emerald-500/40 hover:bg-white/[0.05] transition-all cursor-pointer group active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between text-xs font-mono font-bold text-emerald-400">
@@ -2304,7 +2318,7 @@ function PassAndAttendanceContent() {
                         Student Innovators ({OFFICIAL_STUDENTS_ROSTER.length})
                       </span>
                       <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full text-[10px] group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
-                        987654
+                        Tap to Open &rarr;
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
@@ -2313,7 +2327,10 @@ function PassAndAttendanceContent() {
                   </div>
 
                   <div
-                    onClick={() => setAccessCode('TEACHER2026')}
+                    onClick={() => {
+                      setAccessCode('TEACHER2026');
+                      handleVerifyCode('TEACHER2026');
+                    }}
                     className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-purple-500/40 hover:bg-white/[0.05] transition-all cursor-pointer group active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between text-xs font-mono font-bold text-purple-400">
@@ -2322,7 +2339,7 @@ function PassAndAttendanceContent() {
                         Faculty Incharge Hub
                       </span>
                       <span className="bg-purple-500/10 px-2 py-0.5 rounded-full text-[10px] group-hover:bg-purple-500 group-hover:text-slate-950 transition-colors">
-                        TEACHER2026
+                        Tap to Open &rarr;
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
@@ -2331,7 +2348,10 @@ function PassAndAttendanceContent() {
                   </div>
 
                   <div
-                    onClick={() => setAccessCode('JUDGE2026')}
+                    onClick={() => {
+                      setAccessCode('JUDGE2026');
+                      handleVerifyCode('JUDGE2026');
+                    }}
                     className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-blue-500/40 hover:bg-white/[0.05] transition-all cursor-pointer group active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between text-xs font-mono font-bold text-blue-400">
@@ -2340,7 +2360,7 @@ function PassAndAttendanceContent() {
                         Grand Jury Evaluators
                       </span>
                       <span className="bg-blue-500/10 px-2 py-0.5 rounded-full text-[10px] group-hover:bg-blue-500 group-hover:text-slate-950 transition-colors">
-                        JUDGE2026
+                        Tap to Open &rarr;
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
@@ -2349,7 +2369,10 @@ function PassAndAttendanceContent() {
                   </div>
 
                   <div
-                    onClick={() => setAccessCode('VIP2026')}
+                    onClick={() => {
+                      setAccessCode('VIP2026');
+                      handleVerifyCode('VIP2026');
+                    }}
                     className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-amber-500/40 hover:bg-white/[0.05] transition-all cursor-pointer group active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between text-xs font-mono font-bold text-amber-400">
@@ -2358,7 +2381,7 @@ function PassAndAttendanceContent() {
                         Executive VIP Guests
                       </span>
                       <span className="bg-amber-500/10 px-2 py-0.5 rounded-full text-[10px] group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors">
-                        VIP2026
+                        Tap to Open &rarr;
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
@@ -2373,9 +2396,9 @@ function PassAndAttendanceContent() {
             /* B. AUTHENTICATED PORTAL (Apple Fluid UI)                                 */
             /* ========================================================================= */
             <div className="space-y-6">
-              {/* Apple Segmented Control Bar */}
-              <div className="flex justify-center sm:justify-start">
-                <div className="relative inline-flex items-center p-1 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-inner">
+              {/* Apple Segmented Control Bar (Mobile-Optimized Horizontal Scroll) */}
+              <div className="w-full overflow-x-auto pb-1 -mx-2 px-2 sm:mx-0 sm:px-0">
+                <div className="inline-flex min-w-full sm:min-w-0 items-center gap-1 p-1 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-inner whitespace-nowrap">
                   {/* Tab 1: Card View */}
                   <button
                     type="button"
@@ -2383,7 +2406,7 @@ function PassAndAttendanceContent() {
                       stopCamera();
                       setActiveTab('pass');
                     }}
-                    className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
+                    className={`relative shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
                       activeTab === 'pass' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
@@ -2412,7 +2435,7 @@ function PassAndAttendanceContent() {
                         stopCamera();
                         setActiveTab('attendance');
                       }}
-                      className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
+                      className={`relative shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
                         activeTab === 'attendance' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
@@ -2424,7 +2447,7 @@ function PassAndAttendanceContent() {
                         />
                       )}
                       <FileSpreadsheet className="w-4 h-4 relative z-10 text-purple-400" />
-                      <span className="relative z-10">Attendance Ledger</span>
+                      <span className="relative z-10">Attendance</span>
                       <span className="relative z-10 text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
                         {totalPresentAll}/{totalAttendeesAll}
                       </span>
@@ -2439,7 +2462,7 @@ function PassAndAttendanceContent() {
                         stopCamera();
                         setActiveTab('batch_print');
                       }}
-                      className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
+                      className={`relative shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
                         activeTab === 'batch_print' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
@@ -2451,7 +2474,7 @@ function PassAndAttendanceContent() {
                         />
                       )}
                       <Printer className="w-4 h-4 relative z-10 text-cyan-400" />
-                      <span className="relative z-10">A4 Batch Print</span>
+                      <span className="relative z-10">Batch Print</span>
                     </button>
                   )}
 
@@ -2463,7 +2486,7 @@ function PassAndAttendanceContent() {
                         stopCamera();
                         setActiveTab('scanner');
                       }}
-                      className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
+                      className={`relative shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
                         activeTab === 'scanner' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
@@ -2964,57 +2987,57 @@ function PassAndAttendanceContent() {
                     )}
                   </div>
 
-                  {/* Tactile Action Toolbar */}
-                  <div className="flex flex-wrap items-center justify-center gap-3 w-full max-w-4xl mx-auto pt-2">
+                  {/* Tactile Action Toolbar (Clean Grid for Mobile & Desktop) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 w-full max-w-4xl mx-auto pt-2">
                     <button
                       type="button"
                       onClick={handlePrintSinglePass}
-                      className="px-6 py-3 rounded-2xl bg-[#065f46] hover:bg-[#047857] text-white text-xs sm:text-sm font-mono font-bold flex items-center gap-2.5 shadow-xl shadow-emerald-950/60 active:scale-95 transition-all"
+                      className="w-full px-3 py-3 rounded-2xl bg-[#065f46] hover:bg-[#047857] text-white text-xs sm:text-sm font-mono font-bold flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/60 active:scale-95 transition-all text-center"
                     >
-                      <Printer className="w-4 h-4 text-emerald-300" />
-                      <span>
+                      <Printer className="w-4 h-4 text-emerald-300 shrink-0" />
+                      <span className="truncate">
                         {currentRole === 'INCHARGE'
                           ? inchargePassRoster === 'VIP_GUESTS'
-                            ? 'Print VIP Guest Pass'
+                            ? 'Print VIP Pass'
                             : inchargePassRoster === 'GRAND_JURY'
-                            ? 'Print Grand Jury Pass'
-                            : 'Print Supervisor Pass'
+                            ? 'Print Jury Pass'
+                            : 'Print Supervisor'
                           : currentRole === 'EXHIBITOR'
-                          ? 'Print Official Pass'
+                          ? 'Print Pass'
                           : currentRole === 'JUDGE'
-                          ? 'Print Grand Jury Pass'
+                          ? 'Print Jury'
                           : currentRole === 'VIP'
-                          ? 'Print VIP Guest Pass'
-                          : 'Print Official Credential'}
+                          ? 'Print VIP'
+                          : 'Print Credential'}
                       </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsPhoneScanModalOpen(true)}
+                      className="w-full px-3 py-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs sm:text-sm font-mono font-bold flex items-center justify-center gap-2 border border-amber-400/40 active:scale-95 transition-all text-center"
+                    >
+                      <Camera className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="truncate">Big QR Code</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleDownloadPng}
                       disabled={isExporting}
-                      className="px-5 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] text-white text-xs sm:text-sm font-mono font-semibold flex items-center gap-2 border border-white/[0.1] active:scale-95 transition-all disabled:opacity-50"
+                      className="w-full px-3 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] text-white text-xs sm:text-sm font-mono font-semibold flex items-center justify-center gap-2 border border-white/[0.1] active:scale-95 transition-all disabled:opacity-50 text-center"
                     >
-                      {isExporting ? <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> : <Download className="w-4 h-4 text-emerald-400" />}
-                      <span>Save Virtual Card (.PNG)</span>
+                      {isExporting ? <RefreshCw className="w-4 h-4 animate-spin text-emerald-400 shrink-0" /> : <Download className="w-4 h-4 text-emerald-400 shrink-0" />}
+                      <span className="truncate">Save .PNG</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleDownloadSvg}
-                      className="px-5 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] text-white text-xs sm:text-sm font-mono font-semibold flex items-center gap-2 border border-white/[0.1] active:scale-95 transition-all"
+                      className="w-full px-3 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] text-white text-xs sm:text-sm font-mono font-semibold flex items-center justify-center gap-2 border border-white/[0.1] active:scale-95 transition-all text-center"
                     >
-                      <Download className="w-4 h-4 text-slate-400" />
-                      <span>Download Vector (.SVG)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsPhoneScanModalOpen(true)}
-                      className="px-5 py-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs sm:text-sm font-mono font-bold flex items-center gap-2 border border-amber-400/40 active:scale-95 transition-all"
-                    >
-                      <Camera className="w-4 h-4 text-amber-400" />
-                      <span>Phone Check-In Mode (Enlarge QR)</span>
+                      <Download className="w-4 h-4 text-slate-400 shrink-0" />
+                      <span className="truncate">Vector .SVG</span>
                     </button>
 
                     <button
@@ -3024,10 +3047,10 @@ function PassAndAttendanceContent() {
                         setCopiedLink(true);
                         setTimeout(() => setCopiedLink(false), 2000);
                       }}
-                      className="px-4 py-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 text-xs sm:text-sm font-mono font-medium flex items-center gap-2 border border-white/[0.08] active:scale-95 transition-all"
+                      className="w-full col-span-2 sm:col-span-1 px-3 py-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 text-xs sm:text-sm font-mono font-medium flex items-center justify-center gap-2 border border-white/[0.08] active:scale-95 transition-all text-center"
                     >
-                      <Share2 className="w-4 h-4 text-amber-400" />
-                      <span>{copiedLink ? 'Link Copied!' : 'Share Pass'}</span>
+                      <Share2 className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="truncate">{copiedLink ? 'Copied!' : 'Share Pass'}</span>
                     </button>
                   </div>
 
@@ -4115,11 +4138,19 @@ function PassAndAttendanceContent() {
                         <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                           <button
                             type="button"
-                            onClick={startCamera}
-                            className="px-5 py-2.5 rounded-2xl bg-[#065f46] hover:bg-[#047857] text-white text-xs font-mono font-bold transition-all shadow-lg shadow-emerald-950/50 active:scale-95 flex items-center gap-2"
+                            onClick={() => mobileCameraInputRef.current?.click()}
+                            className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold transition-all shadow-lg shadow-emerald-950/50 active:scale-95 flex items-center gap-2 ring-1 ring-emerald-400"
                           >
                             <Camera className="w-4 h-4" />
-                            <span>Start Live Camera Scanner</span>
+                            <span>Take Photo with Phone Camera</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={startCamera}
+                            className="px-4 py-2.5 rounded-2xl bg-[#065f46]/80 hover:bg-[#065f46] text-white text-xs font-mono font-semibold transition-all border border-emerald-500/30 active:scale-95 flex items-center gap-2"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            <span>Start Continuous Webcam</span>
                           </button>
                           <button
                             type="button"
@@ -4138,6 +4169,16 @@ function PassAndAttendanceContent() {
                       type="file"
                       ref={fileInputRef}
                       accept="image/*,.svg"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                    />
+
+                    {/* Dedicated Native Phone Camera Snap Input (Opens Phone Camera Directly) */}
+                    <input
+                      type="file"
+                      ref={mobileCameraInputRef}
+                      accept="image/*"
+                      capture="environment"
                       className="hidden"
                       onChange={handleFileUpload}
                     />
