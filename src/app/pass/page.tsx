@@ -358,6 +358,27 @@ function PassAndAttendanceContent() {
   const [facultyCustomVenue, setFacultyCustomVenue] = useState('');
   const [facultyCustomId, setFacultyCustomId] = useState('INC-0001');
 
+  // Incharge pass generator roster view tab
+  const [inchargePassRoster, setInchargePassRoster] = useState<'INCHARGES' | 'VIP_GUESTS' | 'GRAND_JURY'>('INCHARGES');
+
+  // Grand Jury Pass State (Official Evaluators)
+  const [selectedJudge, setSelectedJudge] = useState<GrandJuryEntry>(() => OFFICIAL_GRAND_JURY[0]);
+
+  // VIP Guest Pass State (Official Dignitaries & Patrons)
+  const [selectedVip, setSelectedVip] = useState<VipGuestEntry>(() => OFFICIAL_VIP_GUESTS[0]);
+
+  // Batch Print Roster Selector & Selection Sets
+  const [batchPrintRoster, setBatchPrintRoster] = useState<'STUDENTS' | 'INCHARGES' | 'VIP_GUESTS' | 'GRAND_JURY'>('STUDENTS');
+  const [selectedInchargeIdsForPrint, setSelectedInchargeIdsForPrint] = useState<Set<string>>(
+    () => new Set(OFFICIAL_TEACHERS_AND_INCHARGES.map((t) => t.credential_id))
+  );
+  const [selectedVipIdsForPrint, setSelectedVipIdsForPrint] = useState<Set<string>>(
+    () => new Set(OFFICIAL_VIP_GUESTS.map((v) => v.credential_id))
+  );
+  const [selectedJuryIdsForPrint, setSelectedJuryIdsForPrint] = useState<Set<string>>(
+    () => new Set(OFFICIAL_GRAND_JURY.map((j) => j.credential_id))
+  );
+
   // Customizable Fields for Other Logged-in Roles (Judge, VIP, Staff)
   const [otherCustomName, setOtherCustomName] = useState('');
   const [otherCustomRole, setOtherCustomRole] = useState('');
@@ -1060,28 +1081,74 @@ function PassAndAttendanceContent() {
     }
   }, [currentRole, activeTab]);
 
-  // Active Credential ID based on role and customizer
+  // Active Credential ID based on role, roster selection, and customizer
   const activeCredentialId = useMemo(() => {
     if (currentRole === 'EXHIBITOR') {
       return getStudentCredentialId(selectedStudent);
     }
     if (currentRole === 'INCHARGE') {
+      if (inchargePassRoster === 'VIP_GUESTS') {
+        return (selectedVip?.credential_id || 'VIP-0001').trim().toUpperCase();
+      }
+      if (inchargePassRoster === 'GRAND_JURY') {
+        return (selectedJudge?.credential_id || 'JDG-0001').trim().toUpperCase();
+      }
       return (selectedTeacher?.credential_id || facultyCustomId || 'INC-0001').trim().toUpperCase();
     }
+    if (currentRole === 'JUDGE') {
+      return (selectedJudge?.credential_id || otherCustomId || 'JDG-0001').trim().toUpperCase();
+    }
+    if (currentRole === 'VIP') {
+      return (selectedVip?.credential_id || otherCustomId || 'VIP-0001').trim().toUpperCase();
+    }
     return (otherCustomId || `${roleConfig.codePrefix}-0001`).trim().toUpperCase();
-  }, [currentRole, selectedStudent, selectedTeacher, facultyCustomId, otherCustomId, roleConfig]);
+  }, [
+    currentRole,
+    inchargePassRoster,
+    selectedStudent,
+    selectedTeacher,
+    selectedJudge,
+    selectedVip,
+    facultyCustomId,
+    otherCustomId,
+    roleConfig,
+  ]);
 
   // Display name of the active credential holder
   const activeHolderName = useMemo(() => {
     if (currentRole === 'EXHIBITOR') return selectedStudent.student_name;
-    if (currentRole === 'INCHARGE') return selectedTeacher?.name || facultyCustomName || 'Shashank Jangid';
+    if (currentRole === 'INCHARGE') {
+      if (inchargePassRoster === 'VIP_GUESTS') return selectedVip?.name || 'Dr. V. K. Sharma';
+      if (inchargePassRoster === 'GRAND_JURY') return selectedJudge?.name || 'Prof. Rajesh K. Pathak';
+      return selectedTeacher?.name || facultyCustomName || 'Shashank Jangid';
+    }
+    if (currentRole === 'JUDGE') return selectedJudge?.name || otherCustomName || 'Prof. Rajesh K. Pathak';
+    if (currentRole === 'VIP') return selectedVip?.name || otherCustomName || 'Dr. V. K. Sharma';
     return otherCustomName || roleConfig.classDefault;
-  }, [currentRole, selectedStudent, selectedTeacher, facultyCustomName, otherCustomName, roleConfig]);
+  }, [
+    currentRole,
+    inchargePassRoster,
+    selectedStudent,
+    selectedTeacher,
+    selectedJudge,
+    selectedVip,
+    facultyCustomName,
+    otherCustomName,
+    roleConfig,
+  ]);
 
   // Dynamic SVG for the active pass
   const activeBadgeSvg = useMemo(() => {
-    const roleKey = currentRole.toLowerCase();
-    const template = badgeTemplates[roleKey];
+    const effectiveRoleKey =
+      currentRole === 'INCHARGE'
+        ? inchargePassRoster === 'VIP_GUESTS'
+          ? 'vip'
+          : inchargePassRoster === 'GRAND_JURY'
+          ? 'judge'
+          : 'incharge'
+        : currentRole.toLowerCase();
+
+    const template = badgeTemplates[effectiveRoleKey];
     if (!template) return '';
 
     if (currentRole === 'EXHIBITOR') {
@@ -1096,6 +1163,26 @@ function PassAndAttendanceContent() {
     }
 
     if (currentRole === 'INCHARGE') {
+      if (inchargePassRoster === 'VIP_GUESTS') {
+        const vipName = (selectedVip?.name || 'DR. V. K. SHARMA').trim().toUpperCase();
+        return generateAppleCardSvg(template, {
+          name: vipName,
+          classSection: 'DISTINGUISHED VIP',
+          credentialId: activeCredentialId,
+          projectDomain: selectedVip?.designation || 'Director & Chief Patron',
+          venueLocation: selectedVip?.organization || 'Delhi Public School Society',
+        });
+      }
+      if (inchargePassRoster === 'GRAND_JURY') {
+        const judgeName = (selectedJudge?.name || 'PROF. RAJESH K. PATHAK').trim().toUpperCase();
+        return generateAppleCardSvg(template, {
+          name: judgeName,
+          classSection: 'GRAND JURY',
+          credentialId: activeCredentialId,
+          projectDomain: selectedJudge?.specialization || 'Applied Robotics & Automation',
+          venueLocation: selectedJudge?.institution || 'IIT Delhi / Robotics Division',
+        });
+      }
       const teacherName = (selectedTeacher?.name || facultyCustomName || 'SHASHANK JANGID').trim().toUpperCase();
       return generateAppleCardSvg(template, {
         name: teacherName,
@@ -1103,6 +1190,28 @@ function PassAndAttendanceContent() {
         credentialId: activeCredentialId,
         projectDomain: '',
         venueLocation: '',
+      });
+    }
+
+    if (currentRole === 'JUDGE') {
+      const judgeName = (selectedJudge?.name || otherCustomName || 'PROF. RAJESH K. PATHAK').trim().toUpperCase();
+      return generateAppleCardSvg(template, {
+        name: judgeName,
+        classSection: 'GRAND JURY',
+        credentialId: activeCredentialId,
+        projectDomain: selectedJudge?.specialization || otherCustomOrg || 'Applied Robotics & Automation',
+        venueLocation: selectedJudge?.institution || otherCustomVenue || 'IIT Delhi / Robotics Division',
+      });
+    }
+
+    if (currentRole === 'VIP') {
+      const vipName = (selectedVip?.name || otherCustomName || 'DR. V. K. SHARMA').trim().toUpperCase();
+      return generateAppleCardSvg(template, {
+        name: vipName,
+        classSection: 'DISTINGUISHED VIP',
+        credentialId: activeCredentialId,
+        projectDomain: selectedVip?.designation || otherCustomOrg || 'Director & Chief Patron',
+        venueLocation: selectedVip?.organization || otherCustomVenue || 'Delhi Public School Society',
       });
     }
 
@@ -1116,8 +1225,11 @@ function PassAndAttendanceContent() {
   }, [
     badgeTemplates,
     currentRole,
+    inchargePassRoster,
     selectedStudent,
     selectedTeacher,
+    selectedJudge,
+    selectedVip,
     roleConfig,
     activeCredentialId,
     facultyCustomName,
@@ -1127,22 +1239,78 @@ function PassAndAttendanceContent() {
     otherCustomVenue,
   ]);
 
-  // Selected students for A4 batch print
-  const selectedStudentsForPrintList = useMemo(() => {
-    return OFFICIAL_STUDENTS_ROSTER.filter((s) =>
-      selectedStudentIdsForPrint.has(`${s.student_name}__${s.project_number}`)
-    );
-  }, [selectedStudentIdsForPrint]);
+  // Selected cards for A4 batch print (Supports Students, Incharges, VIPs, and Grand Jury)
+  const selectedCardsForPrintList = useMemo(() => {
+    if (batchPrintRoster === 'INCHARGES') {
+      return OFFICIAL_TEACHERS_AND_INCHARGES
+        .filter((t) => selectedInchargeIdsForPrint.has(t.credential_id))
+        .map((t) => ({
+          key: t.credential_id,
+          name: t.name.toUpperCase(),
+          classSection: '',
+          credentialId: t.credential_id,
+          projectDomain: '',
+          venueLocation: '',
+          templateKey: 'incharge' as const,
+        }));
+    }
+    if (batchPrintRoster === 'VIP_GUESTS') {
+      return OFFICIAL_VIP_GUESTS
+        .filter((v) => selectedVipIdsForPrint.has(v.credential_id))
+        .map((v) => ({
+          key: v.credential_id,
+          name: v.name.toUpperCase(),
+          classSection: 'DISTINGUISHED VIP',
+          credentialId: v.credential_id,
+          projectDomain: v.designation,
+          venueLocation: v.organization,
+          templateKey: 'vip' as const,
+        }));
+    }
+    if (batchPrintRoster === 'GRAND_JURY') {
+      return OFFICIAL_GRAND_JURY
+        .filter((j) => selectedJuryIdsForPrint.has(j.credential_id))
+        .map((j) => ({
+          key: j.credential_id,
+          name: j.name.toUpperCase(),
+          classSection: 'GRAND JURY',
+          credentialId: j.credential_id,
+          projectDomain: j.specialization,
+          venueLocation: j.institution,
+          templateKey: 'judge' as const,
+        }));
+    }
+    return OFFICIAL_STUDENTS_ROSTER
+      .filter((s) => selectedStudentIdsForPrint.has(`${s.student_name}__${s.project_number}`))
+      .map((s) => {
+        const boothInfo = getStudentBoothInfo(s);
+        return {
+          key: `${s.student_name}__${s.project_number}`,
+          name: s.student_name,
+          classSection: s.class_section,
+          credentialId: getStudentCredentialId(s),
+          projectDomain: s.project_title,
+          venueLocation: s.venue_location || boothInfo.venue_location,
+          templateKey: 'exhibitor' as const,
+        };
+      });
+  }, [
+    batchPrintRoster,
+    selectedStudentIdsForPrint,
+    selectedInchargeIdsForPrint,
+    selectedVipIdsForPrint,
+    selectedJuryIdsForPrint,
+  ]);
 
-  // Chunk selected students into A4 sheets
+  // Chunk selected cards into A4 sheets
   const a4Sheets = useMemo(() => {
     const perPage = a4Layout === '8_PER_PAGE' ? 8 : a4Layout === '4_PER_PAGE' ? 4 : 1;
-    const sheets: StudentEntry[][] = [];
-    for (let i = 0; i < selectedStudentsForPrintList.length; i += perPage) {
-      sheets.push(selectedStudentsForPrintList.slice(i, i + perPage));
+    const sheets: (typeof selectedCardsForPrintList)[] = [];
+    for (let i = 0; i < selectedCardsForPrintList.length; i += perPage) {
+      sheets.push(selectedCardsForPrintList.slice(i, i + perPage));
     }
     return sheets;
-  }, [selectedStudentsForPrintList, a4Layout]);
+  }, [selectedCardsForPrintList, a4Layout]);
 
   // Download high-resolution PNG
   const handleDownloadPng = async () => {
@@ -1923,53 +2091,257 @@ function PassAndAttendanceContent() {
                     </div>
                   )}
 
-                  {/* Faculty Incharge / Teacher Directory (8 Registered Teachers) */}
+                  {/* Faculty Incharge Hub Pass Explorer (Teachers, VIPs, and Grand Jury) */}
                   {currentRole === 'INCHARGE' && (
                     <div className="bg-white/[0.03] p-4 sm:p-5 rounded-3xl border border-white/[0.08] space-y-4 backdrop-blur-xl">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-purple-400 uppercase">
-                          <Users className="w-4 h-4" />
-                          <span>Faculty Incharge Directory ({OFFICIAL_TEACHERS_AND_INCHARGES.length} Registered Teachers)</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2 p-1 bg-black/40 border border-white/[0.08] rounded-2xl">
+                          <button
+                            type="button"
+                            onClick={() => setInchargePassRoster('INCHARGES')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                              inchargePassRoster === 'INCHARGES'
+                                ? 'bg-purple-600 text-white shadow-md shadow-purple-950/40'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <Users className="w-3.5 h-3.5" />
+                            <span>1. Incharges ({OFFICIAL_TEACHERS_AND_INCHARGES.length})</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setInchargePassRoster('VIP_GUESTS')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                              inchargePassRoster === 'VIP_GUESTS'
+                                ? 'bg-amber-600 text-white shadow-md shadow-amber-950/40'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>2. VIP Guests ({OFFICIAL_VIP_GUESTS.length})</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setInchargePassRoster('GRAND_JURY')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                              inchargePassRoster === 'GRAND_JURY'
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-950/40'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <Award className="w-3.5 h-3.5" />
+                            <span>3. Grand Jury ({OFFICIAL_GRAND_JURY.length})</span>
+                          </button>
                         </div>
-                        <span className="text-[11px] font-mono text-purple-300">
-                          Active Pass: {selectedTeacher.name} • {selectedTeacher.credential_id}
+
+                        <span className="text-[11px] font-mono text-slate-300">
+                          Active Pass:{' '}
+                          <span className="font-bold text-white">
+                            {inchargePassRoster === 'VIP_GUESTS'
+                              ? `${selectedVip.name} • ${selectedVip.credential_id}`
+                              : inchargePassRoster === 'GRAND_JURY'
+                              ? `${selectedJudge.name} • ${selectedJudge.credential_id}`
+                              : `${selectedTeacher.name} • ${selectedTeacher.credential_id}`}
+                          </span>
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                        {OFFICIAL_TEACHERS_AND_INCHARGES.map((teacher) => {
-                          const isSelected = selectedTeacher.name === teacher.name;
+                      {/* Incharge Roster Grid */}
+                      {inchargePassRoster === 'INCHARGES' && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                          {OFFICIAL_TEACHERS_AND_INCHARGES.map((teacher) => {
+                            const isSelected = selectedTeacher.name === teacher.name;
+                            return (
+                              <button
+                                key={teacher.credential_id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedTeacher(teacher);
+                                  setFacultyCustomName(teacher.name);
+                                  setFacultyCustomId(teacher.credential_id);
+                                }}
+                                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+                                  isSelected
+                                    ? 'bg-purple-600/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10 ring-1 ring-purple-400'
+                                    : 'bg-black/30 border-white/[0.08] text-slate-300 hover:bg-white/[0.05] hover:border-white/[0.15]'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                                    isSelected ? 'bg-purple-500 text-white' : 'bg-white/10 text-slate-400'
+                                  }`}>
+                                    {teacher.credential_id}
+                                  </span>
+                                  {isSelected && (
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34D399]" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-xs sm:text-sm font-sans font-bold leading-tight">
+                                    {teacher.name}
+                                  </p>
+                                  <p className="text-[10px] font-mono text-slate-400 mt-0.5">
+                                    Faculty Incharge
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* VIP Guests Roster Grid */}
+                      {inchargePassRoster === 'VIP_GUESTS' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                          {OFFICIAL_VIP_GUESTS.map((vip) => {
+                            const isSelected = selectedVip.credential_id === vip.credential_id;
+                            return (
+                              <button
+                                key={vip.credential_id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedVip(vip);
+                                  setOtherCustomName(vip.name);
+                                  setOtherCustomId(vip.credential_id);
+                                  setOtherCustomOrg(vip.designation);
+                                  setOtherCustomVenue(vip.organization);
+                                }}
+                                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+                                  isSelected
+                                    ? 'bg-amber-600/20 border-amber-500/50 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400'
+                                    : 'bg-black/30 border-white/[0.08] text-slate-300 hover:bg-white/[0.05] hover:border-white/[0.15]'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                                    isSelected ? 'bg-amber-500 text-white' : 'bg-white/10 text-slate-400'
+                                  }`}>
+                                    {vip.credential_id}
+                                  </span>
+                                  {isSelected && (
+                                    <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#FBBF24]" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-xs sm:text-sm font-sans font-bold leading-tight">
+                                    {vip.name}
+                                  </p>
+                                  <p className="text-[11px] font-sans text-amber-300 font-medium mt-0.5 line-clamp-1">
+                                    {vip.designation}
+                                  </p>
+                                  <p className="text-[10px] font-mono text-slate-400 mt-0.5 line-clamp-1">
+                                    {vip.organization}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Grand Jury Roster Grid */}
+                      {inchargePassRoster === 'GRAND_JURY' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                          {OFFICIAL_GRAND_JURY.map((judge) => {
+                            const isSelected = selectedJudge.credential_id === judge.credential_id;
+                            return (
+                              <button
+                                key={judge.credential_id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedJudge(judge);
+                                  setOtherCustomName(judge.name);
+                                  setOtherCustomId(judge.credential_id);
+                                  setOtherCustomOrg(judge.specialization);
+                                  setOtherCustomVenue(judge.institution);
+                                }}
+                                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+                                  isSelected
+                                    ? 'bg-blue-600/20 border-blue-500/50 text-white shadow-lg shadow-blue-500/10 ring-1 ring-blue-400'
+                                    : 'bg-black/30 border-white/[0.08] text-slate-300 hover:bg-white/[0.05] hover:border-white/[0.15]'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                                    isSelected ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-400'
+                                  }`}>
+                                    {judge.credential_id}
+                                  </span>
+                                  {isSelected && (
+                                    <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60A5FA]" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-xs sm:text-sm font-sans font-bold leading-tight">
+                                    {judge.name}
+                                  </p>
+                                  <p className="text-[11px] font-sans text-blue-300 font-medium mt-0.5 line-clamp-1">
+                                    {judge.specialization}
+                                  </p>
+                                  <p className="text-[10px] font-mono text-slate-400 mt-0.5 line-clamp-1">
+                                    {judge.institution}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Grand Jury Authenticated Evaluator Directory */}
+                  {currentRole === 'JUDGE' && (
+                    <div className="bg-white/[0.03] p-4 sm:p-5 rounded-3xl border border-white/[0.08] space-y-4 backdrop-blur-xl">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-blue-400 uppercase">
+                          <Award className="w-4 h-4" />
+                          <span>Grand Jury Directory ({OFFICIAL_GRAND_JURY.length} Official Evaluators)</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-blue-300">
+                          Active Pass: {selectedJudge.name} • {selectedJudge.credential_id}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                        {OFFICIAL_GRAND_JURY.map((judge) => {
+                          const isSelected = selectedJudge.credential_id === judge.credential_id;
                           return (
                             <button
-                              key={teacher.credential_id}
+                              key={judge.credential_id}
                               type="button"
                               onClick={() => {
-                                setSelectedTeacher(teacher);
-                                setFacultyCustomName(teacher.name);
-                                setFacultyCustomId(teacher.credential_id);
+                                setSelectedJudge(judge);
+                                setOtherCustomName(judge.name);
+                                setOtherCustomId(judge.credential_id);
+                                setOtherCustomOrg(judge.specialization);
+                                setOtherCustomVenue(judge.institution);
                               }}
                               className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
                                 isSelected
-                                  ? 'bg-purple-600/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10 ring-1 ring-purple-400'
+                                  ? 'bg-blue-600/20 border-blue-500/50 text-white shadow-lg shadow-blue-500/10 ring-1 ring-blue-400'
                                   : 'bg-black/30 border-white/[0.08] text-slate-300 hover:bg-white/[0.05] hover:border-white/[0.15]'
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                                  isSelected ? 'bg-purple-500 text-white' : 'bg-white/10 text-slate-400'
+                                  isSelected ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-400'
                                 }`}>
-                                  {teacher.credential_id}
+                                  {judge.credential_id}
                                 </span>
                                 {isSelected && (
-                                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34D399]" />
+                                  <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60A5FA]" />
                                 )}
                               </div>
                               <div>
                                 <p className="text-xs sm:text-sm font-sans font-bold leading-tight">
-                                  {teacher.name}
+                                  {judge.name}
                                 </p>
-                                <p className="text-[10px] font-mono text-slate-400 mt-0.5">
-                                  Faculty Incharge
+                                <p className="text-[11px] font-sans text-blue-300 font-medium mt-0.5 line-clamp-1">
+                                  {judge.specialization}
+                                </p>
+                                <p className="text-[10px] font-mono text-slate-400 mt-0.5 line-clamp-1">
+                                  {judge.institution}
                                 </p>
                               </div>
                             </button>
@@ -1979,10 +2351,71 @@ function PassAndAttendanceContent() {
                     </div>
                   )}
 
-                  {/* Generic Role Customizer for Judge / VIP / Staff */}
-                  {['JUDGE', 'VIP', 'STAFF'].includes(currentRole) && (
+                  {/* VIP Guests Authenticated Dignitary Directory */}
+                  {currentRole === 'VIP' && (
                     <div className="bg-white/[0.03] p-4 sm:p-5 rounded-3xl border border-white/[0.08] space-y-4 backdrop-blur-xl">
-                      <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase">
+                          <Sparkles className="w-4 h-4" />
+                          <span>VIP Dignitaries &amp; Patrons Directory ({OFFICIAL_VIP_GUESTS.length} Official VIPs)</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-amber-300">
+                          Active Pass: {selectedVip.name} • {selectedVip.credential_id}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                        {OFFICIAL_VIP_GUESTS.map((vip) => {
+                          const isSelected = selectedVip.credential_id === vip.credential_id;
+                          return (
+                            <button
+                              key={vip.credential_id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedVip(vip);
+                                setOtherCustomName(vip.name);
+                                setOtherCustomId(vip.credential_id);
+                                setOtherCustomOrg(vip.designation);
+                                setOtherCustomVenue(vip.organization);
+                              }}
+                              className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+                                isSelected
+                                  ? 'bg-amber-600/20 border-amber-500/50 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400'
+                                  : 'bg-black/30 border-white/[0.08] text-slate-300 hover:bg-white/[0.05] hover:border-white/[0.15]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                                  isSelected ? 'bg-amber-500 text-white' : 'bg-white/10 text-slate-400'
+                                }`}>
+                                  {vip.credential_id}
+                                </span>
+                                {isSelected && (
+                                  <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#FBBF24]" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs sm:text-sm font-sans font-bold leading-tight">
+                                  {vip.name}
+                                </p>
+                                <p className="text-[11px] font-sans text-amber-300 font-medium mt-0.5 line-clamp-1">
+                                  {vip.designation}
+                                </p>
+                                <p className="text-[10px] font-mono text-slate-400 mt-0.5 line-clamp-1">
+                                  {vip.organization}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Generic Role Customizer for Staff */}
+                  {currentRole === 'STAFF' && (
+                    <div className="bg-white/[0.03] p-4 sm:p-5 rounded-3xl border border-white/[0.08] space-y-4 backdrop-blur-xl">
+                      <div className="flex items-center gap-2 text-xs font-mono font-bold text-rose-400 uppercase">
                         <Sliders className="w-4 h-4" />
                         <span>Customize Your {roleConfig.label}</span>
                       </div>
@@ -1995,7 +2428,7 @@ function PassAndAttendanceContent() {
                             value={otherCustomName}
                             onChange={(e) => setOtherCustomName(e.target.value)}
                             placeholder={roleConfig.classDefault}
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                           />
                         </div>
                         <div>
@@ -2005,7 +2438,7 @@ function PassAndAttendanceContent() {
                             value={otherCustomRole}
                             onChange={(e) => setOtherCustomRole(e.target.value)}
                             placeholder={roleConfig.badgeTitle}
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                           />
                         </div>
                         <div>
@@ -2015,7 +2448,7 @@ function PassAndAttendanceContent() {
                             value={otherCustomOrg}
                             onChange={(e) => setOtherCustomOrg(e.target.value)}
                             placeholder={roleConfig.domainDefault}
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                           />
                         </div>
                         <div>
@@ -2025,7 +2458,7 @@ function PassAndAttendanceContent() {
                             value={otherCustomVenue}
                             onChange={(e) => setOtherCustomVenue(e.target.value)}
                             placeholder={roleConfig.venueDefault}
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                           />
                         </div>
                         <div>
@@ -2035,7 +2468,7 @@ function PassAndAttendanceContent() {
                             value={otherCustomId}
                             onChange={(e) => setOtherCustomId(e.target.value)}
                             placeholder={`${roleConfig.codePrefix}-0001`}
-                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-amber-300 placeholder-slate-500 focus:outline-none focus:border-amber-500 uppercase"
+                            className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-rose-300 placeholder-slate-500 focus:outline-none focus:border-rose-500 uppercase"
                           />
                         </div>
                       </div>
@@ -2060,7 +2493,15 @@ function PassAndAttendanceContent() {
                     {activeBadgeSvg ? (
                       <InteractiveAppleCard
                         svgContent={activeBadgeSvg}
-                        roleAccent={roleConfig.accentColor}
+                        roleAccent={
+                          currentRole === 'INCHARGE'
+                            ? inchargePassRoster === 'VIP_GUESTS'
+                              ? ROLE_CONFIG.VIP.accentColor
+                              : inchargePassRoster === 'GRAND_JURY'
+                              ? ROLE_CONFIG.JUDGE.accentColor
+                              : ROLE_CONFIG.INCHARGE.accentColor
+                            : roleConfig.accentColor
+                        }
                       />
                     ) : (
                       <div className="w-full aspect-[985/670] max-w-4xl mx-auto rounded-3xl bg-white/[0.03] border border-white/[0.08] flex flex-col items-center justify-center text-slate-400 font-mono text-sm gap-3">
@@ -2080,9 +2521,17 @@ function PassAndAttendanceContent() {
                       <Printer className="w-4 h-4 text-emerald-300" />
                       <span>
                         {currentRole === 'INCHARGE'
-                          ? 'Print Supervisor Pass'
+                          ? inchargePassRoster === 'VIP_GUESTS'
+                            ? 'Print VIP Guest Pass'
+                            : inchargePassRoster === 'GRAND_JURY'
+                            ? 'Print Grand Jury Pass'
+                            : 'Print Supervisor Pass'
                           : currentRole === 'EXHIBITOR'
                           ? 'Print Official Pass'
+                          : currentRole === 'JUDGE'
+                          ? 'Print Grand Jury Pass'
+                          : currentRole === 'VIP'
+                          ? 'Print VIP Guest Pass'
                           : 'Print Official Credential'}
                       </span>
                     </button>
@@ -2609,7 +3058,7 @@ function PassAndAttendanceContent() {
                         className="px-6 py-3 rounded-2xl bg-[#065f46] hover:bg-[#047857] text-white text-xs sm:text-sm font-mono font-bold flex items-center gap-2.5 shadow-xl shadow-emerald-950/60 active:scale-95 transition-all self-start sm:self-auto"
                       >
                         <Printer className="w-4 h-4 text-emerald-300" />
-                        <span>Print {selectedStudentIdsForPrint.size} Cards ({a4Sheets.length} Sheet{a4Sheets.length !== 1 ? 's' : ''})</span>
+                        <span>Print {selectedCardsForPrintList.length} Cards ({a4Sheets.length} Sheet{a4Sheets.length !== 1 ? 's' : ''})</span>
                       </button>
                     </div>
 
@@ -2664,130 +3113,392 @@ function PassAndAttendanceContent() {
                       </div>
                     </div>
 
-                    {/* "What cards do you want to print?" Selection Bar */}
-                    <div className="pt-4 border-t border-white/[0.08] space-y-3.5">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <label className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-1.5">
-                          <Filter className="w-4 h-4 text-emerald-400" />
-                          <span>Select Cards to Print ({selectedStudentIdsForPrint.size} of 121 Selected)</span>
-                        </label>
+                    {/* Batch Print Roster Selector */}
+                    <div className="pt-3 border-t border-white/[0.08] flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] font-mono text-slate-400 uppercase font-semibold mr-1">Roster:</span>
+                      <button
+                        type="button"
+                        onClick={() => setBatchPrintRoster('STUDENTS')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                          batchPrintRoster === 'STUDENTS'
+                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40'
+                            : 'bg-black/30 text-slate-400 hover:text-white border border-white/[0.06]'
+                        }`}
+                      >
+                        <GraduationCap className="w-3.5 h-3.5" />
+                        <span>Students ({selectedStudentIdsForPrint.size}/121)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBatchPrintRoster('INCHARGES')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                          batchPrintRoster === 'INCHARGES'
+                            ? 'bg-purple-600 text-white shadow-md shadow-purple-950/40'
+                            : 'bg-black/30 text-slate-400 hover:text-white border border-white/[0.06]'
+                        }`}
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Incharges ({selectedInchargeIdsForPrint.size}/8)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBatchPrintRoster('VIP_GUESTS')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                          batchPrintRoster === 'VIP_GUESTS'
+                            ? 'bg-amber-600 text-white shadow-md shadow-amber-950/40'
+                            : 'bg-black/30 text-slate-400 hover:text-white border border-white/[0.06]'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>VIP Guests ({selectedVipIdsForPrint.size}/6)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBatchPrintRoster('GRAND_JURY')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                          batchPrintRoster === 'GRAND_JURY'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-950/40'
+                            : 'bg-black/30 text-slate-400 hover:text-white border border-white/[0.06]'
+                        }`}
+                      >
+                        <Award className="w-3.5 h-3.5" />
+                        <span>Grand Jury ({selectedJuryIdsForPrint.size}/6)</span>
+                      </button>
+                    </div>
 
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedStudentIdsForPrint(
-                                new Set(OFFICIAL_STUDENTS_ROSTER.map((s) => `${s.student_name}__${s.project_number}`))
-                              );
-                            }}
-                            className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-emerald-300 border border-white/[0.08] transition-colors"
-                          >
-                            Select All 121
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedStudentIdsForPrint(new Set())}
-                            className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-slate-400 border border-white/[0.08] transition-colors"
-                          >
-                            Clear Selection
-                          </button>
-                        </div>
-                      </div>
+                    {/* Section 1: STUDENTS Print Selector */}
+                    {batchPrintRoster === 'STUDENTS' && (
+                      <div className="pt-2 space-y-3.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-1.5">
+                            <Filter className="w-4 h-4 text-emerald-400" />
+                            <span>Select Student Cards ({selectedStudentIdsForPrint.size} of 121 Selected)</span>
+                          </label>
 
-                      {/* Quick Section Pills */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {classSectionsList.map((sec) => {
-                          const secStudents = OFFICIAL_STUDENTS_ROSTER.filter((s) => s.class_section === sec);
-                          const isAllSelected = secStudents.every((s) =>
-                            selectedStudentIdsForPrint.has(`${s.student_name}__${s.project_number}`)
-                          );
-                          return (
+                          <div className="flex items-center gap-2">
                             <button
-                              key={sec}
                               type="button"
                               onClick={() => {
-                                const nextSet = new Set(selectedStudentIdsForPrint);
-                                if (isAllSelected) {
-                                  secStudents.forEach((s) => nextSet.delete(`${s.student_name}__${s.project_number}`));
-                                } else {
-                                  secStudents.forEach((s) => nextSet.add(`${s.student_name}__${s.project_number}`));
-                                }
-                                setSelectedStudentIdsForPrint(nextSet);
+                                setSelectedStudentIdsForPrint(
+                                  new Set(OFFICIAL_STUDENTS_ROSTER.map((s) => `${s.student_name}__${s.project_number}`))
+                                );
                               }}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors border ${
-                                isAllSelected
-                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
-                                  : 'bg-black/30 text-slate-400 border-white/[0.06] hover:border-white/[0.12]'
-                              }`}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-emerald-300 border border-white/[0.08] transition-colors"
                             >
-                              Sec {sec} ({secStudents.length})
+                              Select All 121
                             </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Search inside selection */}
-                      <div className="relative">
-                        <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
-                        <input
-                          type="text"
-                          placeholder="Search student to toggle print selection..."
-                          value={batchPrintSearch}
-                          onChange={(e) => setBatchPrintSearch(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                        />
-                      </div>
-
-                      {/* Checkbox Grid */}
-                      <div className="max-h-56 overflow-y-auto rounded-xl border border-white/[0.06] bg-black/30 p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
-                        {OFFICIAL_STUDENTS_ROSTER.filter((s) => {
-                          if (!batchPrintSearch.trim()) return true;
-                          const q = batchPrintSearch.toLowerCase();
-                          return (
-                            s.student_name.toLowerCase().includes(q) ||
-                            s.class_section.toLowerCase().includes(q) ||
-                            s.project_title.toLowerCase().includes(q)
-                          );
-                        }).map((s) => {
-                          const key = `${s.student_name}__${s.project_number}`;
-                          const isChecked = selectedStudentIdsForPrint.has(key);
-                          return (
-                            <div
-                              key={key}
-                              onClick={() => {
-                                const next = new Set(selectedStudentIdsForPrint);
-                                if (isChecked) next.delete(key);
-                                else next.add(key);
-                                setSelectedStudentIdsForPrint(next);
-                              }}
-                              className={`p-2.5 rounded-xl text-xs font-mono flex items-center gap-2 cursor-pointer transition-colors border ${
-                                isChecked
-                                  ? 'bg-emerald-950/40 border-emerald-600/50 text-white'
-                                  : 'bg-white/[0.02] border-white/[0.04] text-slate-400 hover:bg-white/[0.05]'
-                              }`}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedStudentIdsForPrint(new Set())}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-slate-400 border border-white/[0.08] transition-colors"
                             >
-                              {isChecked ? (
-                                <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
-                              ) : (
-                                <Square className="w-4 h-4 text-slate-600 shrink-0" />
-                              )}
-                              <div className="truncate flex-1">
-                                <span className="font-bold">{s.student_name}</span>{' '}
-                                <span className="text-[10px] text-slate-500">({s.class_section})</span>
+                              Clear Selection
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Quick Section Pills */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {classSectionsList.map((sec) => {
+                            const secStudents = OFFICIAL_STUDENTS_ROSTER.filter((s) => s.class_section === sec);
+                            const isAllSelected = secStudents.every((s) =>
+                              selectedStudentIdsForPrint.has(`${s.student_name}__${s.project_number}`)
+                            );
+                            return (
+                              <button
+                                key={sec}
+                                type="button"
+                                onClick={() => {
+                                  const nextSet = new Set(selectedStudentIdsForPrint);
+                                  if (isAllSelected) {
+                                    secStudents.forEach((s) => nextSet.delete(`${s.student_name}__${s.project_number}`));
+                                  } else {
+                                    secStudents.forEach((s) => nextSet.add(`${s.student_name}__${s.project_number}`));
+                                  }
+                                  setSelectedStudentIdsForPrint(nextSet);
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors border ${
+                                  isAllSelected
+                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                                    : 'bg-black/30 text-slate-400 border-white/[0.06] hover:border-white/[0.12]'
+                                }`}
+                              >
+                                Sec {sec} ({secStudents.length})
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Search inside selection */}
+                        <div className="relative">
+                          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
+                          <input
+                            type="text"
+                            placeholder="Search student to toggle print selection..."
+                            value={batchPrintSearch}
+                            onChange={(e) => setBatchPrintSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        {/* Checkbox Grid */}
+                        <div className="max-h-56 overflow-y-auto rounded-xl border border-white/[0.06] bg-black/30 p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+                          {OFFICIAL_STUDENTS_ROSTER.filter((s) => {
+                            if (!batchPrintSearch.trim()) return true;
+                            const q = batchPrintSearch.toLowerCase();
+                            return (
+                              s.student_name.toLowerCase().includes(q) ||
+                              s.class_section.toLowerCase().includes(q) ||
+                              s.project_title.toLowerCase().includes(q)
+                            );
+                          }).map((s) => {
+                            const key = `${s.student_name}__${s.project_number}`;
+                            const isChecked = selectedStudentIdsForPrint.has(key);
+                            return (
+                              <div
+                                key={key}
+                                onClick={() => {
+                                  const next = new Set(selectedStudentIdsForPrint);
+                                  if (isChecked) next.delete(key);
+                                  else next.add(key);
+                                  setSelectedStudentIdsForPrint(next);
+                                }}
+                                className={`p-2.5 rounded-xl text-xs font-mono flex items-center gap-2 cursor-pointer transition-colors border ${
+                                  isChecked
+                                    ? 'bg-emerald-950/40 border-emerald-600/50 text-white'
+                                    : 'bg-white/[0.02] border-white/[0.04] text-slate-400 hover:bg-white/[0.05]'
+                                }`}
+                              >
+                                {isChecked ? (
+                                  <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-slate-600 shrink-0" />
+                                )}
+                                <div className="truncate flex-1">
+                                  <span className="font-bold">{s.student_name}</span>{' '}
+                                  <span className="text-[10px] text-slate-500">({s.class_section})</span>
+                                </div>
+                                <span className="text-[10px] text-emerald-400 shrink-0 font-mono">{getStudentCredentialId(s)}</span>
                               </div>
-                              <span className="text-[10px] text-emerald-400 shrink-0 font-mono">{getStudentCredentialId(s)}</span>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* Section 2: INCHARGES Print Selector */}
+                    {batchPrintRoster === 'INCHARGES' && (
+                      <div className="pt-2 space-y-3.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-purple-400" />
+                            <span>Select Faculty Incharge Badges ({selectedInchargeIdsForPrint.size} of 8 Selected)</span>
+                          </label>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedInchargeIdsForPrint(
+                                  new Set(OFFICIAL_TEACHERS_AND_INCHARGES.map((t) => t.credential_id))
+                                );
+                              }}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-purple-300 border border-white/[0.08] transition-colors"
+                            >
+                              Select All 8
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedInchargeIdsForPrint(new Set())}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-slate-400 border border-white/[0.08] transition-colors"
+                            >
+                              Clear Selection
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                          {OFFICIAL_TEACHERS_AND_INCHARGES.map((t) => {
+                            const isChecked = selectedInchargeIdsForPrint.has(t.credential_id);
+                            return (
+                              <div
+                                key={t.credential_id}
+                                onClick={() => {
+                                  const next = new Set(selectedInchargeIdsForPrint);
+                                  if (isChecked) next.delete(t.credential_id);
+                                  else next.add(t.credential_id);
+                                  setSelectedInchargeIdsForPrint(next);
+                                }}
+                                className={`p-3 rounded-2xl text-xs font-mono flex items-center justify-between gap-2 cursor-pointer transition-colors border ${
+                                  isChecked
+                                    ? 'bg-purple-950/40 border-purple-500/50 text-white'
+                                    : 'bg-white/[0.02] border-white/[0.04] text-slate-400 hover:bg-white/[0.05]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isChecked ? (
+                                    <CheckSquare className="w-4 h-4 text-purple-400 shrink-0" />
+                                  ) : (
+                                    <Square className="w-4 h-4 text-slate-600 shrink-0" />
+                                  )}
+                                  <span className="font-bold">{t.name}</span>
+                                </div>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold font-mono">
+                                  {t.credential_id}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Section 3: VIP GUESTS Print Selector */}
+                    {batchPrintRoster === 'VIP_GUESTS' && (
+                      <div className="pt-2 space-y-3.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-1.5">
+                            <Sparkles className="w-4 h-4 text-amber-400" />
+                            <span>Select VIP Guest Badges ({selectedVipIdsForPrint.size} of 6 Selected)</span>
+                          </label>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedVipIdsForPrint(
+                                  new Set(OFFICIAL_VIP_GUESTS.map((v) => v.credential_id))
+                                );
+                              }}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-amber-300 border border-white/[0.08] transition-colors"
+                            >
+                              Select All 6
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedVipIdsForPrint(new Set())}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-slate-400 border border-white/[0.08] transition-colors"
+                            >
+                              Clear Selection
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {OFFICIAL_VIP_GUESTS.map((v) => {
+                            const isChecked = selectedVipIdsForPrint.has(v.credential_id);
+                            return (
+                              <div
+                                key={v.credential_id}
+                                onClick={() => {
+                                  const next = new Set(selectedVipIdsForPrint);
+                                  if (isChecked) next.delete(v.credential_id);
+                                  else next.add(v.credential_id);
+                                  setSelectedVipIdsForPrint(next);
+                                }}
+                                className={`p-3 rounded-2xl text-xs font-mono flex items-center justify-between gap-2 cursor-pointer transition-colors border ${
+                                  isChecked
+                                    ? 'bg-amber-950/40 border-amber-500/50 text-white'
+                                    : 'bg-white/[0.02] border-white/[0.04] text-slate-400 hover:bg-white/[0.05]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  {isChecked ? (
+                                    <CheckSquare className="w-4 h-4 text-amber-400 shrink-0" />
+                                  ) : (
+                                    <Square className="w-4 h-4 text-slate-600 shrink-0" />
+                                  )}
+                                  <div className="truncate">
+                                    <div className="font-bold">{v.name}</div>
+                                    <div className="text-[10px] text-amber-300/80 truncate">{v.designation}</div>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold font-mono shrink-0">
+                                  {v.credential_id}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Section 4: GRAND JURY Print Selector */}
+                    {batchPrintRoster === 'GRAND_JURY' && (
+                      <div className="pt-2 space-y-3.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-1.5">
+                            <Award className="w-4 h-4 text-blue-400" />
+                            <span>Select Grand Jury Badges ({selectedJuryIdsForPrint.size} of 6 Selected)</span>
+                          </label>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedJuryIdsForPrint(
+                                  new Set(OFFICIAL_GRAND_JURY.map((j) => j.credential_id))
+                                );
+                              }}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-blue-300 border border-white/[0.08] transition-colors"
+                            >
+                              Select All 6
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedJuryIdsForPrint(new Set())}
+                              className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-slate-400 border border-white/[0.08] transition-colors"
+                            >
+                              Clear Selection
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {OFFICIAL_GRAND_JURY.map((j) => {
+                            const isChecked = selectedJuryIdsForPrint.has(j.credential_id);
+                            return (
+                              <div
+                                key={j.credential_id}
+                                onClick={() => {
+                                  const next = new Set(selectedJuryIdsForPrint);
+                                  if (isChecked) next.delete(j.credential_id);
+                                  else next.add(j.credential_id);
+                                  setSelectedJuryIdsForPrint(next);
+                                }}
+                                className={`p-3 rounded-2xl text-xs font-mono flex items-center justify-between gap-2 cursor-pointer transition-colors border ${
+                                  isChecked
+                                    ? 'bg-blue-950/40 border-blue-500/50 text-white'
+                                    : 'bg-white/[0.02] border-white/[0.04] text-slate-400 hover:bg-white/[0.05]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  {isChecked ? (
+                                    <CheckSquare className="w-4 h-4 text-blue-400 shrink-0" />
+                                  ) : (
+                                    <Square className="w-4 h-4 text-slate-600 shrink-0" />
+                                  )}
+                                  <div className="truncate">
+                                    <div className="font-bold">{j.name}</div>
+                                    <div className="text-[10px] text-blue-300/80 truncate">{j.specialization}</div>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold font-mono shrink-0">
+                                  {j.credential_id}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Print Sheet Preview Info Banner */}
                   <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between text-xs font-mono text-slate-400">
                     <div className="flex items-center gap-2">
                       <Grid className="w-4 h-4 text-emerald-400" />
-                      <span>Ready to print: {selectedStudentIdsForPrint.size} badges arranged across {a4Sheets.length} pages.</span>
+                      <span>Ready to print: {selectedCardsForPrintList.length} badges arranged across {a4Sheets.length} pages.</span>
                     </div>
                     <span className="hidden sm:inline text-slate-500">Pure White Background • Zero Ink Bleed</span>
                   </div>
@@ -3018,7 +3729,7 @@ function PassAndAttendanceContent() {
         <div id="summit-print-mount">
           {/* A. Batch Print Mode: Multi-page A4 Grid Sheets */}
           {isPrintingBatch ? (
-            a4Sheets.map((sheetStudents, sheetIdx) => (
+            a4Sheets.map((sheetCards, sheetIdx) => (
               <div
                 key={`a4_sheet_${sheetIdx}`}
                 className={`a4-sheet ${
@@ -3029,19 +3740,20 @@ function PassAndAttendanceContent() {
                     : 'a4-sheet-1'
                 }`}
               >
-                {sheetStudents.map((st) => {
-                  const cardSvg = badgeTemplates['exhibitor']
-                    ? generateAppleCardSvg(badgeTemplates['exhibitor'], {
-                        name: st.student_name,
-                        classSection: st.class_section,
-                        credentialId: getStudentCredentialId(st),
-                        projectDomain: st.project_title,
-                        venueLocation: st.venue_location || getStudentBoothInfo(st).venue_location,
+                {sheetCards.map((card) => {
+                  const tmpl = badgeTemplates[card.templateKey] || badgeTemplates['exhibitor'];
+                  const cardSvg = tmpl
+                    ? generateAppleCardSvg(tmpl, {
+                        name: card.name,
+                        classSection: card.classSection,
+                        credentialId: card.credentialId,
+                        projectDomain: card.projectDomain,
+                        venueLocation: card.venueLocation,
                       })
                     : '';
                   return (
                     <div
-                      key={`${st.student_name}__${st.project_number}`}
+                      key={card.key}
                       className="card-cell"
                     >
                       <div
