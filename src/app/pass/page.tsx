@@ -298,6 +298,69 @@ function InteractiveAppleCard({
   );
 }
 
+/**
+ * Multi-pass optical scanner for QR codes:
+ * Pass 1: Full frame
+ * Pass 2: Lower-right QR quadrant (standard Apple Card CR-100 placement)
+ * Pass 3: Center crop (for close-up framing)
+ */
+function scanImageDataWithMultiPass(imageData: ImageData): { data: string; method: string } | null {
+  const { width, height, data } = imageData;
+  // Pass 1: Full frame
+  let code = jsQR(data, width, height, { inversionAttempts: 'attemptBoth' });
+  if (code && code.data && code.data.trim()) {
+    return { data: code.data.trim(), method: 'QR_FULL' };
+  }
+
+  // Pass 2: Lower-right QR quadrant
+  if (width >= 80 && height >= 80) {
+    const qx = Math.floor(width * 0.55);
+    const qy = Math.floor(height * 0.45);
+    const qw = width - qx;
+    const qh = height - qy;
+    const qData = new Uint8ClampedArray(qw * qh * 4);
+    for (let y = 0; y < qh; y++) {
+      for (let x = 0; x < qw; x++) {
+        const srcIdx = ((qy + y) * width + (qx + x)) * 4;
+        const dstIdx = (y * qw + x) * 4;
+        qData[dstIdx] = data[srcIdx];
+        qData[dstIdx + 1] = data[srcIdx + 1];
+        qData[dstIdx + 2] = data[srcIdx + 2];
+        qData[dstIdx + 3] = data[srcIdx + 3];
+      }
+    }
+    code = jsQR(qData, qw, qh, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data && code.data.trim()) {
+      return { data: code.data.trim(), method: 'QR_QUADRANT' };
+    }
+  }
+
+  // Pass 3: Center crop (if user zoomed in on QR)
+  if (width >= 100 && height >= 100) {
+    const cx = Math.floor(width * 0.20);
+    const cy = Math.floor(height * 0.20);
+    const cw = Math.floor(width * 0.60);
+    const ch = Math.floor(height * 0.60);
+    const cData = new Uint8ClampedArray(cw * ch * 4);
+    for (let y = 0; y < ch; y++) {
+      for (let x = 0; x < cw; x++) {
+        const srcIdx = ((cy + y) * width + (cx + x)) * 4;
+        const dstIdx = (y * cw + x) * 4;
+        cData[dstIdx] = data[srcIdx];
+        cData[dstIdx + 1] = data[srcIdx + 1];
+        cData[dstIdx + 2] = data[srcIdx + 2];
+        cData[dstIdx + 3] = data[srcIdx + 3];
+      }
+    }
+    code = jsQR(cData, cw, ch, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data && code.data.trim()) {
+      return { data: code.data.trim(), method: 'QR_CENTER' };
+    }
+  }
+
+  return null;
+}
+
 function PassAndAttendanceContent() {
   const searchParams = useSearchParams();
 
@@ -936,16 +999,14 @@ function PassAndAttendanceContent() {
             canvas.height = h;
             ctx.drawImage(video, 0, 0, w, h);
             const imageData = ctx.getImageData(0, 0, w, h);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-              inversionAttempts: 'attemptBoth',
-            });
+            const qrResult = scanImageDataWithMultiPass(imageData);
 
             let detected: string | null = null;
             let method: 'QR_CODE' | 'TOPOTAG_FAILSAFE' = 'QR_CODE';
             let hammingDist: number | undefined = undefined;
 
-            if (code && code.data && code.data.trim()) {
-              detected = code.data.trim();
+            if (qrResult) {
+              detected = qrResult.data;
               method = 'QR_CODE';
             } else {
               // Optical Failsafe: evaluate TopoTag invariant matrix
@@ -1718,10 +1779,37 @@ function PassAndAttendanceContent() {
     }
   };
 
-  // Image File Scanner
+  // Image File Scanner (Supports SVG vector passes, PNG, JPEG, WEBP)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // A. Native SVG pass inspection (instant zero-loss decoding)
+    if (file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml') {
+      const textReader = new FileReader();
+      textReader.onload = (ev) => {
+        const svgText = (ev.target?.result as string) || '';
+        const urlMatch = svgText.match(/[?&]id=([A-Z0-9-]+)/i);
+        const credMatch = svgText.match(/\b(EXH-\d{4}(?:-\d{2})?|INC-\d{4}|VIP-\d{4}|JDG-\d{4})\b/i);
+        const encMatch = svgText.match(/(?:Topological Invariant Code Hexagons|TOPOTAG) \(Encoded ID:\s*([A-Z0-9-]+)\)/i);
+        const idFound = urlMatch?.[1] || credMatch?.[1] || encMatch?.[1];
+
+        if (idFound) {
+          playChime();
+          triggerHaptic(40);
+          setScanActiveIndicator(true);
+          setTimeout(() => setScanActiveIndicator(false), 1400);
+          setScannerInputCode(idFound.toUpperCase());
+          handleScanCode(idFound.toUpperCase(), 'QR_CODE');
+          return;
+        }
+      };
+      textReader.readAsText(file);
+      e.target.value = '';
+      return;
+    }
+
+    // B. Raster image optical scanning (PNG, JPEG, WEBP, photo captures)
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new window.Image();
@@ -1732,18 +1820,20 @@ function PassAndAttendanceContent() {
         const scale = Math.min(1, 1024 / Math.max(img.width, img.height));
         canvas.width = Math.floor(img.width * scale);
         canvas.height = Math.floor(img.height * scale);
+        // Fill pure white background to ensure transparent images composite with high contrast
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'attemptBoth',
-        });
-        if (code && code.data && code.data.trim()) {
+
+        const qrResult = scanImageDataWithMultiPass(imageData);
+        if (qrResult) {
           playChime();
           triggerHaptic(40);
           setScanActiveIndicator(true);
           setTimeout(() => setScanActiveIndicator(false), 1400);
-          setScannerInputCode(code.data.trim());
-          handleScanCode(code.data.trim(), 'QR_CODE');
+          setScannerInputCode(qrResult.data);
+          handleScanCode(qrResult.data, 'QR_CODE');
         } else {
           // TopoTag Failsafe fallback
           const topotagResult = detectTopotagFailsafe(imageData);

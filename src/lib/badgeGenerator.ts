@@ -59,7 +59,7 @@ const RE_EXHIBITION_VENUE = /(EXHIBITION VENUE<\/text>[\s\S]*?<text [^>]*)font-s
 const RE_QR_CRED_ID = /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/;
 const RE_QR_NAME_SEC = /(<text x="0" y="44" class="font-mono" [^>]*)font-size="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/;
 const RE_TOPOTAGS = /<!-- 18 Topological Invariant Code Hexagons[\s\S]*?(?=\s*<\/g>\s*<\/g>\s*<\/g>\s*<!-- 2\. BOTTOM-RIGHT)/;
-const RE_MICRO_QR = /(<g transform="translate\(200, 32\)">\s*<rect x="-8" y="-8" [^>]*\/>)[\s\S]*?(<\/g>\s*<\/g>\s*<\/g>\s*<\/svg>)/;
+const RE_MICRO_QR = /(<g transform="translate\(200, 32\)">\s*<rect\s+[^>]*\/>)[\s\S]*?(<\/g>\s*<\/g>\s*<\/g>\s*<\/svg>)/;
 
 function hashString(str: string): number {
   let h = 0x811c9dc5;
@@ -282,14 +282,17 @@ export function generateAppleCardSvg(
 
   // 9. Butterfly TopoTags Replacement (Unique per Credential ID)
   const dynamicTopotags = generateTopotagCells(data.credentialId);
-  svg = svg.replace(
-    RE_TOPOTAGS,
-    () => dynamicTopotags
-  );
+  svg = svg
+    .replace(/<!-- 1\. UPPER-RIGHT: AUTHENTIC BUTTERFLY TOPOTAG[^>]*-->/g, `<!-- 1. UPPER-RIGHT: AUTHENTIC BUTTERFLY TOPOTAG (ENCODED ID: ${idUpper}) -->`)
+    .replace(/data-topotag-id="[^"]*"/g, `data-topotag-id="${idUpper}"`)
+    .replace(
+      RE_TOPOTAGS,
+      () => dynamicTopotags
+    );
 
   // 10. Micro-QR Code Matrix Replacement (Unique per Credential ID & Student Name)
   const qrPayloadRaw = data.qrPayload || (data.name
-    ? `https://dpsiexibition.pages.dev/pass?id=${idUpper}&name=${encodeURIComponent(rawName)}`
+    ? `https://dpsi-exhibition.pages.dev/pass?id=${idUpper}`
     : idUpper);
   const qrPayload = sanitizeQrPayload(qrPayloadRaw);
   const dynamicMicroQr = generateMicroQrModules(qrPayload);

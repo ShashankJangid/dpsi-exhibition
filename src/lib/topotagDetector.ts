@@ -27,7 +27,11 @@ function mulberry32(seed: number) {
   };
 }
 
+/**
+ * 18 cell coordinates relative to the butterfly vector origin (cx, cy)
+ */
 export const HEX_CELL_COORDS = [
+  // Left Wing (3x3 grid)
   { cx: 111.0, cy: 146.0 },
   { cx: 143.0, cy: 146.0 },
   { cx: 175.0, cy: 146.0 },
@@ -37,6 +41,7 @@ export const HEX_CELL_COORDS = [
   { cx: 111.0, cy: 212.0 },
   { cx: 143.0, cy: 212.0 },
   { cx: 175.0, cy: 212.0 },
+  // Right Wing (3x3 grid)
   { cx: 247.0, cy: 146.0 },
   { cx: 281.0, cy: 146.0 },
   { cx: 315.0, cy: 146.0 },
@@ -233,42 +238,33 @@ export function detectTopotagFailsafe(
     return (data[offset] * 299 + data[offset + 1] * 587 + data[offset + 2] * 114) / 1000;
   };
 
-  // Check candidate regions in the optical quadrant
-  const candidateRegions = [
-    { startX: width * 0.55, startY: height * 0.15, spanW: width * 0.40, spanH: height * 0.45 },
-    { startX: width * 0.60, startY: height * 0.20, spanW: width * 0.35, spanH: height * 0.35 },
-    { startX: width * 0.50, startY: height * 0.10, spanW: width * 0.48, spanH: height * 0.50 },
-    { startX: width * 0.20, startY: height * 0.20, spanW: width * 0.60, spanH: height * 0.60 },
-  ];
-
-  for (const region of candidateRegions) {
+  // Helper to test a candidate butterfly origin and scale
+  const trySample = (origX: number, origY: number, sc: number): TopotagDetectionResult | null => {
     let observedMask = 0;
-    let sampledCount = 0;
+    const offset = Math.max(2, Math.round(5 * (sc / 0.72)));
 
     for (let i = 0; i < HEX_CELL_COORDS.length; i++) {
       const cell = HEX_CELL_COORDS[i];
-      const normX = (cell.cx - 100) / 225;
-      const normY = (cell.cy - 140) / 80;
+      const sx = origX + cell.cx * sc;
+      const sy = origY + cell.cy * sc;
 
-      const sampleX = region.startX + normX * region.spanW;
-      const sampleY = region.startY + normY * region.spanH;
+      if (sx < 0 || sx >= width || sy < 0 || sy >= height) return null;
 
-      const centerLum = getLum(sampleX, sampleY);
+      const centerLum = getLum(sx, sy);
+      const p1 = getLum(sx + offset, sy);
+      const p2 = getLum(sx - offset, sy);
+      const p3 = getLum(sx, sy + offset);
+      const p4 = getLum(sx, sy - offset);
+      const pLum = (p1 + p2 + p3 + p4) / 4;
 
-      const p1 = getLum(sampleX + 3, sampleY);
-      const p2 = getLum(sampleX - 3, sampleY);
-      const p3 = getLum(sampleX, sampleY + 3);
-      const p4 = getLum(sampleX, sampleY - 3);
-      const perimeterLum = (p1 + p2 + p3 + p4) / 4;
-
-      const isRing = (centerLum > 130 && centerLum > perimeterLum + 35) || (centerLum > 175);
+      // In a genus-1 ring, the center is white and the perimeter is dark hexagon
+      const isRing = (centerLum > 140 && centerLum > pLum + 30) || (centerLum > 190 && pLum < 120);
       if (isRing) {
         observedMask |= (1 << i);
       }
-      sampledCount++;
     }
 
-    if (sampledCount === 18 && observedMask > 0) {
+    if (observedMask > 0) {
       const match = matchTopotagBitmask(observedMask, 1);
       if (match && match.confidence >= 0.85) {
         return {
@@ -280,6 +276,42 @@ export function detectTopotagFailsafe(
           hammingDistance: match.hammingDistance,
           confidence: match.confidence,
         };
+      }
+    }
+    return null;
+  };
+
+  // Strategy 1: Standard Full-Card Alignment (CR-100 Badge 985x670)
+  // Butterfly origin is at X = 602 (61.1%), Y = 115 (17.1%), scale = 0.72 * (width / 985)
+  const baseScale = 0.72 * (width / 985);
+  const baseX = width * 0.611;
+  const baseY = height * 0.171;
+
+  // Grid shift sweep around nominal position to tolerate camera angle, margins, or padding
+  const xShifts = [0, -0.02, 0.02, -0.04, 0.04, -0.07, 0.07];
+  const yShifts = [0, -0.02, 0.02, -0.04, 0.04];
+  const scaleFactors = [1.0, 0.95, 1.05, 0.9, 1.1];
+
+  for (const sFactor of scaleFactors) {
+    const sc = baseScale * sFactor;
+    for (const dy of yShifts) {
+      for (const dx of xShifts) {
+        const res = trySample(baseX + width * dx, baseY + height * dy, sc);
+        if (res) return res;
+      }
+    }
+  }
+
+  // Strategy 2: Close-up Butterfly Framing (user holds camera close to the butterfly)
+  const closeUpScales = [width * 0.0016, width * 0.0020, width * 0.0013, width * 0.0024];
+  const closeUpOriginsX = [width * 0.20, width * 0.25, width * 0.15, width * 0.30];
+  const closeUpOriginsY = [height * 0.15, height * 0.20, height * 0.25, height * 0.10];
+
+  for (const sc of closeUpScales) {
+    for (const cy of closeUpOriginsY) {
+      for (const cx of closeUpOriginsX) {
+        const res = trySample(cx, cy, sc);
+        if (res) return res;
       }
     }
   }
