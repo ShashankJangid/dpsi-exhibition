@@ -66,6 +66,25 @@ html.dark img {
 }
 
 /* Micro-interaction typography helpers */
+.bg-background {
+  background-color: var(--color-background);
+}
+.text-foreground {
+  color: var(--color-foreground);
+}
+.bg-card {
+  background-color: var(--color-card);
+}
+.text-card-foreground {
+  color: var(--color-card-foreground);
+}
+.border-border {
+  border-color: var(--color-border);
+}
+.text-muted-foreground {
+  color: var(--color-muted-foreground);
+}
+
 .text-balance {
   text-wrap: balance;
 }
