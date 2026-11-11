@@ -33,7 +33,7 @@ import {
   Upload,
 } from 'lucide-react';
 import jsQR from 'jsqr';
-import { detectTopotagFailsafe } from '@/lib/topotagDetector';
+import { detectTopotagFailsafe, matchTopotagBitmask } from '@/lib/topotagDetector';
 import {
   OFFICIAL_STUDENTS_ROSTER,
   OFFICIAL_TEACHERS_AND_INCHARGES,
@@ -155,10 +155,10 @@ const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
   },
 };
 
-const ATTENDANCE_STORAGE_KEY = 'dpsi_exhibition_attendance_v1';
-const ATTENDANCE_INCHARGE_STORAGE_KEY = 'dpsi_exhibition_attendance_incharge_v1';
-const ATTENDANCE_VIP_STORAGE_KEY = 'dpsi_exhibition_attendance_vip_v1';
-const ATTENDANCE_JURY_STORAGE_KEY = 'dpsi_exhibition_attendance_jury_v1';
+const ATTENDANCE_STORAGE_KEY = 'dpsi_exhibition_attendance_v2';
+const ATTENDANCE_INCHARGE_STORAGE_KEY = 'dpsi_exhibition_attendance_incharge_v2';
+const ATTENDANCE_VIP_STORAGE_KEY = 'dpsi_exhibition_attendance_vip_v2';
+const ATTENDANCE_JURY_STORAGE_KEY = 'dpsi_exhibition_attendance_jury_v2';
 
 export type AttendanceSectionType = 'STUDENTS' | 'INCHARGES' | 'VIP_GUESTS' | 'GRAND_JURY';
 
@@ -299,23 +299,109 @@ function InteractiveAppleCard({
 }
 
 /**
- * Multi-pass optical scanner for QR codes:
- * Pass 1: Full frame
- * Pass 2: Lower-right QR quadrant (standard Apple Card CR-100 placement)
- * Pass 3: Center crop (for close-up framing)
+ * Precomputed O(1) lookup set of all 197 official registered summit credential IDs.
+ * Prevents random non-summit QR codes or optical noise from ever triggering false detections.
  */
-function scanImageDataWithMultiPass(imageData: ImageData): { data: string; method: string } | null {
+const REGISTERED_CREDENTIAL_IDS: Set<string> = (() => {
+  const set = new Set<string>();
+  for (const s of OFFICIAL_STUDENTS_ROSTER) {
+    set.add(getStudentCredentialId(s).toUpperCase());
+  }
+  for (const t of OFFICIAL_TEACHERS_AND_INCHARGES) {
+    set.add(t.credential_id.toUpperCase());
+  }
+  for (const j of OFFICIAL_GRAND_JURY) {
+    set.add(j.credential_id.toUpperCase());
+  }
+  for (const v of OFFICIAL_VIP_GUESTS) {
+    set.add(v.credential_id.toUpperCase());
+  }
+  set.add('STAFF-2026');
+  return set;
+})();
+
+/**
+ * Strictly extracts and validates a registered DPSI Summit Credential ID from an optical payload.
+ * Returns null if the payload does not correspond to a genuine registered summit pass.
+ */
+function extractVerifiedOpticalCredentialId(rawPayload: string): string | null {
+  if (!rawPayload) return null;
+  const trimmed = rawPayload.trim();
+  const urlMatch = trimmed.match(/[?&]id=([A-Z0-9-]+)/i);
+  if (urlMatch && urlMatch[1]) {
+    const id = urlMatch[1].toUpperCase();
+    if (REGISTERED_CREDENTIAL_IDS.has(id)) return id;
+  }
+  const directMatch = trimmed.match(/\b(EXH-\d{4}(?:-\d{2})?|INC-\d{4}|VIP-\d{4}|JDG-\d{4}|STAFF-2026)\b/i);
+  if (directMatch && directMatch[1]) {
+    const id = directMatch[1].toUpperCase();
+    if (REGISTERED_CREDENTIAL_IDS.has(id)) return id;
+  }
+  return null;
+}
+
+/**
+ * Industrial-Grade Multi-Pass Optical Scanner for Micro-QR Codes:
+ * Pass 1: Center target reticle crop (close-up Micro-QR framing)
+ * Pass 2: Lower-right QR quadrant (standard Apple Card CR-100 placement)
+ * Pass 3: Full frame
+ * Pass 4: High-contrast adaptive binarized center crop (enhances small/blurred Micro-QR modules)
+ */
+function scanImageDataWithMultiPass(imageData: ImageData): { data: string; credentialId: string; method: string } | null {
   const { width, height, data } = imageData;
-  // Pass 1: Full frame
-  let code = jsQR(data, width, height, { inversionAttempts: 'attemptBoth' });
-  if (code && code.data && code.data.trim()) {
-    return { data: code.data.trim(), method: 'QR_FULL' };
+
+  const validateCode = (code: { data: string } | null, method: string) => {
+    if (!code || !code.data) return null;
+    const raw = code.data.trim();
+    if (!raw) return null;
+    const verifiedId = extractVerifiedOpticalCredentialId(raw);
+    if (!verifiedId) return null;
+    return { data: verifiedId, credentialId: verifiedId, method };
+  };
+
+  // Pass 1: Center crop (primary target reticle where users hold the Micro-QR)
+  if (width >= 100 && height >= 100) {
+    const cx = Math.floor(width * 0.18);
+    const cy = Math.floor(height * 0.18);
+    const cw = Math.floor(width * 0.64);
+    const ch = Math.floor(height * 0.64);
+    const cData = new Uint8ClampedArray(cw * ch * 4);
+    let lumSum = 0;
+    for (let y = 0; y < ch; y++) {
+      for (let x = 0; x < cw; x++) {
+        const srcIdx = ((cy + y) * width + (cx + x)) * 4;
+        const dstIdx = (y * cw + x) * 4;
+        const r = data[srcIdx];
+        const g = data[srcIdx + 1];
+        const b = data[srcIdx + 2];
+        cData[dstIdx] = r;
+        cData[dstIdx + 1] = g;
+        cData[dstIdx + 2] = b;
+        cData[dstIdx + 3] = 255;
+        lumSum += (r * 299 + g * 587 + b * 114) / 1000;
+      }
+    }
+    const resCenter = validateCode(jsQR(cData, cw, ch, { inversionAttempts: 'dontInvert' }), 'QR_CENTER');
+    if (resCenter) return resCenter;
+
+    // Pass 2: High-contrast binarized center crop for slightly dim/blurred physical Micro-QR prints
+    const avgLum = lumSum / (cw * ch);
+    const threshold = Math.max(85, Math.min(185, avgLum * 0.9));
+    for (let i = 0; i < cData.length; i += 4) {
+      const lum = (cData[i] * 299 + cData[i + 1] * 587 + cData[i + 2] * 114) / 1000;
+      const val = lum < threshold ? 0 : 255;
+      cData[i] = val;
+      cData[i + 1] = val;
+      cData[i + 2] = val;
+    }
+    const resBinary = validateCode(jsQR(cData, cw, ch, { inversionAttempts: 'dontInvert' }), 'QR_CENTER_ENHANCED');
+    if (resBinary) return resBinary;
   }
 
-  // Pass 2: Lower-right QR quadrant
+  // Pass 3: Lower-right QR quadrant (full CR-100 badge framing)
   if (width >= 80 && height >= 80) {
-    const qx = Math.floor(width * 0.55);
-    const qy = Math.floor(height * 0.45);
+    const qx = Math.floor(width * 0.50);
+    const qy = Math.floor(height * 0.40);
     const qw = width - qx;
     const qh = height - qy;
     const qData = new Uint8ClampedArray(qw * qh * 4);
@@ -326,37 +412,16 @@ function scanImageDataWithMultiPass(imageData: ImageData): { data: string; metho
         qData[dstIdx] = data[srcIdx];
         qData[dstIdx + 1] = data[srcIdx + 1];
         qData[dstIdx + 2] = data[srcIdx + 2];
-        qData[dstIdx + 3] = data[srcIdx + 3];
+        qData[dstIdx + 3] = 255;
       }
     }
-    code = jsQR(qData, qw, qh, { inversionAttempts: 'attemptBoth' });
-    if (code && code.data && code.data.trim()) {
-      return { data: code.data.trim(), method: 'QR_QUADRANT' };
-    }
+    const resQuad = validateCode(jsQR(qData, qw, qh, { inversionAttempts: 'dontInvert' }), 'QR_QUADRANT');
+    if (resQuad) return resQuad;
   }
 
-  // Pass 3: Center crop (if user zoomed in on QR)
-  if (width >= 100 && height >= 100) {
-    const cx = Math.floor(width * 0.20);
-    const cy = Math.floor(height * 0.20);
-    const cw = Math.floor(width * 0.60);
-    const ch = Math.floor(height * 0.60);
-    const cData = new Uint8ClampedArray(cw * ch * 4);
-    for (let y = 0; y < ch; y++) {
-      for (let x = 0; x < cw; x++) {
-        const srcIdx = ((cy + y) * width + (cx + x)) * 4;
-        const dstIdx = (y * cw + x) * 4;
-        cData[dstIdx] = data[srcIdx];
-        cData[dstIdx + 1] = data[srcIdx + 1];
-        cData[dstIdx + 2] = data[srcIdx + 2];
-        cData[dstIdx + 3] = data[srcIdx + 3];
-      }
-    }
-    code = jsQR(cData, cw, ch, { inversionAttempts: 'attemptBoth' });
-    if (code && code.data && code.data.trim()) {
-      return { data: code.data.trim(), method: 'QR_CENTER' };
-    }
-  }
+  // Pass 4: Full frame
+  const resFull = validateCode(jsQR(data, width, height, { inversionAttempts: 'dontInvert' }), 'QR_FULL');
+  if (resFull) return resFull;
 
   return null;
 }
@@ -570,6 +635,7 @@ function PassAndAttendanceContent() {
   } | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [scanActiveIndicator, setScanActiveIndicator] = useState(false);
+  const [scannerFocusStage, setScannerFocusStage] = useState<'MICRO_QR_PRIMARY' | 'TOPOTAG_FAILSAFE_STANDBY'>('MICRO_QR_PRIMARY');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -984,53 +1050,110 @@ function PassAndAttendanceContent() {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let lastScanTime = 0;
 
+    // Industrial multi-frame consensus & Micro-QR priority state
+    let missedQrFrames = 0;
+    let qrCandidateId = '';
+    let qrStreakCount = 0;
+    let topotagCandidateId = '';
+    let topotagStreakCount = 0;
+    setScannerFocusStage('MICRO_QR_PRIMARY');
+
     const scanFrame = () => {
       if (video.readyState >= video.HAVE_CURRENT_DATA && ctx) {
         const now = performance.now();
-        // Sample frame every 100ms (~10 FPS) for instant detection with low CPU overhead
+        // Sample frame every 100ms (~10 FPS) for crisp optical lock with low CPU overhead
         if (now - lastScanTime > 100 && video.videoWidth > 0 && video.videoHeight > 0) {
           lastScanTime = now;
-          const scale = Math.min(1, 1024 / Math.max(video.videoWidth, video.videoHeight));
-          const w = Math.floor(video.videoWidth * scale);
-          const h = Math.floor(video.videoHeight * scale);
 
-          if (w > 0 && h > 0) {
-            canvas.width = w;
-            canvas.height = h;
-            ctx.drawImage(video, 0, 0, w, h);
-            const imageData = ctx.getImageData(0, 0, w, h);
-            const qrResult = scanImageDataWithMultiPass(imageData);
+          // Enforce 3.5-second post-scan cooldown lock to prevent rapid-fire accidental scans
+          if (now - lastDetectedTimeRef.current >= 3500) {
+            const scale = Math.min(1, 1024 / Math.max(video.videoWidth, video.videoHeight));
+            const w = Math.floor(video.videoWidth * scale);
+            const h = Math.floor(video.videoHeight * scale);
 
-            let detected: string | null = null;
-            let method: 'QR_CODE' | 'TOPOTAG_FAILSAFE' = 'QR_CODE';
-            let hammingDist: number | undefined = undefined;
+            if (w > 0 && h > 0) {
+              canvas.width = w;
+              canvas.height = h;
+              ctx.drawImage(video, 0, 0, w, h);
+              const imageData = ctx.getImageData(0, 0, w, h);
 
-            if (qrResult) {
-              detected = qrResult.data;
-              method = 'QR_CODE';
-            } else {
-              // Optical Failsafe: evaluate TopoTag invariant matrix
-              const topotagResult = detectTopotagFailsafe(imageData);
-              if (topotagResult && topotagResult.credentialId) {
-                detected = topotagResult.credentialId;
-                method = 'TOPOTAG_FAILSAFE';
-                hammingDist = topotagResult.hammingDistance;
+              // STAGE 1 (PRIMARY): Always focus on Micro-QR first
+              const qrResult = scanImageDataWithMultiPass(imageData);
+
+              let confirmedId: string | null = null;
+              let confirmedMethod: 'QR_CODE' | 'TOPOTAG_FAILSAFE' = 'QR_CODE';
+              let confirmedHamming: number | undefined = undefined;
+
+              if (qrResult && qrResult.credentialId) {
+                // Micro-QR visible -> immediately reset TopoTag failsafe standby
+                missedQrFrames = 0;
+                topotagCandidateId = '';
+                topotagStreakCount = 0;
+                setScannerFocusStage((prev) => (prev !== 'MICRO_QR_PRIMARY' ? 'MICRO_QR_PRIMARY' : prev));
+
+                if (qrResult.credentialId === qrCandidateId) {
+                  qrStreakCount++;
+                } else {
+                  qrCandidateId = qrResult.credentialId;
+                  qrStreakCount = 1;
+                }
+
+                // Require 2 consecutive frames agreeing on the exact same registered Micro-QR ID
+                if (qrStreakCount >= 2) {
+                  confirmedId = qrCandidateId;
+                  confirmedMethod = 'QR_CODE';
+                  qrStreakCount = 0;
+                }
+              } else {
+                // No Micro-QR in this frame
+                qrCandidateId = '';
+                qrStreakCount = 0;
+                missedQrFrames++;
+
+                // STAGE 2 (FAILSAFE): Only engage TopoTag failsafe after 20+ frames (~2.0s) with NO visible Micro-QR
+                if (missedQrFrames >= 20) {
+                  setScannerFocusStage((prev) =>
+                    prev !== 'TOPOTAG_FAILSAFE_STANDBY' ? 'TOPOTAG_FAILSAFE_STANDBY' : prev
+                  );
+                  const topotagResult = detectTopotagFailsafe(imageData);
+                  if (
+                    topotagResult &&
+                    topotagResult.credentialId &&
+                    topotagResult.hammingDistance === 0 &&
+                    REGISTERED_CREDENTIAL_IDS.has(topotagResult.credentialId.toUpperCase())
+                  ) {
+                    const tId = topotagResult.credentialId.toUpperCase();
+                    if (tId === topotagCandidateId) {
+                      topotagStreakCount++;
+                    } else {
+                      topotagCandidateId = tId;
+                      topotagStreakCount = 1;
+                    }
+
+                    // Require 4 consecutive frames agreeing on the exact 98-point TopoTag invariant signature
+                    if (topotagStreakCount >= 4) {
+                      confirmedId = topotagCandidateId;
+                      confirmedMethod = 'TOPOTAG_FAILSAFE';
+                      confirmedHamming = 0;
+                      topotagStreakCount = 0;
+                      missedQrFrames = 0;
+                    }
+                  } else {
+                    topotagCandidateId = '';
+                    topotagStreakCount = 0;
+                  }
+                }
               }
-            }
 
-            if (detected) {
-              if (
-                detected !== lastScannedCodeRef.current ||
-                now - lastDetectedTimeRef.current > 2500
-              ) {
-                lastScannedCodeRef.current = detected;
+              if (confirmedId && confirmedId !== lastScannedCodeRef.current) {
+                lastScannedCodeRef.current = confirmedId;
                 lastDetectedTimeRef.current = now;
-                setScannerInputCode(detected);
+                setScannerInputCode(confirmedId);
                 playChime();
                 triggerHaptic(40);
                 setScanActiveIndicator(true);
-                setTimeout(() => setScanActiveIndicator(false), 1400);
-                handleScanCodeRef.current(detected, method, hammingDist);
+                setTimeout(() => setScanActiveIndicator(false), 1800);
+                handleScanCodeRef.current(confirmedId, confirmedMethod, confirmedHamming);
               }
             }
           }
@@ -1784,23 +1907,56 @@ function PassAndAttendanceContent() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // A. Native SVG pass inspection (instant zero-loss decoding)
+    // A. Native SVG pass inspection (Micro-QR primary, TopoTag failsafe if QR damaged/missing)
     if (file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml') {
       const textReader = new FileReader();
       textReader.onload = (ev) => {
         const svgText = (ev.target?.result as string) || '';
-        const urlMatch = svgText.match(/[?&]id=([A-Z0-9-]+)/i);
-        const credMatch = svgText.match(/\b(EXH-\d{4}(?:-\d{2})?|INC-\d{4}|VIP-\d{4}|JDG-\d{4})\b/i);
-        const encMatch = svgText.match(/(?:Topological Invariant Code Hexagons|TOPOTAG) \(Encoded ID:\s*([A-Z0-9-]+)\)/i);
-        const idFound = urlMatch?.[1] || credMatch?.[1] || encMatch?.[1];
+        const qrGroupMatch = svgText.match(/<g transform="translate\(200, 32\)">([\s\S]*?)<\/g>/);
+        const hasIntactMicroQr = Boolean(qrGroupMatch && qrGroupMatch[1].includes('shape-rendering="crispEdges"'));
 
-        if (idFound) {
+        if (hasIntactMicroQr) {
+          const urlMatch = svgText.match(/[?&]id=([A-Z0-9-]+)/i);
+          const credMatch = svgText.match(/\b(EXH-\d{4}(?:-\d{2})?|INC-\d{4}|VIP-\d{4}|JDG-\d{4})\b/i);
+          const idFound = urlMatch?.[1] || credMatch?.[1];
+          if (idFound) {
+            playChime();
+            triggerHaptic(40);
+            setScanActiveIndicator(true);
+            setTimeout(() => setScanActiveIndicator(false), 1400);
+            setScannerInputCode(idFound.toUpperCase());
+            handleScanCode(idFound.toUpperCase(), 'QR_CODE');
+            return;
+          }
+        }
+
+        // Micro-QR not visible/intact in SVG -> fall back to TopoTag 18-cell invariant bitmask
+        const ringMatches = [...svgText.matchAll(/data-cell="(\d+)"/g)].map((m) => parseInt(m[1], 10));
+        if (ringMatches.length >= 5 && ringMatches.length <= 7) {
+          let svgMask = 0;
+          for (const idx of ringMatches) {
+            svgMask |= 1 << idx;
+          }
+          const matchedTopo = matchTopotagBitmask(svgMask, 0);
+          if (matchedTopo && matchedTopo.credentialId) {
+            playChime();
+            triggerHaptic(40);
+            setScanActiveIndicator(true);
+            setTimeout(() => setScanActiveIndicator(false), 1400);
+            setScannerInputCode(matchedTopo.credentialId.toUpperCase());
+            handleScanCode(matchedTopo.credentialId.toUpperCase(), 'TOPOTAG_FAILSAFE', 0);
+            return;
+          }
+        }
+
+        const encMatch = svgText.match(/(?:Topological Invariant Code Hexagons|TOPOTAG) \(Encoded ID:\s*([A-Z0-9-]+)\)/i);
+        if (encMatch?.[1]) {
           playChime();
           triggerHaptic(40);
           setScanActiveIndicator(true);
           setTimeout(() => setScanActiveIndicator(false), 1400);
-          setScannerInputCode(idFound.toUpperCase());
-          handleScanCode(idFound.toUpperCase(), 'QR_CODE');
+          setScannerInputCode(encMatch[1].toUpperCase());
+          handleScanCode(encMatch[1].toUpperCase(), 'TOPOTAG_FAILSAFE', 0);
           return;
         }
       };
@@ -3685,9 +3841,23 @@ function PassAndAttendanceContent() {
                         </div>
 
                         {/* Top Live Status Indicator */}
-                        <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-2 text-[10px] font-mono text-emerald-300">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                          <span>OPTICAL ENGINE ACTIVE (jsQR + TopoTag Failsafe Engine)</span>
+                        <div
+                          className={`absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border flex items-center gap-2 text-[10px] font-mono ${
+                            scannerFocusStage === 'MICRO_QR_PRIMARY'
+                              ? 'border-emerald-500/30 text-emerald-300'
+                              : 'border-amber-500/40 text-amber-300'
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full animate-ping ${
+                              scannerFocusStage === 'MICRO_QR_PRIMARY' ? 'bg-emerald-400' : 'bg-amber-400'
+                            }`}
+                          />
+                          <span>
+                            {scannerFocusStage === 'MICRO_QR_PRIMARY'
+                              ? 'PRIMARY FOCUS: MICRO-QR OPTICAL ENGINE'
+                              : 'MICRO-QR NOT VISIBLE • TOPOTAG FAILSAFE STANDBY'}
+                          </span>
                         </div>
 
                         {/* Bottom Action Controls */}

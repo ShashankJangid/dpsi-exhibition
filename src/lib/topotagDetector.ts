@@ -232,52 +232,110 @@ export function detectTopotagFailsafe(
 
   // Luminance helper
   const getLum = (x: number, y: number) => {
-    const px = Math.floor(Math.max(0, Math.min(width - 1, x)));
-    const py = Math.floor(Math.max(0, Math.min(height - 1, y)));
+    const px = Math.round(Math.max(0, Math.min(width - 1, x)));
+    const py = Math.round(Math.max(0, Math.min(height - 1, y)));
     const offset = (py * width + px) * 4;
     return (data[offset] * 299 + data[offset + 1] * 587 + data[offset + 2] * 114) / 1000;
   };
 
-  // Helper to test a candidate butterfly origin and scale
+  // Inter-cell & wing margin white aperture fiducial coordinates (must be bright white #FFFFFF)
+  const WHITE_APERTURE_COORDS = [
+    // Left wing inter-cell midpoints
+    { cx: 127.0, cy: 162.0 },
+    { cx: 159.0, cy: 162.0 },
+    { cx: 127.0, cy: 195.0 },
+    { cx: 159.0, cy: 195.0 },
+    // Right wing inter-cell midpoints
+    { cx: 264.0, cy: 162.0 },
+    { cx: 298.0, cy: 162.0 },
+    { cx: 264.0, cy: 195.0 },
+    { cx: 298.0, cy: 195.0 },
+    // Wing top/bottom white margins around the 3x3 matrices
+    { cx: 143.0, cy: 124.0 },
+    { cx: 143.0, cy: 234.0 },
+    { cx: 281.0, cy: 124.0 },
+    { cx: 281.0, cy: 234.0 },
+  ];
+
+  // Helper to test a candidate butterfly origin and scale with strict 98-point structural verification
   const trySample = (origX: number, origY: number, sc: number): TopotagDetectionResult | null => {
+    const offset = Math.max(2, Math.round(4 * (sc / 0.72)));
+
+    // Step 1: Verify all 12 white wing aperture points between/around the hexagon cells are bright white
+    let apertureSum = 0;
+    for (let k = 0; k < WHITE_APERTURE_COORDS.length; k++) {
+      const pt = WHITE_APERTURE_COORDS[k];
+      const ax = origX + pt.cx * sc;
+      const ay = origY + pt.cy * sc;
+      if (ax < 0 || ax >= width || ay < 0 || ay >= height) return null;
+      const aLum = getLum(ax, ay);
+      if (aLum < 165) return null; // Reject immediately if background between cells is not bright white
+      apertureSum += aLum;
+    }
+    const apertureLum = apertureSum / WHITE_APERTURE_COORDS.length;
+    if (apertureLum < 180) return null;
+
+    // Step 2: Strict tri-state classification for all 18 hexagonal cells
     let observedMask = 0;
-    const offset = Math.max(2, Math.round(5 * (sc / 0.72)));
+    let ringCount = 0;
+    let solidCount = 0;
 
     for (let i = 0; i < HEX_CELL_COORDS.length; i++) {
       const cell = HEX_CELL_COORDS[i];
       const sx = origX + cell.cx * sc;
       const sy = origY + cell.cy * sc;
 
-      if (sx < 0 || sx >= width || sy < 0 || sy >= height) return null;
+      if (sx - offset < 0 || sx + offset >= width || sy - offset < 0 || sy + offset >= height) {
+        return null;
+      }
 
-      const centerLum = getLum(sx, sy);
       const p1 = getLum(sx + offset, sy);
       const p2 = getLum(sx - offset, sy);
       const p3 = getLum(sx, sy + offset);
       const p4 = getLum(sx, sy - offset);
       const pLum = (p1 + p2 + p3 + p4) / 4;
+      const pMax = Math.max(p1, p2, p3, p4);
 
-      // In a genus-1 ring, the center is white and the perimeter is dark hexagon
-      const isRing = (centerLum > 140 && centerLum > pLum + 30) || (centerLum > 190 && pLum < 120);
-      if (isRing) {
+      // Every single one of the 18 cells MUST have a dark hexagon perimeter contrasting with the white wing aperture
+      if (pLum > 105 || pMax > 135 || apertureLum - pLum < 75) {
+        return null;
+      }
+
+      const centerLum = getLum(sx, sy);
+
+      // Tri-state center verification:
+      // 1) Genus-1 Ring: bright white center hole inside dark hexagon perimeter
+      if (centerLum >= 160 && centerLum - pLum >= 65) {
         observedMask |= (1 << i);
+        ringCount++;
+      } else if (centerLum <= 95 && Math.abs(centerLum - pLum) <= 35) {
+        // 2) Genus-0 Solid Hexagon: dark center matching dark hexagon perimeter
+        solidCount++;
+      } else {
+        // 3) Ambiguous / non-hexagon pixel data -> reject immediately (zero false positives)
+        return null;
       }
     }
 
-    if (observedMask > 0) {
-      const match = matchTopotagBitmask(observedMask, 1);
-      if (match && match.confidence >= 0.85) {
-        return {
-          code: match.credentialId,
-          credentialId: match.credentialId,
-          matchedName: match.name,
-          method: 'TOPOTAG_FAILSAFE',
-          distance: match.distance,
-          hammingDistance: match.hammingDistance,
-          confidence: match.confidence,
-        };
-      }
+    // Step 3: Enforce topological ring count invariant (all official badges have 5, 6, or 7 rings)
+    if (ringCount < 5 || ringCount > 7 || ringCount + solidCount !== 18) {
+      return null;
     }
+
+    // Step 4: Require exact 18-bit signature match (0 Hamming distance) to prevent neighbor guessing
+    const match = matchTopotagBitmask(observedMask, 0);
+    if (match && match.hammingDistance === 0) {
+      return {
+        code: match.credentialId,
+        credentialId: match.credentialId,
+        matchedName: match.name,
+        method: 'TOPOTAG_FAILSAFE',
+        distance: 0,
+        hammingDistance: 0,
+        confidence: 1.0,
+      };
+    }
+
     return null;
   };
 

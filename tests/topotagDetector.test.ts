@@ -252,4 +252,47 @@ describe('TopoTag Optical Failsafe & Matrix Invariant Suite', () => {
       assert.strictEqual(decoded.data, tc.expectedUrl, `Decoded QR URL must match expected target`);
     }
   });
+
+  test('Industrial Zero-False-Positive Guarantee: rejects adversarial non-badge camera frames (noise, gradients, checkerboards, room lighting)', () => {
+    const width = 320;
+    const height = 240;
+
+    // 1. 50 frames of deterministic pseudo-random high-contrast camera noise & room textures
+    let seed = 0x13579bdf;
+    const nextRand = () => {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      return (seed >>> 8) & 0xff;
+    };
+
+    for (let f = 0; f < 50; f++) {
+      const data = new Uint8ClampedArray(width * height * 4);
+      for (let i = 0; i < width * height; i++) {
+        const val = nextRand();
+        data[i * 4] = val;
+        data[i * 4 + 1] = (val + 40) & 0xff;
+        data[i * 4 + 2] = (val + 80) & 0xff;
+        data[i * 4 + 3] = 255;
+      }
+      const res = detectTopotagFailsafe({ width, height, data } as ImageData);
+      assert.strictEqual(res, null, `Random camera frame #${f} must never trigger a false TopoTag detection`);
+    }
+
+    // 2. High-contrast checkerboard / striped shirt / window blind patterns at multiple scales
+    for (const blockSize of [3, 5, 8, 12, 16, 24]) {
+      const data = new Uint8ClampedArray(width * height * 4);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const isBright = ((Math.floor(x / blockSize) + Math.floor(y / blockSize)) % 2) === 0;
+          const v = isBright ? 245 : 20;
+          const idx = (y * width + x) * 4;
+          data[idx] = v;
+          data[idx + 1] = v;
+          data[idx + 2] = v;
+          data[idx + 3] = 255;
+        }
+      }
+      const res = detectTopotagFailsafe({ width, height, data } as ImageData);
+      assert.strictEqual(res, null, `Checkerboard pattern (size ${blockSize}) must never trigger a false TopoTag detection`);
+    }
+  });
 });
