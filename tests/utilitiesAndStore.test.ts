@@ -4,7 +4,13 @@ import { cn } from '../src/lib/utils';
 import { playBlip, playChime, playWhoosh, triggerHaptic } from '../src/lib/sound';
 import { getDeviceFingerprint } from '../src/lib/fingerprint';
 import { OFFICIAL_STUDENTS_ROSTER, getStudentCredentialId } from '../src/data/exhibitionRegistry';
-import { generateTopotagCells, generateMicroQrModules } from '../src/lib/badgeGenerator';
+import {
+  generateTopotagCells,
+  generateMicroQrModules,
+  sanitizeInput,
+  escapeXml,
+  sanitizeQrPayload,
+} from '../src/lib/badgeGenerator';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 import { useExhibitionStore } from '../src/store/useExhibitionStore';
@@ -110,6 +116,31 @@ describe('Client Utilities & Security Helpers', () => {
     const decoded = jsQR(rgba, totalSize, totalSize);
     assert.ok(decoded, 'jsQR must decode the generated QR code');
     assert.equal(decoded.data, ojasId);
+  });
+
+  test('badgeGenerator sanitizes XML control characters, Bidi overrides, and malicious payloads', () => {
+    // 1. XML 1.0 disallowed control characters (\x00, \x08, \x1B)
+    const dangerousName = 'DEVANSH\x00GROVER\x08\x1B';
+    const sanitized = sanitizeInput(dangerousName);
+    assert.equal(sanitized, 'DEVANSHGROVER', 'Disallowed control chars must be stripped');
+
+    // 2. Unicode bidi overrides
+    const bidiSpoof = '\u202Ereversed\u202C text';
+    assert.equal(sanitizeInput(bidiSpoof), 'reversed text', 'Bidi overrides must be stripped');
+
+    // 3. XML entity escaping
+    const xmlInjection = '<script>alert("xss") & \'test\'</script>';
+    const escaped = escapeXml(xmlInjection);
+    assert.ok(!escaped.includes('<') && !escaped.includes('>'), 'Angle brackets must be escaped');
+    assert.ok(escaped.includes('&lt;script&gt;') && escaped.includes('&amp;'), 'Entities must be XML escaped');
+
+    // 4. Malicious QR payload schemes
+    const jsPayload = 'javascript:alert(1)';
+    const dataPayload = 'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==';
+    const safePayload = 'https://dpsiexhibition.pages.dev/pass?id=EXH-0001';
+    assert.equal(sanitizeQrPayload(jsPayload), 'https://dpsiexhibition.pages.dev', 'javascript: scheme must be sanitized');
+    assert.equal(sanitizeQrPayload(dataPayload), 'https://dpsiexhibition.pages.dev', 'data: scheme must be sanitized');
+    assert.equal(sanitizeQrPayload(safePayload), safePayload, 'Safe URLs must be preserved');
   });
 
   test('fallback fingerprint uses persistent client entropy to eliminate collisions on identical hardware', async () => {

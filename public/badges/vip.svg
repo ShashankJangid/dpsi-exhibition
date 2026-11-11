@@ -16,40 +16,7 @@
       <stop offset="100%" stop-color="#F8FAFC"/>
     </linearGradient>
 
-    <!-- HOLOGRAPHIC FOIL SHIMMER GRADIENTS (Optical Variable Device / OVD) -->
-    <linearGradient id="holoShimmer" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#A7F3D0" stop-opacity="0.9"/>
-      <stop offset="25%" stop-color="#93C5FD" stop-opacity="0.85"/>
-      <stop offset="50%" stop-color="#DDD6FE" stop-opacity="0.9"/>
-      <stop offset="75%" stop-color="#FDE68A" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#6EE7B7" stop-opacity="0.9"/>
-    </linearGradient>
-
-    <linearGradient id="holoShimmer2" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FBCFE8" stop-opacity="0.8"/>
-      <stop offset="35%" stop-color="#BAE6FD" stop-opacity="0.85"/>
-      <stop offset="70%" stop-color="#A7F3D0" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#FEF08A" stop-opacity="0.8"/>
-    </linearGradient>
-
-    <radialGradient id="holoGlow" cx="45%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
-      <stop offset="40%" stop-color="#E0F2FE" stop-opacity="0.4"/>
-      <stop offset="80%" stop-color="#DDD6FE" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="#F8FAFC" stop-opacity="0"/>
-    </radialGradient>
-
-    <!-- Lanyard Punch Inset -->
-    <filter id="punchInset">
-      <feOffset dx="0" dy="1"/>
-      <feGaussianBlur stdDeviation="1" result="offset-blur"/>
-      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
-      <feFlood flood-color="#94A3B8" flood-opacity="0.3" result="color"/>
-      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
-      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
-    </filter>
-  
-        <!-- Box boundary clip-paths to strictly contain text inside designated cardlet boxes -->
+    <!-- Box boundary clip-paths to strictly contain text inside designated cardlet boxes -->
     <clipPath id="projectDomainClip">
       <rect x="0" y="2" width="420" height="28"/>
     </clipPath>
@@ -212,7 +179,7 @@
 
   <!-- ================= 6. BOTTOM BASELINE & CL0UD FOOTER ATTRIBUTION ================= -->
   <g transform="translate(54, 622)">
-    <text x="883" y="0" text-anchor="end" class="font-mono" font-size="8.5" font-weight="700" fill="#64748B" letter-spacing="0.6">DESIGNED &amp; ENGINEERED BY OJAS SINGH (IX-A) &amp; DEVANSH GROVER (VII-H)</text>
+    <text x="438.5" y="0" text-anchor="middle" class="font-mono" font-size="8.5" font-weight="700" fill="#64748B" letter-spacing="0.8">DESIGNED &amp; ENGINEERED BY OJAS SINGH (IX-A) &amp; DEVANSH GROVER (VII-H)</text>
   </g>
 
   <!-- ================= RIGHT COLUMN: PURE OPTICAL PLATFORM ================= -->
@@ -222,7 +189,7 @@
     <rect x="572" y="52" width="365" height="555" rx="24" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.2" filter="url(#plateShadow)"/>
 
     <!-- 1. UPPER-RIGHT: AUTHENTIC BUTTERFLY TOPOTAG (ENCODED ID: 3) -->
-    <g transform="translate(592, 75)">
+    <g transform="translate(592, 91)">
       
 
       <g transform="translate(10, 24) scale(0.72)">
