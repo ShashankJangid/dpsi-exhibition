@@ -237,7 +237,7 @@ export default function SearchModal() {
             <span>↑↓ Navigate</span>
             <span>↵ Jump to Booth in 3D</span>
           </div>
-          <span>35 Innovation Projects</span>
+          <span>{projects.length} Innovation Projects</span>
         </div>
       </div>
     </div>

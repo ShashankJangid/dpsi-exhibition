@@ -156,7 +156,7 @@ export const TOUR_STOPS: TourStop[] = [
   {
     id: 'business',
     title: 'Business Ventures & EdTech',
-    subtitle: 'Student startups, commercial enterprise models, and sustainable venture solutions (B01–B07).',
+    subtitle: 'Student startups, commercial enterprise models, and sustainable venture solutions (B01–B08).',
     zone: 'business',
     camera: {
       position: [9.5, 6.0, 9.0],

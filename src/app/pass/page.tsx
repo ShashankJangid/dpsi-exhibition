@@ -3231,7 +3231,7 @@ function PassAndAttendanceContent() {
                         onChange={(e) => setAttendanceClassFilter(e.target.value)}
                         className="px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-purple-500"
                       >
-                        <option value="ALL">All Sections (121)</option>
+                        <option value="ALL">All Sections ({OFFICIAL_STUDENTS_ROSTER.length})</option>
                         {classSectionsList.map((sec) => (
                           <option key={sec} value={sec}>
                             Section {sec}
@@ -3576,7 +3576,7 @@ function PassAndAttendanceContent() {
                         }`}
                       >
                         <GraduationCap className="w-3.5 h-3.5" />
-                        <span>Students ({selectedStudentIdsForPrint.size}/121)</span>
+                        <span>Students ({selectedStudentIdsForPrint.size}/{OFFICIAL_STUDENTS_ROSTER.length})</span>
                       </button>
                       <button
                         type="button"
@@ -3622,7 +3622,7 @@ function PassAndAttendanceContent() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <label className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-1.5">
                             <Filter className="w-4 h-4 text-emerald-400" />
-                            <span>Select Student Cards ({selectedStudentIdsForPrint.size} of 121 Selected)</span>
+                            <span>Select Student Cards ({selectedStudentIdsForPrint.size} of {OFFICIAL_STUDENTS_ROSTER.length} Selected)</span>
                           </label>
 
                           <div className="flex items-center gap-2">
@@ -3635,7 +3635,7 @@ function PassAndAttendanceContent() {
                               }}
                               className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-mono text-emerald-300 border border-white/[0.08] transition-colors"
                             >
-                              Select All 121
+                              Select All {OFFICIAL_STUDENTS_ROSTER.length}
                             </button>
                             <button
                               type="button"
