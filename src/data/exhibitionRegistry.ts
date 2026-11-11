@@ -154,7 +154,7 @@ export const OFFICIAL_TEACHERS_AND_INCHARGES: TeacherEntry[] = [
   { name: 'Vaibhav Mishra', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0004' },
   { name: 'Ajay', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0005' },
   { name: 'Dana Alsani', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0006' },
-  { name: 'Amit', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0007' },
+  { name: 'Avneet', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0007' },
   { name: 'Krishna', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0008' },
 ];
 
