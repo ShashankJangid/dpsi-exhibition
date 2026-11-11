@@ -158,6 +158,40 @@ export const OFFICIAL_TEACHERS_AND_INCHARGES: TeacherEntry[] = [
   { name: 'Krishna', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0008' },
 ];
 
+export interface VipGuestEntry {
+  name: string;
+  designation: string;
+  organization: string;
+  credential_id: string;
+  pass_code: string;
+}
+
+export interface GrandJuryEntry {
+  name: string;
+  specialization: string;
+  institution: string;
+  credential_id: string;
+  pass_code: string;
+}
+
+export const OFFICIAL_VIP_GUESTS: VipGuestEntry[] = [
+  { name: 'Dr. V. K. Sharma', designation: 'Director & Chief Patron', organization: 'Delhi Public School Society', credential_id: 'VIP-0001', pass_code: 'VIP2026' },
+  { name: 'Smt. Sangeeta Hajela', designation: 'Principal & Summit Chair', organization: 'DPS Indirapuram', credential_id: 'VIP-0002', pass_code: 'VIP2026' },
+  { name: 'Shri Ashok Chandra', designation: 'Chairman', organization: 'DPS Society Managing Committee', credential_id: 'VIP-0003', pass_code: 'VIP2026' },
+  { name: 'Prof. Anil Sahasrabudhe', designation: 'Distinguished Guest of Honor', organization: 'National AI & Tech Council', credential_id: 'VIP-0004', pass_code: 'VIP2026' },
+  { name: 'Dr. Manju Sharma', designation: 'Academic Council Member', organization: 'Council for Educational Innovation', credential_id: 'VIP-0005', pass_code: 'VIP2026' },
+  { name: 'Ms. Priya Kapoor', designation: 'Director of Strategic Innovation', organization: 'Apex Tech Partnerships', credential_id: 'VIP-0006', pass_code: 'VIP2026' },
+];
+
+export const OFFICIAL_GRAND_JURY: GrandJuryEntry[] = [
+  { name: 'Prof. Rajesh K. Pathak', specialization: 'Applied Robotics & Automation', institution: 'IIT Delhi / Robotics Division', credential_id: 'JDG-0001', pass_code: 'JUDGE2026' },
+  { name: 'Dr. Ananya Sen', specialization: 'Biotechnology & Health Systems', institution: 'AIIMS Biomedical Innovation', credential_id: 'JDG-0002', pass_code: 'JUDGE2026' },
+  { name: 'Vikramaditya Roy', specialization: 'Neuromorphic Computing & AI', institution: 'Apex Cyber Research', credential_id: 'JDG-0003', pass_code: 'JUDGE2026' },
+  { name: 'Dr. Shalini Aggarwal', specialization: 'Sustainable Energy & CleanTech', institution: 'Council of Scientific Research', credential_id: 'JDG-0004', pass_code: 'JUDGE2026' },
+  { name: 'Capt. Arvind Mathur', specialization: 'Autonomous Drone Systems & Avionics', institution: 'AeroTech Defense Labs', credential_id: 'JDG-0005', pass_code: 'JUDGE2026' },
+  { name: 'Dr. Meenakshi Sundaram', specialization: 'Edge IoT & Smart Cities', institution: 'Smart Mobility Institute', credential_id: 'JDG-0006', pass_code: 'JUDGE2026' },
+];
+
 export const OFFICIAL_PROJECTS_CATALOG: OfficialProjectEntry[] = [
   {
     "project_number": 1,

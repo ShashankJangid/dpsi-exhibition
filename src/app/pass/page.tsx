@@ -36,9 +36,13 @@ import jsQR from 'jsqr';
 import {
   OFFICIAL_STUDENTS_ROSTER,
   OFFICIAL_TEACHERS_AND_INCHARGES,
+  OFFICIAL_VIP_GUESTS,
+  OFFICIAL_GRAND_JURY,
   PROPRIETARY_ACCESS_CODES,
   StudentEntry,
   TeacherEntry,
+  VipGuestEntry,
+  GrandJuryEntry,
   getStudentCredentialId,
   getStudentBoothInfo,
 } from '@/data/exhibitionRegistry';
@@ -151,6 +155,11 @@ const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
 };
 
 const ATTENDANCE_STORAGE_KEY = 'dpsi_exhibition_attendance_v1';
+const ATTENDANCE_INCHARGE_STORAGE_KEY = 'dpsi_exhibition_attendance_incharge_v1';
+const ATTENDANCE_VIP_STORAGE_KEY = 'dpsi_exhibition_attendance_vip_v1';
+const ATTENDANCE_JURY_STORAGE_KEY = 'dpsi_exhibition_attendance_jury_v1';
+
+export type AttendanceSectionType = 'STUDENTS' | 'INCHARGES' | 'VIP_GUESTS' | 'GRAND_JURY';
 
 export interface AttendanceRecord {
   studentName: string;
@@ -160,6 +169,38 @@ export interface AttendanceRecord {
   mentor?: string;
   passCode: string;
   accessCode?: string;
+  checkedIn: boolean;
+  checkInTime?: string;
+  timestamp?: string;
+}
+
+export interface InchargeAttendanceRecord {
+  name: string;
+  role: string;
+  credentialId: string;
+  passCode: string;
+  checkedIn: boolean;
+  checkInTime?: string;
+  timestamp?: string;
+}
+
+export interface VipAttendanceRecord {
+  name: string;
+  designation: string;
+  organization: string;
+  credentialId: string;
+  passCode: string;
+  checkedIn: boolean;
+  checkInTime?: string;
+  timestamp?: string;
+}
+
+export interface JuryAttendanceRecord {
+  name: string;
+  specialization: string;
+  institution: string;
+  credentialId: string;
+  passCode: string;
   checkedIn: boolean;
   checkInTime?: string;
   timestamp?: string;
@@ -351,6 +392,68 @@ function PassAndAttendanceContent() {
     }));
   });
 
+  // 4 Sections Attendance State
+  const [attendanceActiveSection, setAttendanceActiveSection] = useState<AttendanceSectionType>('STUDENTS');
+
+  // Incharge Attendance
+  const [inchargeAttendanceList, setInchargeAttendanceList] = useState<InchargeAttendanceRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(ATTENDANCE_INCHARGE_STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch {
+        // fallback
+      }
+    }
+    return OFFICIAL_TEACHERS_AND_INCHARGES.map((t) => ({
+      name: t.name,
+      role: 'Faculty Incharge',
+      credentialId: t.credential_id,
+      passCode: t.pass_code,
+      checkedIn: false,
+    }));
+  });
+
+  // VIP Guests Attendance
+  const [vipAttendanceList, setVipAttendanceList] = useState<VipAttendanceRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(ATTENDANCE_VIP_STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch {
+        // fallback
+      }
+    }
+    return OFFICIAL_VIP_GUESTS.map((v) => ({
+      name: v.name,
+      designation: v.designation,
+      organization: v.organization,
+      credentialId: v.credential_id,
+      passCode: v.pass_code,
+      checkedIn: false,
+    }));
+  });
+
+  // Grand Jury Attendance
+  const [juryAttendanceList, setJuryAttendanceList] = useState<JuryAttendanceRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(ATTENDANCE_JURY_STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch {
+        // fallback
+      }
+    }
+    return OFFICIAL_GRAND_JURY.map((j) => ({
+      name: j.name,
+      specialization: j.specialization,
+      institution: j.institution,
+      credentialId: j.credential_id,
+      passCode: j.pass_code,
+      checkedIn: false,
+    }));
+  });
+
   const [attendanceClassFilter, setAttendanceClassFilter] = useState<string>('ALL');
   const [attendanceStatusFilter, setAttendanceStatusFilter] = useState<'ALL' | 'PRESENT' | 'ABSENT'>('ALL');
   const [attendanceSearchQuery, setAttendanceSearchQuery] = useState('');
@@ -464,10 +567,31 @@ function PassAndAttendanceContent() {
     stopCamera();
   };
 
+  const inchargeAttendanceListRef = useRef(inchargeAttendanceList);
+  useEffect(() => {
+    inchargeAttendanceListRef.current = inchargeAttendanceList;
+  }, [inchargeAttendanceList]);
+
+  const vipAttendanceListRef = useRef(vipAttendanceList);
+  useEffect(() => {
+    vipAttendanceListRef.current = vipAttendanceList;
+  }, [vipAttendanceList]);
+
+  const juryAttendanceListRef = useRef(juryAttendanceList);
+  useEffect(() => {
+    juryAttendanceListRef.current = juryAttendanceList;
+  }, [juryAttendanceList]);
+
   // Optical & Manual code scanner check
   const handleScanCode = useCallback((code: string) => {
     let clean = code.trim().toUpperCase();
     if (!clean) return;
+
+    const nowTime = new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
 
     // Handle full URL strings (e.g. https://.../pass?id=EXH-0036-01&name=OJAS+SINGH)
     const urlParamMatch = code.match(/[?&]id=([A-Z0-9-]+)/i);
@@ -502,6 +626,21 @@ function PassAndAttendanceContent() {
     ) {
       const teacherName = matchedTeacher?.name || selectedTeacher?.name || facultyCustomName || 'FACULTY IN-CHARGE';
       const teacherId = matchedTeacher?.credential_id || selectedTeacher?.credential_id || 'INC-0001';
+
+      // Record in Faculty Incharge Attendance
+      const updatedTeachers = inchargeAttendanceListRef.current.map((t) => {
+        if (t.credentialId.toUpperCase() === teacherId.toUpperCase() || t.name.toUpperCase() === teacherName.toUpperCase()) {
+          return {
+            ...t,
+            checkedIn: true,
+            checkInTime: t.checkedIn ? t.checkInTime : nowTime,
+            timestamp: t.timestamp || nowTime,
+          };
+        }
+        return t;
+      });
+      saveInchargeAttendance(updatedTeachers);
+
       setScannedResult({
         found: true,
         specialRole: {
@@ -511,48 +650,102 @@ function PassAndAttendanceContent() {
           credentialId: teacherId,
           venueLocation: 'Exhibition Floor',
         },
-        message: `Verified Faculty In-charge (${teacherName}) authenticated for exhibition floor access.`,
+        message: `Verified Faculty In-charge (${teacherName}) attendance authenticated as PRESENT.`,
       });
       return;
     }
 
     // B. Recognition of Grand Jury passes
+    const matchedJury = OFFICIAL_GRAND_JURY.find(
+      (j) =>
+        j.credential_id.toUpperCase() === clean ||
+        j.name.trim().toUpperCase() === clean ||
+        (decodedUrlName && j.name.trim().toUpperCase() === decodedUrlName)
+    );
+
     if (
+      matchedJury ||
+      clean.startsWith('JDG-') ||
       clean === 'JURY-2026' ||
       clean === PROPRIETARY_ACCESS_CODES.JUDGE_PANEL ||
       clean.includes('JURY') ||
       clean.includes('JUDGE')
     ) {
+      const juryName = matchedJury?.name || 'HONORABLE GRAND JURY EVALUATOR';
+      const juryId = matchedJury?.credential_id || 'JDG-0001';
+      const jurySpec = matchedJury ? `${matchedJury.specialization} • ${matchedJury.institution}` : 'GRAND JURY EVALUATOR • ALL-POD ACCESS';
+
+      // Record in Grand Jury Attendance
+      const updatedJury = juryAttendanceListRef.current.map((j) => {
+        if (j.credentialId.toUpperCase() === juryId.toUpperCase() || j.name.toUpperCase() === juryName.toUpperCase()) {
+          return {
+            ...j,
+            checkedIn: true,
+            checkInTime: j.checkedIn ? j.checkInTime : nowTime,
+            timestamp: j.timestamp || nowTime,
+          };
+        }
+        return j;
+      });
+      saveJuryAttendance(updatedJury);
+
       setScannedResult({
         found: true,
         specialRole: {
           title: 'DPSI TECH & INNOVATION EXHIBITION 2026',
-          name: 'HONORABLE GRAND JURY EVALUATOR',
-          role: 'GRAND JURY EVALUATOR • ALL-POD ACCESS',
-          credentialId: 'JURY-2026',
+          name: juryName,
+          role: jurySpec,
+          credentialId: juryId,
           venueLocation: 'VIP & Evaluation Pavilion • Main Stage',
         },
-        message: 'Verified Grand Jury credentials authenticated for all 44 research pods.',
+        message: `Verified Grand Jury Evaluator (${juryName}) attendance authenticated as PRESENT.`,
       });
       return;
     }
 
     // C. Recognition of VIP Delegate passes
+    const matchedVip = OFFICIAL_VIP_GUESTS.find(
+      (v) =>
+        v.credential_id.toUpperCase() === clean ||
+        v.name.trim().toUpperCase() === clean ||
+        (decodedUrlName && v.name.trim().toUpperCase() === decodedUrlName)
+    );
+
     if (
+      matchedVip ||
+      clean.startsWith('VIP-') ||
       clean === 'VIP-2026' ||
       clean === PROPRIETARY_ACCESS_CODES.VIP_DELEGATE ||
       clean.includes('VIP')
     ) {
+      const vipName = matchedVip?.name || 'DISTINGUISHED VIP GUEST';
+      const vipId = matchedVip?.credential_id || 'VIP-0001';
+      const vipOrg = matchedVip ? `${matchedVip.designation} • ${matchedVip.organization}` : 'VIP DELEGATE • CEREMONIAL ENCLOSURE';
+
+      // Record in VIP Attendance
+      const updatedVip = vipAttendanceListRef.current.map((v) => {
+        if (v.credentialId.toUpperCase() === vipId.toUpperCase() || v.name.toUpperCase() === vipName.toUpperCase()) {
+          return {
+            ...v,
+            checkedIn: true,
+            checkInTime: v.checkedIn ? v.checkInTime : nowTime,
+            timestamp: v.timestamp || nowTime,
+          };
+        }
+        return v;
+      });
+      saveVipAttendance(updatedVip);
+
       setScannedResult({
         found: true,
         specialRole: {
           title: 'DISTINGUISHED SUMMIT DELEGATE',
-          name: 'DISTINGUISHED VIP GUEST',
-          role: 'VIP DELEGATE • CEREMONIAL ENCLOSURE',
-          credentialId: 'VIP-2026',
+          name: vipName,
+          role: vipOrg,
+          credentialId: vipId,
           venueLocation: 'Main Auditorium VIP Enclosure',
         },
-        message: 'Distinguished VIP Delegate pass authenticated.',
+        message: `Distinguished VIP Delegate (${vipName}) attendance authenticated as PRESENT.`,
       });
       return;
     }
@@ -748,6 +941,84 @@ function PassAndAttendanceContent() {
     } catch {
       // storage unavailable
     }
+  };
+
+  const saveInchargeAttendance = (records: InchargeAttendanceRecord[]) => {
+    setInchargeAttendanceList(records);
+    try {
+      localStorage.setItem(ATTENDANCE_INCHARGE_STORAGE_KEY, JSON.stringify(records));
+    } catch {
+      // storage unavailable
+    }
+  };
+
+  const saveVipAttendance = (records: VipAttendanceRecord[]) => {
+    setVipAttendanceList(records);
+    try {
+      localStorage.setItem(ATTENDANCE_VIP_STORAGE_KEY, JSON.stringify(records));
+    } catch {
+      // storage unavailable
+    }
+  };
+
+  const saveJuryAttendance = (records: JuryAttendanceRecord[]) => {
+    setJuryAttendanceList(records);
+    try {
+      localStorage.setItem(ATTENDANCE_JURY_STORAGE_KEY, JSON.stringify(records));
+    } catch {
+      // storage unavailable
+    }
+  };
+
+  const handleToggleInchargeAttendance = (credentialId: string) => {
+    const updated = inchargeAttendanceList.map((r) => {
+      if (r.credentialId === credentialId) {
+        const nextState = !r.checkedIn;
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return {
+          ...r,
+          checkedIn: nextState,
+          checkInTime: nextState ? now : undefined,
+          timestamp: nextState ? now : undefined,
+        };
+      }
+      return r;
+    });
+    saveInchargeAttendance(updated);
+  };
+
+  const handleToggleVipAttendance = (credentialId: string) => {
+    const updated = vipAttendanceList.map((r) => {
+      if (r.credentialId === credentialId) {
+        const nextState = !r.checkedIn;
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return {
+          ...r,
+          checkedIn: nextState,
+          checkInTime: nextState ? now : undefined,
+          timestamp: nextState ? now : undefined,
+        };
+      }
+      return r;
+    });
+    saveVipAttendance(updated);
+  };
+
+  const handleToggleJuryAttendance = (credentialId: string) => {
+    const updated = juryAttendanceList.map((r) => {
+      if (r.credentialId === credentialId) {
+        const nextState = !r.checkedIn;
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return {
+          ...r,
+          checkedIn: nextState,
+          checkInTime: nextState ? now : undefined,
+          timestamp: nextState ? now : undefined,
+        };
+      }
+      return r;
+    });
+    saveJuryAttendance(updated);
   };
 
   // Filter students for innovator lookup
@@ -950,7 +1221,7 @@ function PassAndAttendanceContent() {
     };
   }, []);
 
-  // Filtered attendance for Teacher hub
+  // Filtered attendance for Students
   const filteredAttendance = useMemo(() => {
     return attendanceList.filter((rec) => {
       const matchesClass = attendanceClassFilter === 'ALL' || rec.classSection === attendanceClassFilter;
@@ -969,25 +1240,234 @@ function PassAndAttendanceContent() {
     });
   }, [attendanceList, attendanceClassFilter, attendanceStatusFilter, attendanceSearchQuery]);
 
-  // Export attendance CSV using Blob to prevent URL fragment truncation from '#'
-  const handleExportCsv = () => {
-    const headers = ['Student Name', 'Class & Section', 'Booth #', 'Project Title', 'Mentor', 'Pass Code', 'Status', 'Check-In Timestamp'];
-    const rows = attendanceList.map((r) => [
-      `"${r.studentName.replace(/"/g, '""')}"`,
-      `"${r.classSection}"`,
-      r.projectNumber,
-      `"${r.projectTitle.replace(/"/g, '""')}"`,
-      `"${(r.mentor || '').replace(/"/g, '""')}"`,
-      `"${r.passCode}"`,
-      r.checkedIn ? 'PRESENT' : 'ABSENT',
-      `"${r.checkInTime || 'N/A'}"`,
-    ]);
+  // Filtered attendance for Incharges
+  const filteredInchargeAttendance = useMemo(() => {
+    return inchargeAttendanceList.filter((rec) => {
+      const matchesStatus =
+        attendanceStatusFilter === 'ALL' ||
+        (attendanceStatusFilter === 'PRESENT' && rec.checkedIn) ||
+        (attendanceStatusFilter === 'ABSENT' && !rec.checkedIn);
+      const q = attendanceSearchQuery.toLowerCase();
+      const matchesQuery =
+        !q ||
+        rec.name.toLowerCase().includes(q) ||
+        rec.credentialId.toLowerCase().includes(q) ||
+        rec.role.toLowerCase().includes(q);
+      return matchesStatus && matchesQuery;
+    });
+  }, [inchargeAttendanceList, attendanceStatusFilter, attendanceSearchQuery]);
+
+  // Filtered attendance for VIP Guests
+  const filteredVipAttendance = useMemo(() => {
+    return vipAttendanceList.filter((rec) => {
+      const matchesStatus =
+        attendanceStatusFilter === 'ALL' ||
+        (attendanceStatusFilter === 'PRESENT' && rec.checkedIn) ||
+        (attendanceStatusFilter === 'ABSENT' && !rec.checkedIn);
+      const q = attendanceSearchQuery.toLowerCase();
+      const matchesQuery =
+        !q ||
+        rec.name.toLowerCase().includes(q) ||
+        rec.designation.toLowerCase().includes(q) ||
+        rec.organization.toLowerCase().includes(q) ||
+        rec.credentialId.toLowerCase().includes(q);
+      return matchesStatus && matchesQuery;
+    });
+  }, [vipAttendanceList, attendanceStatusFilter, attendanceSearchQuery]);
+
+  // Filtered attendance for Grand Jury
+  const filteredJuryAttendance = useMemo(() => {
+    return juryAttendanceList.filter((rec) => {
+      const matchesStatus =
+        attendanceStatusFilter === 'ALL' ||
+        (attendanceStatusFilter === 'PRESENT' && rec.checkedIn) ||
+        (attendanceStatusFilter === 'ABSENT' && !rec.checkedIn);
+      const q = attendanceSearchQuery.toLowerCase();
+      const matchesQuery =
+        !q ||
+        rec.name.toLowerCase().includes(q) ||
+        rec.specialization.toLowerCase().includes(q) ||
+        rec.institution.toLowerCase().includes(q) ||
+        rec.credentialId.toLowerCase().includes(q);
+      return matchesStatus && matchesQuery;
+    });
+  }, [juryAttendanceList, attendanceStatusFilter, attendanceSearchQuery]);
+
+  // Combined totals across all 4 categories
+  const totalAttendeesAll = useMemo(() => {
+    return attendanceList.length + inchargeAttendanceList.length + vipAttendanceList.length + juryAttendanceList.length;
+  }, [attendanceList, inchargeAttendanceList, vipAttendanceList, juryAttendanceList]);
+
+  const totalPresentAll = useMemo(() => {
+    return (
+      attendanceList.filter((a) => a.checkedIn).length +
+      inchargeAttendanceList.filter((a) => a.checkedIn).length +
+      vipAttendanceList.filter((a) => a.checkedIn).length +
+      juryAttendanceList.filter((a) => a.checkedIn).length
+    );
+  }, [attendanceList, inchargeAttendanceList, vipAttendanceList, juryAttendanceList]);
+
+  // Active category stats
+  const activeSectionStats = useMemo(() => {
+    if (attendanceActiveSection === 'INCHARGES') {
+      const total = inchargeAttendanceList.length;
+      const present = inchargeAttendanceList.filter((a) => a.checkedIn).length;
+      return {
+        title: 'Faculty Incharges',
+        singular: 'Incharge',
+        total,
+        present,
+        absent: total - present,
+        rate: total > 0 ? Math.round((present / total) * 100) : 0,
+        colorText: 'text-purple-300',
+        colorBadge: 'bg-purple-950/20 border-purple-500/30',
+        colorPill: 'bg-purple-500/20 text-purple-300 border-purple-400/40',
+      };
+    }
+    if (attendanceActiveSection === 'VIP_GUESTS') {
+      const total = vipAttendanceList.length;
+      const present = vipAttendanceList.filter((a) => a.checkedIn).length;
+      return {
+        title: 'VIP Delegates',
+        singular: 'VIP Guest',
+        total,
+        present,
+        absent: total - present,
+        rate: total > 0 ? Math.round((present / total) * 100) : 0,
+        colorText: 'text-amber-300',
+        colorBadge: 'bg-amber-950/20 border-amber-500/30',
+        colorPill: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+      };
+    }
+    if (attendanceActiveSection === 'GRAND_JURY') {
+      const total = juryAttendanceList.length;
+      const present = juryAttendanceList.filter((a) => a.checkedIn).length;
+      return {
+        title: 'Grand Jury Evaluators',
+        singular: 'Jury Evaluator',
+        total,
+        present,
+        absent: total - present,
+        rate: total > 0 ? Math.round((present / total) * 100) : 0,
+        colorText: 'text-blue-300',
+        colorBadge: 'bg-blue-950/20 border-blue-500/30',
+        colorPill: 'bg-blue-500/20 text-blue-300 border-blue-400/40',
+      };
+    }
+    // Default STUDENTS
+    const total = attendanceList.length;
+    const present = attendanceList.filter((a) => a.checkedIn).length;
+    return {
+      title: 'Student Innovators',
+      singular: 'Student',
+      total,
+      present,
+      absent: total - present,
+      rate: total > 0 ? Math.round((present / total) * 100) : 0,
+      colorText: 'text-emerald-300',
+      colorBadge: 'bg-emerald-950/20 border-emerald-500/30',
+      colorPill: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
+    };
+  }, [attendanceActiveSection, attendanceList, inchargeAttendanceList, vipAttendanceList, juryAttendanceList]);
+
+  // Export attendance CSV
+  const handleExportCsv = (mode: 'SECTION' | 'ALL' = 'SECTION') => {
+    let headers: string[] = [];
+    let rows: (string | number)[][] = [];
+    let fileName = `DPSI_Exhibition_2026_${attendanceActiveSection}_Attendance.csv`;
+
+    if (mode === 'ALL') {
+      headers = ['Category', 'Name', 'Role / Class', 'Organization / Project', 'Credential ID', 'Status', 'Check-In Timestamp'];
+      const studentRows = attendanceList.map((r) => [
+        'Student Innovator',
+        `"${r.studentName.replace(/"/g, '""')}"`,
+        `"${r.classSection}"`,
+        `"Booth #${r.projectNumber} - ${r.projectTitle.replace(/"/g, '""')}"`,
+        `"${r.passCode}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+      const inchargeRows = inchargeAttendanceList.map((r) => [
+        'Faculty Incharge',
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${r.role}"`,
+        '"Faculty Leadership"',
+        `"${r.credentialId}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+      const vipRows = vipAttendanceList.map((r) => [
+        'VIP Guest',
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${r.designation}"`,
+        `"${r.organization.replace(/"/g, '""')}"`,
+        `"${r.credentialId}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+      const juryRows = juryAttendanceList.map((r) => [
+        'Grand Jury',
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${r.specialization}"`,
+        `"${r.institution.replace(/"/g, '""')}"`,
+        `"${r.credentialId}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+      rows = [...studentRows, ...inchargeRows, ...vipRows, ...juryRows];
+      fileName = 'DPSI_Exhibition_2026_Master_Summit_Ledger.csv';
+    } else if (attendanceActiveSection === 'STUDENTS') {
+      headers = ['Student Name', 'Class & Section', 'Booth #', 'Project Title', 'Mentor', 'Pass Code', 'Status', 'Check-In Timestamp'];
+      rows = attendanceList.map((r) => [
+        `"${r.studentName.replace(/"/g, '""')}"`,
+        `"${r.classSection}"`,
+        r.projectNumber,
+        `"${r.projectTitle.replace(/"/g, '""')}"`,
+        `"${(r.mentor || '').replace(/"/g, '""')}"`,
+        `"${r.passCode}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+    } else if (attendanceActiveSection === 'INCHARGES') {
+      headers = ['Faculty Incharge Name', 'Role', 'Credential ID', 'Access Code', 'Status', 'Check-In Timestamp'];
+      rows = inchargeAttendanceList.map((r) => [
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${r.role}"`,
+        `"${r.credentialId}"`,
+        `"${r.passCode}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+    } else if (attendanceActiveSection === 'VIP_GUESTS') {
+      headers = ['VIP Guest Name', 'Designation / Honor', 'Organization', 'Credential ID', 'Access Code', 'Status', 'Check-In Timestamp'];
+      rows = vipAttendanceList.map((r) => [
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${r.designation}"`,
+        `"${r.organization.replace(/"/g, '""')}"`,
+        `"${r.credentialId}"`,
+        `"${r.passCode}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+    } else if (attendanceActiveSection === 'GRAND_JURY') {
+      headers = ['Grand Jury Evaluator', 'Domain Specialization', 'Institution', 'Credential ID', 'Access Code', 'Status', 'Check-In Timestamp'];
+      rows = juryAttendanceList.map((r) => [
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${r.specialization}"`,
+        `"${r.institution.replace(/"/g, '""')}"`,
+        `"${r.credentialId}"`,
+        `"${r.passCode}"`,
+        r.checkedIn ? 'PRESENT' : 'ABSENT',
+        `"${r.checkInTime || 'N/A'}"`,
+      ]);
+    }
+
     const csvContent = [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'DPSI_Exhibition_2026_Attendance.csv';
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1325,7 +1805,7 @@ function PassAndAttendanceContent() {
                       <FileSpreadsheet className="w-4 h-4 relative z-10 text-purple-400" />
                       <span className="relative z-10">Attendance Ledger</span>
                       <span className="relative z-10 text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
-                        {attendanceList.filter((a) => a.checkedIn).length}/121
+                        {totalPresentAll}/{totalAttendeesAll}
                       </span>
                     </button>
                   )}
@@ -1643,38 +2123,129 @@ function PassAndAttendanceContent() {
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 2: MASTER ATTENDANCE REGISTRY (Only for Incharge)                     */}
+              {/* TAB 2: MASTER ATTENDANCE REGISTRY (4 SECTIONS - TEACHERS ONLY)            */}
               {/* ========================================================================= */}
               {activeTab === 'attendance' && currentRole === 'INCHARGE' && (
-                <div className="space-y-5">
+                <div className="space-y-6">
+                  {/* 4 Section Segmented Navigation Tabs */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 p-1.5 bg-black/40 rounded-2xl border border-white/[0.08]">
+                    {/* Section 1: Students */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAttendanceActiveSection('STUDENTS');
+                        setAttendanceSearchQuery('');
+                      }}
+                      className={`p-3 rounded-xl text-xs font-mono font-bold flex items-center justify-between gap-2 transition-all ${
+                        attendanceActiveSection === 'STUDENTS'
+                          ? 'bg-emerald-600/30 border border-emerald-500/50 text-white shadow-md shadow-emerald-950/40 ring-1 ring-emerald-400'
+                          : 'bg-white/[0.02] border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-emerald-400" />
+                        <span>1. Students</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                        {attendanceList.filter((a) => a.checkedIn).length}/{attendanceList.length}
+                      </span>
+                    </button>
+
+                    {/* Section 2: Incharges */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAttendanceActiveSection('INCHARGES');
+                        setAttendanceSearchQuery('');
+                      }}
+                      className={`p-3 rounded-xl text-xs font-mono font-bold flex items-center justify-between gap-2 transition-all ${
+                        attendanceActiveSection === 'INCHARGES'
+                          ? 'bg-purple-600/30 border border-purple-500/50 text-white shadow-md shadow-purple-950/40 ring-1 ring-purple-400'
+                          : 'bg-white/[0.02] border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-purple-400" />
+                        <span>2. Incharges</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                        {inchargeAttendanceList.filter((a) => a.checkedIn).length}/{inchargeAttendanceList.length}
+                      </span>
+                    </button>
+
+                    {/* Section 3: VIP Guests */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAttendanceActiveSection('VIP_GUESTS');
+                        setAttendanceSearchQuery('');
+                      }}
+                      className={`p-3 rounded-xl text-xs font-mono font-bold flex items-center justify-between gap-2 transition-all ${
+                        attendanceActiveSection === 'VIP_GUESTS'
+                          ? 'bg-amber-600/30 border border-amber-500/50 text-white shadow-md shadow-amber-950/40 ring-1 ring-amber-400'
+                          : 'bg-white/[0.02] border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        <span>3. VIP Guests</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
+                        {vipAttendanceList.filter((a) => a.checkedIn).length}/{vipAttendanceList.length}
+                      </span>
+                    </button>
+
+                    {/* Section 4: Grand Jury */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAttendanceActiveSection('GRAND_JURY');
+                        setAttendanceSearchQuery('');
+                      }}
+                      className={`p-3 rounded-xl text-xs font-mono font-bold flex items-center justify-between gap-2 transition-all ${
+                        attendanceActiveSection === 'GRAND_JURY'
+                          ? 'bg-blue-600/30 border border-blue-500/50 text-white shadow-md shadow-blue-950/40 ring-1 ring-blue-400'
+                          : 'bg-white/[0.02] border border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-blue-400" />
+                        <span>4. Grand Jury</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                        {juryAttendanceList.filter((a) => a.checkedIn).length}/{juryAttendanceList.length}
+                      </span>
+                    </button>
+                  </div>
+
                   {/* Executive Metric KPI Strip */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
-                      <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Total Roster</div>
-                      <div className="text-2xl font-mono font-bold text-white mt-1 tabular-nums">{attendanceList.length}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">Registered Innovators</div>
+                      <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">{activeSectionStats.title}</div>
+                      <div className="text-2xl font-mono font-bold text-white mt-1 tabular-nums">{activeSectionStats.total}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Total Registered</div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 backdrop-blur-xl">
-                      <div className="text-[10px] font-mono uppercase text-emerald-400 font-semibold">Checked In</div>
-                      <div className="text-2xl font-mono font-bold text-emerald-300 mt-1 tabular-nums">
-                        {attendanceList.filter((a) => a.checkedIn).length}
+                    <div className={`p-4 rounded-2xl border backdrop-blur-xl ${activeSectionStats.colorBadge}`}>
+                      <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Checked In</div>
+                      <div className={`text-2xl font-mono font-bold mt-1 tabular-nums ${activeSectionStats.colorText}`}>
+                        {activeSectionStats.present}
                       </div>
-                      <div className="text-[11px] text-emerald-400/70 mt-0.5">Verified at Exhibition</div>
+                      <div className="text-[11px] text-emerald-400/80 mt-0.5">Verified at Summit</div>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
                       <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Awaiting Check-in</div>
                       <div className="text-2xl font-mono font-bold text-slate-300 mt-1 tabular-nums">
-                        {attendanceList.filter((a) => !a.checkedIn).length}
+                        {activeSectionStats.absent}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">Pending Badge Scan</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Pending Arrival</div>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
                       <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">Check-in Rate</div>
                       <div className="text-2xl font-mono font-bold text-white mt-1 tabular-nums">
-                        {Math.round((attendanceList.filter((a) => a.checkedIn).length / attendanceList.length) * 100)}%
+                        {activeSectionStats.rate}%
                       </div>
                       <div className="text-[11px] text-slate-500 mt-0.5">Attendance Progress</div>
                     </div>
@@ -1684,22 +2255,35 @@ function PassAndAttendanceContent() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/[0.03] p-4 rounded-2xl border border-white/[0.08] backdrop-blur-xl">
                     <div>
                       <h2 className="text-base font-mono font-bold text-white flex items-center gap-2">
-                        <Users className="w-5 h-5 text-purple-400" />
-                        <span>Master Student Attendance Ledger</span>
+                        {attendanceActiveSection === 'STUDENTS' && <GraduationCap className="w-5 h-5 text-emerald-400" />}
+                        {attendanceActiveSection === 'INCHARGES' && <ShieldCheck className="w-5 h-5 text-purple-400" />}
+                        {attendanceActiveSection === 'VIP_GUESTS' && <Sparkles className="w-5 h-5 text-amber-400" />}
+                        {attendanceActiveSection === 'GRAND_JURY' && <Award className="w-5 h-5 text-blue-400" />}
+                        <span>{activeSectionStats.title} Attendance Ledger</span>
                       </h2>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        Real-time student arrival ledger with instant CSV export and check-in toggle.
+                        Real-time check-in ledger with instant CSV export and optical badge synchronization.
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleExportCsv}
-                      className="px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-200 text-xs font-mono font-bold flex items-center gap-2 border border-white/[0.1] active:scale-95 transition-all self-start sm:self-auto"
-                    >
-                      <Download className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Export Attendance CSV</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleExportCsv('SECTION')}
+                        className="px-3.5 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-200 text-xs font-mono font-bold flex items-center gap-2 border border-white/[0.1] active:scale-95 transition-all"
+                      >
+                        <Download className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Export {activeSectionStats.singular} CSV</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleExportCsv('ALL')}
+                        className="px-3.5 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 text-xs font-mono font-bold flex items-center gap-2 border border-purple-500/40 active:scale-95 transition-all"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-purple-300" />
+                        <span>Export All 4 Sections</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Filter Toolbar */}
@@ -1708,7 +2292,15 @@ function PassAndAttendanceContent() {
                       <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
                       <input
                         type="text"
-                        placeholder="Search student by name or pass code..."
+                        placeholder={
+                          attendanceActiveSection === 'STUDENTS'
+                            ? 'Search student by name, pass code, or booth...'
+                            : attendanceActiveSection === 'INCHARGES'
+                            ? 'Search faculty incharge by name or ID...'
+                            : attendanceActiveSection === 'VIP_GUESTS'
+                            ? 'Search VIP guest by name or organization...'
+                            : 'Search grand jury by name, specialization, or institution...'
+                        }
                         value={attendanceSearchQuery}
                         onChange={(e) => setAttendanceSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
@@ -1733,78 +2325,264 @@ function PassAndAttendanceContent() {
                       ))}
                     </div>
 
-                    {/* Class Section Selector */}
-                    <select
-                      value={attendanceClassFilter}
-                      onChange={(e) => setAttendanceClassFilter(e.target.value)}
-                      className="px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-purple-500"
-                    >
-                      <option value="ALL">All Sections (121)</option>
-                      {classSectionsList.map((sec) => (
-                        <option key={sec} value={sec}>
-                          Section {sec}
-                        </option>
-                      ))}
-                    </select>
+                    {/* Class Section Selector (Students only) */}
+                    {attendanceActiveSection === 'STUDENTS' && (
+                      <select
+                        value={attendanceClassFilter}
+                        onChange={(e) => setAttendanceClassFilter(e.target.value)}
+                        className="px-3 py-2 bg-black/40 border border-white/[0.1] rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-purple-500"
+                      >
+                        <option value="ALL">All Sections (121)</option>
+                        {classSectionsList.map((sec) => (
+                          <option key={sec} value={sec}>
+                            Section {sec}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
-                  {/* Grouped Table */}
-                  <div className="rounded-2xl border border-white/[0.08] overflow-hidden bg-black/20 backdrop-blur-xl">
-                    <div className="max-h-[500px] overflow-y-auto">
-                      <table className="w-full text-left border-collapse text-xs">
-                        <thead className="sticky top-0 bg-[#0d1424] border-b border-white/[0.08] text-slate-400 font-mono text-[11px] uppercase tracking-wider z-10">
-                          <tr>
-                            <th className="py-3 px-4">Student Name</th>
-                            <th className="py-3 px-4">Section</th>
-                            <th className="py-3 px-4">Booth</th>
-                            <th className="py-3 px-4">Project Title</th>
-                            <th className="py-3 px-4">Credential ID</th>
-                            <th className="py-3 px-4">Status</th>
-                            <th className="py-3 px-4 text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/[0.04]">
-                          {filteredAttendance.map((rec) => (
-                            <tr
-                              key={`${rec.studentName}__${rec.projectNumber}`}
-                              className="hover:bg-white/[0.02] transition-colors"
-                            >
-                              <td className="py-3 px-4 font-bold text-white font-sans">{rec.studentName}</td>
-                              <td className="py-3 px-4 text-slate-400 font-mono">{rec.classSection}</td>
-                              <td className="py-3 px-4 text-emerald-400 font-mono font-bold">#{rec.projectNumber}</td>
-                              <td className="py-3 px-4 text-slate-300 max-w-[200px] truncate">{rec.projectTitle}</td>
-                              <td className="py-3 px-4 text-slate-400 font-mono text-[11px] tabular-nums">{rec.passCode}</td>
-                              <td className="py-3 px-4">
-                                <span
-                                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    rec.checkedIn
-                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                      : 'bg-white/[0.05] text-slate-400 border border-white/[0.08]'
-                                  }`}
-                                >
-                                  <span className={`w-1.5 h-1.5 rounded-full ${rec.checkedIn ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-                                  {rec.checkedIn ? 'PRESENT' : 'ABSENT'}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 text-right">
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleAttendance(rec.studentName, rec.projectNumber)}
-                                  className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all active:scale-95 ${
-                                    rec.checkedIn
-                                      ? 'bg-white/[0.05] hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 border border-white/[0.08]'
-                                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40'
-                                  }`}
-                                >
-                                  {rec.checkedIn ? 'Mark Absent' : 'Mark Present'}
-                                </button>
-                              </td>
+                  {/* Section 1 Table: STUDENTS */}
+                  {attendanceActiveSection === 'STUDENTS' && (
+                    <div className="rounded-2xl border border-white/[0.08] overflow-hidden bg-black/20 backdrop-blur-xl">
+                      <div className="max-h-[500px] overflow-y-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead className="sticky top-0 bg-[#0d1424] border-b border-white/[0.08] text-slate-400 font-mono text-[11px] uppercase tracking-wider z-10">
+                            <tr>
+                              <th className="py-3 px-4">Student Name</th>
+                              <th className="py-3 px-4">Section</th>
+                              <th className="py-3 px-4">Booth</th>
+                              <th className="py-3 px-4">Project Title</th>
+                              <th className="py-3 px-4">Credential ID</th>
+                              <th className="py-3 px-4">Check-In Time</th>
+                              <th className="py-3 px-4">Status</th>
+                              <th className="py-3 px-4 text-right">Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-white/[0.04]">
+                            {filteredAttendance.map((rec) => (
+                              <tr
+                                key={`${rec.studentName}__${rec.projectNumber}`}
+                                className="hover:bg-white/[0.02] transition-colors"
+                              >
+                                <td className="py-3 px-4 font-bold text-white font-sans">{rec.studentName}</td>
+                                <td className="py-3 px-4 text-slate-400 font-mono">{rec.classSection}</td>
+                                <td className="py-3 px-4 text-emerald-400 font-mono font-bold">#{rec.projectNumber}</td>
+                                <td className="py-3 px-4 text-slate-300 max-w-[200px] truncate">{rec.projectTitle}</td>
+                                <td className="py-3 px-4 text-slate-400 font-mono text-[11px] tabular-nums">{rec.passCode}</td>
+                                <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">{rec.checkInTime || '—'}</td>
+                                <td className="py-3 px-4">
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                      rec.checkedIn
+                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                        : 'bg-white/[0.05] text-slate-400 border border-white/[0.08]'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${rec.checkedIn ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                                    {rec.checkedIn ? 'PRESENT' : 'ABSENT'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleAttendance(rec.studentName, rec.projectNumber)}
+                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all active:scale-95 ${
+                                      rec.checkedIn
+                                        ? 'bg-white/[0.05] hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 border border-white/[0.08]'
+                                        : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40'
+                                    }`}
+                                  >
+                                    {rec.checkedIn ? 'Mark Absent' : 'Mark Present'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Section 2 Table: INCHARGES */}
+                  {attendanceActiveSection === 'INCHARGES' && (
+                    <div className="rounded-2xl border border-white/[0.08] overflow-hidden bg-black/20 backdrop-blur-xl">
+                      <div className="max-h-[500px] overflow-y-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead className="sticky top-0 bg-[#0d1424] border-b border-white/[0.08] text-slate-400 font-mono text-[11px] uppercase tracking-wider z-10">
+                            <tr>
+                              <th className="py-3 px-4">Faculty Incharge</th>
+                              <th className="py-3 px-4">Role Title</th>
+                              <th className="py-3 px-4">Credential ID</th>
+                              <th className="py-3 px-4">Access Code</th>
+                              <th className="py-3 px-4">Check-In Time</th>
+                              <th className="py-3 px-4">Status</th>
+                              <th className="py-3 px-4 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/[0.04]">
+                            {filteredInchargeAttendance.map((rec) => (
+                              <tr
+                                key={rec.credentialId}
+                                className="hover:bg-white/[0.02] transition-colors"
+                              >
+                                <td className="py-3 px-4 font-bold text-white font-sans">{rec.name}</td>
+                                <td className="py-3 px-4 text-purple-300 font-mono">{rec.role}</td>
+                                <td className="py-3 px-4 text-amber-300 font-mono font-bold">{rec.credentialId}</td>
+                                <td className="py-3 px-4 text-slate-400 font-mono text-[11px] tabular-nums">{rec.passCode}</td>
+                                <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">{rec.checkInTime || '—'}</td>
+                                <td className="py-3 px-4">
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                      rec.checkedIn
+                                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                                        : 'bg-white/[0.05] text-slate-400 border border-white/[0.08]'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${rec.checkedIn ? 'bg-purple-400' : 'bg-slate-500'}`} />
+                                    {rec.checkedIn ? 'PRESENT' : 'ABSENT'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleInchargeAttendance(rec.credentialId)}
+                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all active:scale-95 ${
+                                      rec.checkedIn
+                                        ? 'bg-white/[0.05] hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 border border-white/[0.08]'
+                                        : 'bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-950/40'
+                                    }`}
+                                  >
+                                    {rec.checkedIn ? 'Mark Absent' : 'Mark Present'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section 3 Table: VIP GUESTS */}
+                  {attendanceActiveSection === 'VIP_GUESTS' && (
+                    <div className="rounded-2xl border border-white/[0.08] overflow-hidden bg-black/20 backdrop-blur-xl">
+                      <div className="max-h-[500px] overflow-y-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead className="sticky top-0 bg-[#0d1424] border-b border-white/[0.08] text-slate-400 font-mono text-[11px] uppercase tracking-wider z-10">
+                            <tr>
+                              <th className="py-3 px-4">VIP Delegate Name</th>
+                              <th className="py-3 px-4">Designation / Honor</th>
+                              <th className="py-3 px-4">Organization</th>
+                              <th className="py-3 px-4">Credential ID</th>
+                              <th className="py-3 px-4">Check-In Time</th>
+                              <th className="py-3 px-4">Status</th>
+                              <th className="py-3 px-4 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/[0.04]">
+                            {filteredVipAttendance.map((rec) => (
+                              <tr
+                                key={rec.credentialId}
+                                className="hover:bg-white/[0.02] transition-colors"
+                              >
+                                <td className="py-3 px-4 font-bold text-white font-sans">{rec.name}</td>
+                                <td className="py-3 px-4 text-amber-300 font-mono">{rec.designation}</td>
+                                <td className="py-3 px-4 text-slate-300 font-sans">{rec.organization}</td>
+                                <td className="py-3 px-4 text-amber-400 font-mono font-bold">{rec.credentialId}</td>
+                                <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">{rec.checkInTime || '—'}</td>
+                                <td className="py-3 px-4">
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                      rec.checkedIn
+                                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                        : 'bg-white/[0.05] text-slate-400 border border-white/[0.08]'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${rec.checkedIn ? 'bg-amber-400' : 'bg-slate-500'}`} />
+                                    {rec.checkedIn ? 'PRESENT' : 'ABSENT'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleVipAttendance(rec.credentialId)}
+                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all active:scale-95 ${
+                                      rec.checkedIn
+                                        ? 'bg-white/[0.05] hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 border border-white/[0.08]'
+                                        : 'bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-950/40'
+                                    }`}
+                                  >
+                                    {rec.checkedIn ? 'Mark Absent' : 'Mark Present'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section 4 Table: GRAND JURY */}
+                  {attendanceActiveSection === 'GRAND_JURY' && (
+                    <div className="rounded-2xl border border-white/[0.08] overflow-hidden bg-black/20 backdrop-blur-xl">
+                      <div className="max-h-[500px] overflow-y-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead className="sticky top-0 bg-[#0d1424] border-b border-white/[0.08] text-slate-400 font-mono text-[11px] uppercase tracking-wider z-10">
+                            <tr>
+                              <th className="py-3 px-4">Grand Jury Evaluator</th>
+                              <th className="py-3 px-4">Domain Specialization</th>
+                              <th className="py-3 px-4">Institution / Division</th>
+                              <th className="py-3 px-4">Credential ID</th>
+                              <th className="py-3 px-4">Check-In Time</th>
+                              <th className="py-3 px-4">Status</th>
+                              <th className="py-3 px-4 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/[0.04]">
+                            {filteredJuryAttendance.map((rec) => (
+                              <tr
+                                key={rec.credentialId}
+                                className="hover:bg-white/[0.02] transition-colors"
+                              >
+                                <td className="py-3 px-4 font-bold text-white font-sans">{rec.name}</td>
+                                <td className="py-3 px-4 text-blue-300 font-mono">{rec.specialization}</td>
+                                <td className="py-3 px-4 text-slate-300 font-sans">{rec.institution}</td>
+                                <td className="py-3 px-4 text-blue-400 font-mono font-bold">{rec.credentialId}</td>
+                                <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">{rec.checkInTime || '—'}</td>
+                                <td className="py-3 px-4">
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                      rec.checkedIn
+                                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                                        : 'bg-white/[0.05] text-slate-400 border border-white/[0.08]'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${rec.checkedIn ? 'bg-blue-400' : 'bg-slate-500'}`} />
+                                    {rec.checkedIn ? 'PRESENT' : 'ABSENT'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleJuryAttendance(rec.credentialId)}
+                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all active:scale-95 ${
+                                      rec.checkedIn
+                                        ? 'bg-white/[0.05] hover:bg-rose-500/10 text-slate-400 hover:text-rose-300 border border-white/[0.08]'
+                                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-950/40'
+                                    }`}
+                                  >
+                                    {rec.checkedIn ? 'Mark Absent' : 'Mark Present'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
