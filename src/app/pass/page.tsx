@@ -2300,6 +2300,9 @@ function PassAndAttendanceContent() {
                   dangerouslySetInnerHTML={{ __html: activeBadgeSvg }}
                 />
               </div>
+              <div className="single-cut-text-line">
+                ✂ Cut along the line
+              </div>
             </div>
           )}
         </div>
@@ -2498,6 +2501,17 @@ function PassAndAttendanceContent() {
             stroke: #475569 !important;
             stroke-width: 1.5 !important;
             stroke-dasharray: 6 4 !important;
+          }
+
+          .single-cut-text-line {
+            margin-top: 6mm !important;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", monospace, sans-serif !important;
+            font-size: 8.5pt !important;
+            font-weight: 600 !important;
+            color: #64748b !important;
+            letter-spacing: 0.08em !important;
+            text-transform: uppercase !important;
+            text-align: center !important;
           }
 
           .apple-card-base,
