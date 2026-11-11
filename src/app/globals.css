@@ -2,9 +2,29 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-border: var(--color-border);
+  --color-ring: var(--color-ring);
+}
+
 :root {
   --background: #dfe3e8;
   --foreground: #1e293b;
+  --color-background: #dfe3e8;
+  --color-foreground: #1e293b;
+  --color-card: #ffffff;
+  --color-card-foreground: #1e293b;
+  --color-muted: #e2e8f0;
+  --color-muted-foreground: #64748b;
+  --color-border: rgba(0, 0, 0, 0.12);
+  --color-ring: #3b82f6;
+  --wash: rgba(0, 0, 0, 0.04);
   --font-sans: var(--font-outfit), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-space-grotesk), monospace;
 }
@@ -12,6 +32,15 @@
 html.dark {
   --background: #070b14;
   --foreground: #f1f5f9;
+  --color-background: #070b14;
+  --color-foreground: #f1f5f9;
+  --color-card: #0d1117;
+  --color-card-foreground: #f1f5f9;
+  --color-muted: #1e293b;
+  --color-muted-foreground: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-ring: #60a5fa;
+  --wash: rgba(255, 255, 255, 0.04);
 }
 
 html, body {
