@@ -142,3 +142,18 @@ canvas {
 .expo-canvas canvas {
   touch-action: none;
 }
+
+/* Global Print Styles: Clean pure white background, suppress screen-only canvases and animations */
+@media print {
+  body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+  .no-print,
+  .print\:hidden,
+  [aria-hidden="true"],
+  canvas {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}

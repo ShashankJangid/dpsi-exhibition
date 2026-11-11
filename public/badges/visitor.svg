@@ -35,10 +35,18 @@
   <style>
     .font-sans { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     .font-mono { font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace; }
+    .print-cut-line { display: none; }
+    @media print {
+      .print-cut-line { display: block !important; stroke: #475569 !important; stroke-width: 1.5 !important; stroke-dasharray: 6 4 !important; }
+      .apple-card-base { filter: none !important; }
+    }
   </style>
 
   <!-- ================= CARD BASE (CR100: 98.5mm x 67.0mm) ================= -->
-  <rect x="15" y="15" width="955" height="640" rx="32" fill="url(#cardBgGrad)" stroke="#E2E8F0" stroke-width="1.2" filter="url(#appleCardShadow)"/>
+  <rect x="15" y="15" width="955" height="640" rx="32" class="apple-card-base" fill="url(#cardBgGrad)" stroke="#E2E8F0" stroke-width="1.2" filter="url(#appleCardShadow)"/>
+  
+  <!-- Dedicated Cut Line Along Edge (Printed Pass) -->
+  <rect x="15" y="15" width="955" height="640" rx="32" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="6 4" class="print-cut-line"/>
   
   <!-- Subtle Hairline Inner Perimeter -->
   <rect x="25" y="25" width="935" height="620" rx="24" fill="none" stroke="#F1F5F9" stroke-width="1"/>

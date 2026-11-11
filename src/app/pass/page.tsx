@@ -2292,30 +2292,13 @@ function PassAndAttendanceContent() {
               </div>
             ))
           ) : (
-            /* B. Single Card Print: Clean, official CR-100 badge sheet on pure white A4 */
+            /* B. Single Card Print: Only the card and its perimeter cut outline on pure white paper */
             <div className="single-a4-sheet">
-              <div className="single-a4-header">
-                <div className="school-title">DELHI PUBLIC SCHOOL INDIRAPURAM</div>
-                <div className="event-title">TECH &amp; INNOVATION SUMMIT 2026 • OFFICIAL CREDENTIAL SHEET</div>
-                <div className="spec-meta">
-                  CR-100 SPECIFICATION (98.5 × 67.0 mm) • OVD HOLOGRAPHIC SECURITY &amp; TOPOTAG AUTHENTICATED
-                </div>
-              </div>
-
               <div className="single-badge-cut-frame">
                 <div
                   className="single-badge-svg-container"
                   dangerouslySetInnerHTML={{ __html: activeBadgeSvg }}
                 />
-              </div>
-
-              <div className="single-a4-footer">
-                <div className="cut-instructions">
-                  ✂ Trim along the outer dashed guidelines for standard lanyard badge pouch (CR-100 format).
-                </div>
-                <div className="tracking-line">
-                  DPSI-2026 • CREDENTIAL ID: {activeCredentialId} • OFFICIAL SUMMIT PASS
-                </div>
               </div>
             </div>
           )}
@@ -2337,7 +2320,7 @@ function PassAndAttendanceContent() {
         @media print {
           @page {
             size: A4 portrait;
-            margin: 8mm 6.5mm;
+            margin: 10mm;
           }
 
           *,
@@ -2358,11 +2341,12 @@ function PassAndAttendanceContent() {
             color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
-            min-height: auto !important;
+            min-height: 0 !important;
             height: auto !important;
             width: 100% !important;
             box-shadow: none !important;
             border: none !important;
+            overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -2370,6 +2354,8 @@ function PassAndAttendanceContent() {
           /* Hide on-screen UI */
           #summit-screen-ui,
           .no-print,
+          canvas,
+          [aria-hidden="true"],
           nav,
           header,
           footer,
@@ -2407,6 +2393,12 @@ function PassAndAttendanceContent() {
             overflow: hidden !important;
             background: #ffffff !important;
             background-color: #ffffff !important;
+          }
+
+          .a4-sheet:last-of-type,
+          .a4-sheet:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
           }
 
           .a4-sheet-8 {
@@ -2447,57 +2439,33 @@ function PassAndAttendanceContent() {
             display: block !important;
           }
 
-          /* Single Card A4 Sheet */
+          /* Single Card A4 Sheet: Exact 1-Page Layout with Zero Trailing Page */
           .single-a4-sheet {
-            width: 197mm !important;
-            height: 268mm !important;
+            width: 100% !important;
+            max-width: 190mm !important;
             box-sizing: border-box !important;
-            margin: 0 auto !important;
-            padding: 15mm 0 !important;
+            margin: 35mm auto 0 auto !important;
+            padding: 0 !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
             background: #ffffff !important;
             background-color: #ffffff !important;
-            page-break-after: always !important;
-            break-after: page !important;
-          }
-
-          .single-a4-header {
-            text-align: center !important;
-            margin-bottom: 10mm !important;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif !important;
-          }
-
-          .single-a4-header .school-title {
-            font-size: 8.5pt !important;
-            font-weight: 700 !important;
-            letter-spacing: 0.15em !important;
-            color: #64748b !important;
-            text-transform: uppercase !important;
-          }
-
-          .single-a4-header .event-title {
-            font-size: 11pt !important;
-            font-weight: 800 !important;
-            letter-spacing: 0.05em !important;
-            color: #0f172a !important;
-            margin-top: 1.5mm !important;
-          }
-
-          .single-a4-header .spec-meta {
-            font-size: 7.5pt !important;
-            color: #94a3b8 !important;
-            font-family: monospace !important;
-            margin-top: 1.5mm !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: 250mm !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
 
           .single-badge-cut-frame {
             width: 150mm !important;
             height: 102mm !important;
-            border: 0.75pt dashed #94a3b8 !important;
-            padding: 2mm !important;
+            border: none !important;
+            padding: 0 !important;
             box-sizing: border-box !important;
             display: flex !important;
             align-items: center !important;
@@ -2505,7 +2473,6 @@ function PassAndAttendanceContent() {
             background: #ffffff !important;
             background-color: #ffffff !important;
             margin: 0 auto !important;
-            border-radius: 4mm !important;
           }
 
           .single-badge-svg-container {
@@ -2525,24 +2492,16 @@ function PassAndAttendanceContent() {
             display: block !important;
           }
 
-          .single-a4-footer {
-            text-align: center !important;
-            margin-top: 10mm !important;
-            font-family: monospace !important;
-            font-size: 8pt !important;
-            color: #64748b !important;
-            line-height: 1.5 !important;
+          /* Cutting line along the edge of the card */
+          .print-cut-line {
+            display: block !important;
+            stroke: #475569 !important;
+            stroke-width: 1.5 !important;
+            stroke-dasharray: 6 4 !important;
           }
 
-          .single-a4-footer .cut-instructions {
-            font-weight: 600 !important;
-            color: #475569 !important;
-          }
-
-          .single-a4-footer .tracking-line {
-            color: #94a3b8 !important;
-            letter-spacing: 0.08em !important;
-            margin-top: 1mm !important;
+          .apple-card-base {
+            filter: none !important;
           }
         }
       `}</style>

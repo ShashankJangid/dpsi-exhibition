@@ -14,7 +14,7 @@ export default function CustomCursor() {
 
   return (
     <div
-      className="fixed inset-0 pointer-events-none z-[2] overflow-hidden"
+      className="no-print print:hidden fixed inset-0 pointer-events-none z-[2] overflow-hidden"
       aria-hidden="true"
     >
       <BlobCursor

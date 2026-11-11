@@ -18,7 +18,7 @@ export default function AmbientBackground() {
 
   return (
     <div
-      className={`fixed inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-500 ${
+      className={`no-print print:hidden fixed inset-0 pointer-events-none z-0 overflow-hidden transition-opacity duration-500 ${
         isLight ? 'opacity-25' : 'opacity-50'
       }`}
       aria-hidden="true"
