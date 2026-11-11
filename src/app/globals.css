@@ -66,6 +66,25 @@ html.dark img {
 }
 
 /* Micro-interaction typography helpers */
+.bg-background {
+  background-color: var(--color-background);
+}
+.text-foreground {
+  color: var(--color-foreground);
+}
+.bg-card {
+  background-color: var(--color-card);
+}
+.text-card-foreground {
+  color: var(--color-card-foreground);
+}
+.border-border {
+  border-color: var(--color-border);
+}
+.text-muted-foreground {
+  color: var(--color-muted-foreground);
+}
+
 .text-balance {
   text-wrap: balance;
 }
@@ -122,4 +141,19 @@ canvas {
 /* Dedicated 3D room canvas locks touch gestures for OrbitControls */
 .expo-canvas canvas {
   touch-action: none;
+}
+
+/* Global Print Styles: Clean pure white background, suppress screen-only canvases and animations */
+@media print {
+  body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+  .no-print,
+  .print\:hidden,
+  [aria-hidden="true"],
+  canvas {
+    display: none !important;
+    visibility: hidden !important;
+  }
 }

@@ -132,7 +132,7 @@ function TopNavHUD() {
           </button>
 
           {/* Exhibition Title & Live Badge */}
-          <div className="hidden xl:flex items-center gap-2 pl-2 border-l border-slate-300/60 dark:border-slate-800">
+          <div className="hidden 2xl:flex items-center gap-2 pl-2 border-l border-slate-300/60 dark:border-slate-800">
             <span className={`text-xs font-extrabold tracking-tight whitespace-nowrap ${isLight ? 'text-slate-900' : 'text-white'}`}>
               Innovation Fest
             </span>
@@ -179,7 +179,7 @@ function TopNavHUD() {
                     role="tab"
                     aria-selected={isActive}
                     onClick={() => setActiveZone(zone.id)}
-                    className={`h-6 sm:h-7 flex items-center gap-1 px-2.5 rounded-lg text-xs font-semibold transition-all duration-150 whitespace-nowrap shrink-0 ${
+                    className={`h-6 sm:h-7 flex items-center gap-1 px-2 rounded-lg text-[11px] xl:text-xs font-semibold transition-all duration-150 whitespace-nowrap shrink-0 ${
                       isActive
                         ? `${pillStyle.active} shadow-sm font-bold scale-[1.02]`
                         : isLight

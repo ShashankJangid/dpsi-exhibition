@@ -7,6 +7,7 @@ import Image from 'next/image';
 import {
   ArrowRight,
   ArrowUpRight,
+  CheckCircle2,
   Vote,
   Sun,
   Moon,
@@ -14,12 +15,11 @@ import {
   Trophy,
   X,
   Share2,
-  LayoutGrid,
-  Image as ImageIcon,
   ShieldCheck,
   Layers,
   Lock,
-  CheckCircle2,
+  LayoutGrid,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -317,6 +317,14 @@ export default function LandingPage() {
 
       // Instant optimistic UI update
       markProjectVoted(p.id);
+      try {
+        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
+        if (!existing.includes(p.id)) {
+          localStorage.setItem('dpsi_voted_project_ids', JSON.stringify([...existing, p.id]));
+        }
+      } catch {
+        // localStorage fallback
+      }
       incrementProjectVote(p.id);
 
       // Confetti burst from button position
@@ -377,6 +385,256 @@ export default function LandingPage() {
     }
   };
 
+  const disciplineGroups = useMemo(() => {
+    const defs = [
+      {
+        key: 'Physical',
+        code: '01',
+        title: 'Physical Computing',
+        range: 'P01–P12',
+        accent: 'text-[#3fb950]',
+        spotlightFirst: false,
+        gridCols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+        match: (p: Project) => p.category === 'Physical',
+      },
+      {
+        key: 'Digital',
+        code: '02',
+        title: 'Digital & AI Software',
+        range: 'D01–D12',
+        accent: 'text-[#58a6ff]',
+        spotlightFirst: false,
+        gridCols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+        match: (p: Project) => p.category === 'Digital',
+      },
+      {
+        key: 'Business',
+        code: '03',
+        title: 'Business Ventures',
+        range: 'B01–B08',
+        accent: 'text-[#d2a8ff]',
+        spotlightFirst: true,
+        gridCols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+        match: (p: Project) => p.category === 'Business',
+      },
+      {
+        key: 'Show & Tell',
+        code: '04',
+        title: 'Show & Tell Prototypes',
+        range: 'ST01–ST08',
+        accent: 'text-[#38bdf8]',
+        spotlightFirst: true,
+        gridCols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+        match: (p: Project) => p.category === 'Show & Tell',
+      },
+      {
+        key: 'Robotics',
+        code: '05',
+        title: 'Robotics Arena & Drone Pit',
+        range: 'R01–R04',
+        accent: 'text-[#f0883e]',
+        spotlightFirst: false,
+        gridCols: 'grid-cols-1 md:grid-cols-2',
+        match: (p: Project) => p.category === 'Robo Race' || p.category === 'Robo Soccer',
+      },
+    ];
+    return defs.map((def) => ({
+      ...def,
+      items: filteredProjects.filter(def.match),
+    }));
+  }, [filteredProjects]);
+
+  const renderProjectCard = (p: Project, index: number, isFeatured = false) => {
+    const isVoted = votedProjectIds.includes(p.id);
+    const cleanTitle = p.title.replace(/^.+•\s*/, '');
+
+    return (
+      <div
+        key={p.id}
+        role="button"
+        tabIndex={0}
+        onClick={() => selectProject(p)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectProject(p);
+          }
+        }}
+        className={`group rounded-2xl border transition-all duration-200 overflow-hidden cursor-pointer ${
+          isFeatured ? 'lg:col-span-2 grid grid-cols-1 md:grid-cols-12' : 'flex flex-col justify-between'
+        } ${
+          isLight
+            ? 'bg-white/95 border-slate-200/90 hover:border-slate-300 hover:shadow-md'
+            : 'bg-[#0d1117] border-[#21262d] hover:border-[#38424d] hover:shadow-xl'
+        }`}
+      >
+        {/* Clean Edge-to-Edge Preview Image */}
+        <div
+          className={`relative overflow-hidden bg-slate-100 dark:bg-slate-900 ${
+            isFeatured
+              ? 'w-full h-52 md:h-full md:col-span-5 border-b md:border-b-0 md:border-r'
+              : 'w-full h-44 border-b'
+          } ${isLight ? 'border-slate-200/80' : 'border-slate-800/80'}`}
+        >
+          <Image
+            src={p.image_url}
+            alt={p.title}
+            fill
+            sizes={
+              isFeatured
+                ? '(max-width: 768px) 100vw, 40vw'
+                : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
+            }
+            priority={index < 3}
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src =
+                'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+        </div>
+
+        {/* Structured Content + Dedicated Action Footer */}
+        <div className={`${isFeatured ? 'md:col-span-7 flex flex-col justify-between' : 'flex-1 flex flex-col justify-between'}`}>
+          <div className={isFeatured ? 'p-5 pb-4' : 'p-4 pb-3'}>
+            {/* Metadata Header Row */}
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border ${
+                  isLight
+                    ? 'bg-amber-50 text-amber-800 border-amber-200/80'
+                    : 'bg-amber-950/50 text-amber-300 border-amber-800/60'
+                }`}>
+                  {p.booth_code}
+                </span>
+                <span className={`text-[11px] font-mono font-medium truncate ${
+                  isLight ? 'text-slate-500' : 'text-[#8b949e]'
+                }`}>
+                  {p.category}
+                </span>
+              </div>
+
+              <span className={`text-[11px] font-mono font-semibold tabular-nums px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 ${
+                isLight
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                  : 'bg-emerald-950/40 text-emerald-300 border-emerald-800/60'
+              }`}>
+                <Vote className="w-3 h-3" />
+                <span>{p.vote_count}</span>
+              </span>
+            </div>
+
+            <h3 className={`font-semibold font-sans tracking-tight text-balance leading-snug transition-colors ${
+              isFeatured ? 'text-base sm:text-lg line-clamp-2' : 'text-sm sm:text-[15px] line-clamp-2'
+            } ${
+              isLight ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-100 group-hover:text-sky-400'
+            }`}>
+              {cleanTitle}
+            </h3>
+
+            <p className={`mt-1.5 text-xs leading-relaxed text-pretty ${
+              isFeatured ? 'line-clamp-3' : 'line-clamp-2'
+            } ${
+              isLight ? 'text-slate-600' : 'text-slate-400'
+            }`}>
+              {p.description}
+            </p>
+
+            {/* Minimal Tech Tokens */}
+            {p.tech_stack && p.tech_stack.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[10px]">
+                {p.tech_stack.slice(0, 3).map((tech, i) => (
+                  <span
+                    key={i}
+                    className={`px-2.5 py-0.5 rounded-full ${
+                      isLight
+                        ? 'bg-slate-100 text-slate-600 border border-slate-200/60'
+                        : 'bg-[#161b22] text-slate-300 border border-[#21262d]'
+                    }`}
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Full-width Team Attribution + Action Bar */}
+          <div className={`px-4 py-3 border-t flex flex-col gap-2.5 text-xs font-mono ${
+            isLight ? 'border-slate-100 bg-slate-50/40' : 'border-[#21262d] bg-[#090d13]/60'
+          }`}>
+            <span className={`truncate text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              {p.members?.join(', ')}
+            </span>
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDirectVote(p, e);
+                }}
+                disabled={isVoted}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold font-mono transition-all shadow-xs active:scale-95 ${
+                  isVoted
+                    ? 'bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 cursor-default'
+                    : 'bg-[#238636] hover:bg-[#2ea043] text-white'
+                }`}
+                title={isVoted ? `Already voted for ${p.booth_code}` : `Cast verified vote for ${p.booth_code}`}
+              >
+                {isVoted ? '✓ Voted' : 'Vote'}
+              </button>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShare(p);
+                  }}
+                  title={`Copy share link for ${p.booth_code}`}
+                  aria-label={`Copy share link for ${p.booth_code}`}
+                  className={`text-[11px] font-medium flex items-center justify-center transition-all p-1.5 rounded-lg active:scale-95 ${
+                    isLight
+                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/60'
+                      : 'text-slate-400 hover:text-white hover:bg-[#161b22]'
+                  }`}
+                >
+                  <Share2 className="w-3.5 h-3.5 text-amber-500" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectProject(p);
+                  }}
+                  className={`text-[11px] font-medium flex items-center gap-0.5 transition-all px-2 py-1 rounded-lg active:scale-95 ${
+                    isLight
+                      ? 'text-slate-600 hover:text-blue-600 hover:bg-slate-200/60'
+                      : 'text-slate-300 hover:text-sky-400 hover:bg-[#161b22]'
+                  }`}
+                >
+                  <span>Details</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+                <Link
+                  href={`/expo?booth=${p.booth_code}`}
+                  onClick={(e) => e.stopPropagation()}
+                  title="Explore booth in 3D Virtual Hall"
+                  className={`text-[11px] font-medium flex items-center gap-0.5 transition-all px-2 py-1 rounded-lg active:scale-95 ${
+                    isLight
+                      ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                      : 'text-sky-400 hover:text-sky-300 hover:bg-sky-950/40'
+                  }`}
+                >
+                  <span>3D</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       suppressHydrationWarning
@@ -416,8 +674,8 @@ export default function LandingPage() {
             {[
               { href: '#stage', label: 'Stage' },
               { href: '#gallery', label: 'Photo View' },
-              { href: '#projects', label: '44 Inventions' },
               { href: '#arenas', label: '3 Arenas' },
+              { href: '#projects', label: '44 Inventions' },
               { href: '#voting', label: 'Live Voting' },
               { href: '#schedule', label: 'Schedule' },
             ].map((item) => (
@@ -503,13 +761,14 @@ export default function LandingPage() {
         </div>
       </header>
 
+      <main>
       {/* ─── GITHUB UNIVERSE STYLE HERO SECTION ─── */}
       <section className={`border-b transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto">
           {/* Giant UNIVERSE-Style Headline */}
-          <div className={`px-4 sm:px-8 pt-8 sm:pt-10 pb-5 sm:pb-6 border-b ${
+          <div className={`px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-5 border-b ${
             isLight ? 'border-slate-200/80' : 'border-[#30363d]'
           }`}>
             <div className={`flex items-center justify-between font-mono text-[11px] sm:text-xs mb-3 ${
@@ -557,7 +816,7 @@ export default function LandingPage() {
             </div>
 
             {/* Canvas Container with Balanced Proportions */}
-            <div className="relative z-10" style={{ width: '100%', height: isMobile ? '150px' : '190px' }}>
+            <div className="relative z-10" style={{ width: '100%', height: isMobile ? '145px' : '165px' }}>
               {/* Corner Blueprint Crosshairs */}
               <span className="absolute top-2 left-3 text-[10px] font-mono text-slate-400 select-none pointer-events-none">＋</span>
               <span className="absolute top-2 right-3 text-[10px] font-mono text-slate-400 select-none pointer-events-none">＋</span>
@@ -586,7 +845,7 @@ export default function LandingPage() {
             isLight ? 'divide-slate-200/80' : 'divide-[#30363d]'
           }`}>
             {/* Left Column: Terminal Slug & Categories */}
-            <div className="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-between bg-transparent">
+            <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 bg-transparent">
               <div>
                 <span className={`text-xs font-mono uppercase tracking-widest block mb-2 ${
                   isLight ? 'text-slate-500' : 'text-[#8b949e]'
@@ -606,7 +865,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <div className="mt-8 grid grid-cols-2 gap-3 font-mono text-xs">
+              <div className="grid grid-cols-2 gap-3 font-mono text-xs">
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
@@ -643,7 +902,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right Column: Mission statement and Primary Action */}
-            <div className={`lg:col-span-6 p-6 sm:p-10 flex flex-col justify-between ${
+            <div className={`lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 ${
               isLight ? 'bg-white/30 backdrop-blur-[2px]' : 'bg-[#040711]/60'
             }`}>
               <div>
@@ -667,17 +926,17 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Link
                   href="/expo"
-                  className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 active:scale-[0.98] text-slate-950 font-mono font-black text-xs uppercase tracking-wider transition-all rounded-xl shadow-lg shadow-amber-500/25"
+                  className="w-full sm:w-auto flex-1 min-h-[50px] flex items-center justify-center gap-2 px-5 py-3.5 sm:whitespace-nowrap bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 active:scale-[0.98] text-slate-950 font-mono font-black text-xs uppercase tracking-wider transition-all rounded-xl shadow-lg shadow-amber-500/25"
                 >
                   <span>Launch 3D Hall ({isLight ? 'Light Showroom' : 'Cosmic Dark'})</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 shrink-0" />
                 </Link>
                 <a
                   href="#projects"
-                  className={`w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-4 border font-mono font-bold text-xs uppercase tracking-wider transition-all rounded-xl active:scale-[0.98] ${
+                  className={`w-full sm:w-auto flex-1 min-h-[50px] flex items-center justify-center gap-2 px-5 py-3.5 sm:whitespace-nowrap border font-mono font-bold text-xs uppercase tracking-wider transition-all rounded-xl active:scale-[0.98] ${
                     isLight
                       ? 'bg-white/90 hover:bg-slate-100 border-slate-300 text-slate-900 shadow-xs'
                       : 'bg-[#161b22] hover:bg-[#21262d] border-[#30363d] text-white'
@@ -803,336 +1062,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── GITHUB UNIVERSE STYLE 44 INVENTIONS DIRECTORY ─── */}
-      <section id="projects" className={`scroll-mt-16 border-b pt-6 pb-12 transition-colors duration-300 ${
-        isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b ${
-            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
-          }`}>
-            <div>
-              <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                COMPETING BOOTHS DIRECTORY
-              </span>
-              <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
-                isLight ? 'text-slate-800' : 'text-white'
-              }`}>
-                All 44 Inventions
-              </h2>
-            </div>
-
-            {/* Controls: Search Bar & Category Filter Tabs */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-              {/* Direct Search Bar */}
-              <div className="relative w-full md:w-64">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search title, stall, team..."
-                  className={`w-full pl-8 pr-7 py-2 text-xs font-mono rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 ${
-                    isLight
-                      ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 shadow-xs'
-                      : 'bg-[#0d1117] border-[#30363d] text-white placeholder-slate-500'
-                  }`}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    aria-label="Clear search"
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-
-              {/* Filter Cells */}
-              <div className={`flex items-center border rounded-xl text-xs font-mono p-1 overflow-x-auto max-w-full ${
-                isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
-              }`}>
-                {([
-                  { id: 'all', label: `All (${categoryCounts.all})` },
-                  { id: 'Physical', label: `Physical (${categoryCounts.Physical})` },
-                  { id: 'Digital', label: `Digital (${categoryCounts.Digital})` },
-                  { id: 'Business', label: `Business (${categoryCounts.Business})` },
-                  { id: 'Show & Tell', label: `Show & Tell (${categoryCounts['Show & Tell']})` },
-                  { id: 'Robotics', label: `Robotics (${categoryCounts.Robotics})` },
-                ] as const).map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setSelectedZone(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap active:scale-[0.97] tabular-nums ${
-                      selectedZone === tab.id
-                        ? 'bg-[#238636] text-white font-bold shadow-xs'
-                        : isLight
-                        ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                        : 'text-[#8b949e] hover:text-white hover:bg-slate-800/50'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* View Mode Toggle: Grid vs Hanging Picture Rail */}
-              <div className={`flex items-center border rounded-xl p-1 shrink-0 ${
-                isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
-              }`}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    playClick();
-                    setDirectoryView('grid');
-                  }}
-                  aria-label="Grid card view"
-                  title="Grid Card View"
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    directoryView === 'grid'
-                      ? 'bg-[#238636] text-white font-bold shadow-xs'
-                      : isLight
-                      ? 'text-slate-600 hover:text-slate-900'
-                      : 'text-[#8b949e] hover:text-white'
-                  }`}
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Grid</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    playClick();
-                    setDirectoryView('rail');
-                  }}
-                  aria-label="Picture rail gallery view"
-                  title="Interactive Hanging Picture Rail View"
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    directoryView === 'rail'
-                      ? 'bg-[#238636] text-white font-bold shadow-xs'
-                      : isLight
-                      ? 'text-slate-600 hover:text-slate-900'
-                      : 'text-[#8b949e] hover:text-white'
-                  }`}
-                >
-                  <ImageIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Photo Rail</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* High-Density Session Cards Grid OR Picture Rail Gallery */}
-          {filteredProjects.length === 0 ? (
-            <div className={`mt-8 p-12 text-center border rounded-xl font-mono ${
-              isLight ? 'border-slate-300/80 bg-white/60' : 'border-[#30363d] bg-[#0d1117]'
-            }`}>
-              <p className={`text-sm ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                No inventions found matching &ldquo;{searchQuery}&rdquo; {selectedZone !== 'all' ? `in category “${selectedZone}”` : ''}.
-              </p>
-              <button
-                onClick={() => {
-                  playClick();
-                  setSearchQuery('');
-                  setSelectedZone('all');
-                }}
-                className="mt-4 px-4 py-2 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold transition-colors shadow-xs"
-              >
-                Clear Search &amp; Filters
-              </button>
-            </div>
-          ) : directoryView === 'rail' ? (
-            <div className="mt-8 w-full overflow-hidden">
-              <PictureRailGallery
-                items={projectRailItems}
-                eyebrow="INVENTIONS PICTURE RAIL"
-                heading={selectedZone === 'all' ? 'All Inventions Gallery' : `${selectedZone} Inventions Gallery`}
-                caption="Drag any brass wire to swing the prints along the rail. Click any frame to lift it into 3D view or flip to study specifications."
-                className="bg-transparent"
-              />
-            </div>
-          ) : (
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {isProjectsLoading ? (
-                <ProjectCardSkeleton count={6} />
-              ) : (
-                filteredProjects.map((p, index) => (
-              <div
-                key={p.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => selectProject(p)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    selectProject(p);
-                  }
-                }}
-                className={`group rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden cursor-pointer ${
-                  isLight
-                    ? 'bg-white/95 border-slate-200/90 hover:border-slate-300 hover:shadow-md'
-                    : 'bg-[#0d1117] border-[#21262d] hover:border-[#38424d] hover:shadow-xl'
-                }`}
-              >
-                <div>
-                  {/* Small Preview Image Section */}
-                  <div className="relative w-full h-36 overflow-hidden bg-slate-100 dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800/80">
-                    <Image
-                      src={p.image_url}
-                      alt={p.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      priority={index < 3}
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70" />
-
-                    {/* Booth & Category Pill */}
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-black/80 text-amber-300 border border-white/10 backdrop-blur-md shadow-xs">
-                        {p.booth_code}
-                      </span>
-                      <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-black/65 text-slate-200 border border-white/10 backdrop-blur-md">
-                        {p.category}
-                      </span>
-                    </div>
-
-                    {/* Vote count pill */}
-                    <div className="absolute top-2.5 right-2.5">
-                      <span className="text-[10px] font-mono font-semibold tabular-nums px-2 py-0.5 rounded-md bg-black/80 text-emerald-300 border border-white/10 backdrop-blur-md shadow-xs flex items-center gap-1">
-                        <Vote className="w-3 h-3 text-emerald-400" />
-                        <span>{p.vote_count}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="p-4 pb-2">
-                    <h3 className={`text-sm sm:text-base font-semibold font-sans tracking-tight text-balance line-clamp-1 transition-colors ${
-                      isLight ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-100 group-hover:text-sky-400'
-                    }`}>
-                      {p.title.replace(/^.+•\s*/, '')}
-                    </h3>
-                    <p className={`mt-1.5 text-xs line-clamp-2 leading-relaxed text-pretty ${
-                      isLight ? 'text-slate-600' : 'text-slate-400'
-                    }`}>
-                      {p.description}
-                    </p>
-
-                    {/* Minimal Tech Tokens */}
-                    {p.tech_stack && p.tech_stack.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[10px]">
-                        {p.tech_stack.slice(0, 3).map((tech, i) => (
-                          <span
-                            key={i}
-                            className={`px-2.5 py-0.5 rounded-full ${
-                              isLight
-                                ? 'bg-slate-100 text-slate-600 border border-slate-200/60'
-                                : 'bg-[#161b22] text-slate-300 border border-[#21262d]'
-                            }`}
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Minimal Footer */}
-                <div className={`p-4 pt-3 border-t flex items-center justify-between text-xs font-mono ${
-                  isLight ? 'border-slate-100' : 'border-[#21262d]'
-                }`}>
-                  <span className={`truncate max-w-[110px] text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                    {p.members?.join(', ')}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDirectVote(p, e);
-                      }}
-                      disabled={votedProjectIds.includes(p.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold font-mono transition-all shadow-xs active:scale-95 ${
-                        votedProjectIds.includes(p.id)
-                          ? 'bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 cursor-default'
-                          : 'bg-[#238636] hover:bg-[#2ea043] text-white'
-                      }`}
-                      title={votedProjectIds.includes(p.id) ? `Already voted for ${p.booth_code}` : `Cast verified vote for ${p.booth_code}`}
-                    >
-                      {votedProjectIds.includes(p.id) ? '✓ Voted' : 'Vote'}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShare(p);
-                      }}
-                      title={`Copy share link for ${p.booth_code}`}
-                      aria-label={`Copy share link for ${p.booth_code}`}
-                      className={`text-[11px] font-medium flex items-center justify-center transition-all p-1 rounded-lg active:scale-95 ${
-                        isLight
-                          ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
-                          : 'text-slate-400 hover:text-white hover:bg-[#161b22]'
-                      }`}
-                    >
-                      <Share2 className="w-3.5 h-3.5 text-amber-500" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        selectProject(p);
-                      }}
-                      className={`text-[11px] font-medium flex items-center gap-0.5 transition-all px-2 py-1 rounded-lg active:scale-95 ${
-                        isLight
-                          ? 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
-                          : 'text-slate-300 hover:text-sky-400 hover:bg-[#161b22]'
-                      }`}
-                    >
-                      <span>Details</span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
-                    <Link
-                      href={`/expo?booth=${p.booth_code}`}
-                      onClick={(e) => e.stopPropagation()}
-                      title="Explore booth in 3D Virtual Hall"
-                      className={`text-[11px] font-medium flex items-center gap-0.5 transition-all px-1.5 py-1 rounded-lg active:scale-95 ${
-                        isLight
-                          ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                          : 'text-sky-400 hover:text-sky-300 hover:bg-sky-950/40'
-                      }`}
-                    >
-                      <span>3D</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))
-            )}
-          </div>
-          )}
-
-          <div className="mt-8 text-center">
-            <Link
-              href="/expo"
-              className={`inline-flex items-center gap-2 px-6 py-3.5 border font-mono text-xs font-bold uppercase transition-all rounded-xl active:scale-[0.98] ${
-                isLight
-                  ? 'bg-white/90 hover:bg-slate-100 border-slate-300 text-slate-900 shadow-xs'
-                  : 'bg-[#161b22] hover:bg-[#21262d] border-[#30363d] text-white'
-              }`}
-            >
-              <span>Explore Full 3D Interactive Floor Plan</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* ─── THE THREE EXHIBITION ARENAS ─── */}
       <section id="arenas" className={`scroll-mt-16 border-b py-12 transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
@@ -1213,7 +1142,7 @@ export default function LandingPage() {
                 </h3>
                 <p className={`mt-2.5 text-xs leading-relaxed font-mono text-pretty ${isLight ? 'text-slate-600' : 'text-[#8b949e]'}`}>
                   The flagship hall housing Physical computing (P01-12), Digital AI algorithms (D01-12), and
-                  sustainable Business enterprises (B01-07).
+                  sustainable Business enterprises (B01-08).
                 </p>
               </div>
               <div className={`mt-6 pt-4 border-t flex items-center justify-between gap-3 ${isLight ? 'border-slate-200/90' : 'border-[#21262d]'}`}>
@@ -1284,30 +1213,287 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── LIVE VOTING ─── */}
-      <section id="voting" className={`scroll-mt-16 border-b py-16 transition-colors duration-300 ${
-        isLight ? 'border-slate-200/80 bg-white/40 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
+      {/* ─── GITHUB UNIVERSE STYLE 44 INVENTIONS DIRECTORY ─── */}
+      <section id="projects" className={`scroll-mt-16 border-b py-12 transition-colors duration-300 ${
+        isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mb-3">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>4-LAYER ANTI-CHEAT SYSTEM</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          {/* Row 1: Section Title */}
+          <div className={`pb-5 border-b ${
+            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
+          }`}>
+            <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
+              COMPETING BOOTHS DIRECTORY
             </span>
             <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
               isLight ? 'text-slate-800' : 'text-white'
             }`}>
-              Verified Community Voting
+              All 44 Inventions
             </h2>
-            <p className={`mt-3 text-xs sm:text-sm font-mono leading-relaxed ${
-              isLight ? 'text-slate-600' : 'text-slate-400'
-            }`}>
-              Every guest, student, teacher, and judge has an official ballot to recognize outstanding student research.
-              Protected by device fingerprinting and atomic rate-limiting for complete fairness.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+          {/* Row 2: Dedicated Filter, Search & View Mode Rail */}
+          <div className={`py-4 border-b flex flex-col xl:flex-row xl:items-center justify-between gap-3 ${
+            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
+          }`}>
+            {/* Direct Search Bar */}
+            <div className="relative w-full xl:w-64 shrink-0">
+              <label htmlFor="directory-search" className="sr-only">
+                Search projects by title, stall code, or team
+              </label>
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                id="directory-search"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search title, stall, team..."
+                className={`w-full pl-8 pr-7 py-2 text-xs font-mono rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 ${
+                  isLight
+                    ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 shadow-xs'
+                    : 'bg-[#0d1117] border-[#30363d] text-white placeholder-slate-500'
+                }`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+              {/* Filter Cells */}
+              <div className={`flex items-center border rounded-xl text-xs font-mono p-1 overflow-x-auto max-w-full ${
+                isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+              }`}>
+                {([
+                  { id: 'all', label: `All (${categoryCounts.all})` },
+                  { id: 'Physical', label: `Physical (${categoryCounts.Physical})` },
+                  { id: 'Digital', label: `Digital (${categoryCounts.Digital})` },
+                  { id: 'Business', label: `Business (${categoryCounts.Business})` },
+                  { id: 'Show & Tell', label: `Show & Tell (${categoryCounts['Show & Tell']})` },
+                  { id: 'Robotics', label: `Robotics (${categoryCounts.Robotics})` },
+                ] as const).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setSelectedZone(tab.id)}
+                    className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap active:scale-[0.97] tabular-nums ${
+                      selectedZone === tab.id
+                        ? 'bg-[#238636] text-white font-bold shadow-xs'
+                        : isLight
+                        ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        : 'text-[#8b949e] hover:text-white hover:bg-slate-800/50'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* View Mode Toggle: Grid vs Hanging Picture Rail */}
+              <div className={`flex items-center border rounded-xl p-1 shrink-0 self-start sm:self-auto ${
+                isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+              }`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setDirectoryView('grid');
+                  }}
+                  aria-label="Grid card view"
+                  title="Grid Card View"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                    directoryView === 'grid'
+                      ? 'bg-[#238636] text-white font-bold shadow-xs'
+                      : isLight
+                      ? 'text-slate-600 hover:text-slate-900'
+                      : 'text-[#8b949e] hover:text-white'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Grid</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setDirectoryView('rail');
+                  }}
+                  aria-label="Picture rail gallery view"
+                  title="Interactive Hanging Picture Rail View"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                    directoryView === 'rail'
+                      ? 'bg-[#238636] text-white font-bold shadow-xs'
+                      : isLight
+                      ? 'text-slate-600 hover:text-slate-900'
+                      : 'text-[#8b949e] hover:text-white'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Photo Rail</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Curated Discipline Grids OR Picture Rail Gallery */}
+          {isProjectsLoading && directoryView === 'grid' ? (
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <ProjectCardSkeleton count={6} />
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className={`mt-8 p-12 text-center border rounded-xl font-mono ${
+              isLight ? 'border-slate-300/80 bg-white/60' : 'border-[#30363d] bg-[#0d1117]'
+            }`}>
+              <p className={`text-sm ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                No inventions found matching &ldquo;{searchQuery}&rdquo; {selectedZone !== 'all' ? `in category “${selectedZone}”` : ''}.
+              </p>
+              <button
+                onClick={() => {
+                  playClick();
+                  setSearchQuery('');
+                  setSelectedZone('all');
+                }}
+                className="mt-4 px-4 py-2 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold transition-colors shadow-xs"
+              >
+                Clear Search &amp; Filters
+              </button>
+            </div>
+          ) : directoryView === 'rail' ? (
+            <div className="mt-8 w-full overflow-hidden">
+              <PictureRailGallery
+                items={projectRailItems}
+                eyebrow="INVENTIONS PICTURE RAIL"
+                heading={selectedZone === 'all' ? 'All Inventions Gallery' : `${selectedZone} Inventions Gallery`}
+                caption="Drag any brass wire to swing the prints along the rail. Click any frame to lift it into 3D view or flip to study specifications."
+                className="bg-transparent"
+              />
+            </div>
+          ) : selectedZone === 'all' && !searchQuery.trim() ? (
+            <div className="mt-8 space-y-12">
+              {disciplineGroups
+                .filter((group) => group.items.length > 0)
+                .map((group) => (
+                  <div key={group.key}>
+                    <div className={`flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b font-mono ${
+                      isLight ? 'border-slate-200/80' : 'border-[#21262d]'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-bold ${group.accent}`}>
+                          {`// ${group.code}`}
+                        </span>
+                        <h3 className={`text-lg sm:text-xl font-bold font-sans uppercase tracking-tight ${
+                          isLight ? 'text-slate-800' : 'text-white'
+                        }`}>
+                          {group.title}
+                        </h3>
+                      </div>
+                      <span className={`text-xs tabular-nums ${isLight ? 'text-slate-500' : 'text-[#8b949e]'}`}>
+                        {group.range} • {group.items.length} Booths
+                      </span>
+                    </div>
+
+                    <div className={`grid ${group.gridCols} gap-5`}>
+                      {group.items.map((p, idx) =>
+                        renderProjectCard(p, idx, group.spotlightFirst && idx === 0 && group.items.length >= 4)
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div
+              className={`mt-8 grid ${
+                selectedZone === 'Robotics' && !searchQuery.trim()
+                  ? 'grid-cols-1 md:grid-cols-2'
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              } gap-5`}
+            >
+              {filteredProjects.map((p, index) =>
+                renderProjectCard(
+                  p,
+                  index,
+                  !searchQuery.trim() &&
+                    (selectedZone === 'Business' || selectedZone === 'Show & Tell') &&
+                    index === 0 &&
+                    filteredProjects.length >= 4
+                )
+              )}
+            </div>
+          )}
+
+          <div className="mt-10 text-center">
+            <Link
+              href="/expo"
+              className={`inline-flex items-center gap-2 px-6 py-3.5 border font-mono text-xs font-bold uppercase transition-all rounded-xl active:scale-[0.98] ${
+                isLight
+                  ? 'bg-white/90 hover:bg-slate-100 border-slate-300 text-slate-900 shadow-xs'
+                  : 'bg-[#161b22] hover:bg-[#21262d] border-[#30363d] text-white'
+              }`}
+            >
+              <span>Explore Full 3D Interactive Floor Plan</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── LIVE VOTING ─── */}
+      <section id="voting" className={`scroll-mt-16 border-b py-14 transition-colors duration-300 ${
+        isLight ? 'border-slate-200/80 bg-white/40 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div className={`flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 mb-8 border-b ${
+            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
+          }`}>
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mb-3">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>4-LAYER ANTI-CHEAT SYSTEM</span>
+              </span>
+              <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
+                isLight ? 'text-slate-800' : 'text-white'
+              }`}>
+                Verified Community Voting
+              </h2>
+              <p className={`mt-3 text-xs sm:text-sm font-mono leading-relaxed ${
+                isLight ? 'text-slate-600' : 'text-slate-400'
+              }`}>
+                Every guest, student, teacher, and judge has an official ballot to recognize outstanding student research.
+                Protected by device fingerprinting and atomic rate-limiting for complete fairness.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              <a
+                href="#projects"
+                onClick={() => playClick()}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 sm:whitespace-nowrap rounded-xl bg-[#238636] hover:bg-[#2ea043] text-white font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-95"
+              >
+                <Vote className="w-4 h-4 shrink-0" />
+                <span>Browse All 44 Inventions to Vote</span>
+                <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+              </a>
+              <Link
+                href="/expo"
+                onClick={() => playClick()}
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 sm:whitespace-nowrap rounded-xl border font-mono font-bold text-xs uppercase tracking-wider transition-all active:scale-95 ${
+                  isLight
+                    ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
+                    : 'border-[#30363d] bg-[#161b22] hover:bg-[#21262d] text-white'
+                }`}
+              >
+                <span>Explore &amp; Vote in 3D Hall</span>
+                <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className={`p-5 rounded-2xl border transition-all ${
               isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
@@ -1350,144 +1536,134 @@ export default function LandingPage() {
               </p>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="#projects"
-              onClick={() => playClick()}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#238636] hover:bg-[#2ea043] text-white font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-95"
-            >
-              <Vote className="w-4 h-4" />
-              <span>Browse All 44 Inventions to Vote</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </a>
-            <Link
-              href="/expo"
-              onClick={() => playClick()}
-              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl border font-mono font-bold text-xs uppercase tracking-wider transition-all active:scale-95 ${
-                isLight
-                  ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
-                  : 'border-[#30363d] bg-[#161b22] hover:bg-[#21262d] text-white'
-              }`}
-            >
-              <span>Explore &amp; Vote in 3D Hall</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
         </div>
       </section>
 
-      {/* ─── REAL-TIME NOTIFICATIONS & VIP PASS ─── */}
-      <section className={`border-b py-14 transition-colors duration-300 ${
-        isLight ? 'border-slate-200/80 bg-[#f1f5f9]/50 backdrop-blur-sm' : 'border-[#30363d] bg-[#000000]'
-      }`}>
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <span className="text-xs font-mono text-[#3fb950] font-bold block mb-2">
-            REAL-TIME EVENT ALERTS
-          </span>
-          <h2 className={`text-2xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
-            isLight ? 'text-slate-800' : 'text-white'
-          }`}>
-            Live Round Notifications &amp; Digital Pass
-          </h2>
-          <p className={`mt-2 text-xs sm:text-sm font-mono ${isLight ? 'text-slate-600' : 'text-[#8b949e]'}`}>
-            Toggle the notification bell below to enable audio chime alerts when round evaluations close.
-          </p>
-
-          {/* Element 3: <BellToggle /> in exact previous format */}
-          <div className="flex justify-center my-6">
-            <BellToggle
-              offLabel="Notify me"
-              onLabel="You'll be notified"
-              color={isLight ? '#334155' : '#f5f5f5'}
-              background={isLight ? '#e2e8f0' : '#27272a'}
-              onColor="#ffffff"
-              onBackground="#238636"
-              size="md"
-              count={3}
-              onChange={(active: boolean) => console.log('active: ', active)}
-            />
-          </div>
-
-          <form onSubmit={handleRegister} className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto font-mono text-xs">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="visitor@dpsi.in"
-              required
-              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all ${
-                isLight
-                  ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 shadow-xs'
-                  : 'bg-[#0d1117] border-[#30363d] text-white placeholder-[#8b949e]'
-              }`}
-            />
-            <button
-              type="submit"
-              className="px-6 py-3 bg-[#238636] hover:bg-[#2ea043] active:scale-[0.98] text-white font-bold uppercase transition-all rounded-xl shadow-xs"
-            >
-              Get Entry Pass
-            </button>
-          </form>
-
-          {registered && (
-            <p className="mt-3 text-xs font-mono text-[#3fb950] font-bold">
-              ✓ Entry pass registered! You will receive live round alerts.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ─── SUMMIT SCHEDULE (TENTATIVE) ─── */}
-      <section id="schedule" className={`scroll-mt-16 py-14 border-b transition-colors duration-300 ${
+      {/* ─── SUMMIT SCHEDULE (TENTATIVE) & REAL-TIME NOTIFICATIONS BENTO SPLIT ─── */}
+      <section id="schedule" className={`scroll-mt-16 border-b transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b gap-4 ${
-            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
+        <div className="max-w-7xl mx-auto">
+          <div className={`grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x ${
+            isLight ? 'divide-slate-200/80' : 'divide-[#30363d]'
           }`}>
-            <div>
-              <span className="text-xs font-mono text-amber-500 font-bold block mb-1">
-                SUMMIT ITINERARY • TENTATIVE
-              </span>
-              <h2 className={`text-3xl font-black uppercase font-sans tracking-tight ${
-                isLight ? 'text-slate-800' : 'text-white'
+            {/* Left Column: Innovation Exhibition Schedule (Tentative) */}
+            <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 bg-transparent">
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b gap-4 ${
+                isLight ? 'border-slate-200/80' : 'border-[#30363d]'
               }`}>
-                Innovation Exhibition Schedule
-              </h2>
+                <div>
+                  <span className="text-xs font-mono text-amber-500 font-bold block mb-1">
+                    SUMMIT ITINERARY • TENTATIVE
+                  </span>
+                  <h2 className={`text-3xl font-black uppercase font-sans tracking-tight ${
+                    isLight ? 'text-slate-800' : 'text-white'
+                  }`}>
+                    Innovation Exhibition Schedule
+                  </h2>
+                </div>
+
+                <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-mono font-bold self-start sm:self-auto ${
+                  isLight
+                    ? 'border-amber-300 bg-amber-50/80 text-amber-800 shadow-xs'
+                    : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                }`}>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span>Timings Tentative</span>
+                </div>
+              </div>
+
+              <div className={`p-6 sm:p-8 rounded-2xl border transition-colors ${
+                isLight
+                  ? 'border-slate-300/80 bg-white/70 shadow-xs'
+                  : 'border-[#30363d] bg-[#0d1117]/80'
+              }`}>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 mb-4">
+                  Schedule &amp; Timings Tentative
+                </span>
+                <h3 className={`text-xl sm:text-2xl font-bold font-sans tracking-tight ${
+                  isLight ? 'text-slate-800' : 'text-white'
+                }`}>
+                  Event Schedule &amp; Timings are Tentative
+                </h3>
+                <p className={`mt-3 text-xs sm:text-sm font-mono leading-relaxed ${
+                  isLight ? 'text-slate-600' : 'text-slate-400'
+                }`}>
+                  The summit program itinerary, session flow, and auditorium timings are currently tentative and subject to confirmation by the organizing committee. All finalized timings and round schedules will be published prior to the exhibition.
+                </p>
+              </div>
             </div>
 
-            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-mono font-bold self-start sm:self-auto ${
-              isLight
-                ? 'border-amber-300 bg-amber-50/80 text-amber-800 shadow-xs'
-                : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+            {/* Right Column: Live Round Notifications & Digital Pass */}
+            <div className={`lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 ${
+              isLight ? 'bg-[#f1f5f9]/50 backdrop-blur-sm' : 'bg-[#000000]/60'
             }`}>
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              <span>Timings Tentative</span>
-            </div>
-          </div>
+              <div>
+                <span className="text-xs font-mono text-[#3fb950] font-bold block mb-2">
+                  REAL-TIME EVENT ALERTS
+                </span>
+                <h2 className={`text-2xl sm:text-3xl font-black uppercase font-sans tracking-tight ${
+                  isLight ? 'text-slate-800' : 'text-white'
+                }`}>
+                  Live Round Notifications &amp; Digital Pass
+                </h2>
+                <p className={`mt-2 text-xs sm:text-sm font-mono leading-relaxed ${isLight ? 'text-slate-600' : 'text-[#8b949e]'}`}>
+                  Toggle the notification bell below to enable audio chime alerts when round evaluations close.
+                </p>
 
-          <div className={`mt-8 p-8 sm:p-12 rounded-2xl border text-center max-w-2xl mx-auto transition-colors ${
-            isLight
-              ? 'border-slate-300/80 bg-white/70 shadow-xs'
-              : 'border-[#30363d] bg-[#0d1117]/80'
-          }`}>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 mb-4">
-              Schedule &amp; Timings Tentative
-            </span>
-            <h3 className={`text-xl sm:text-2xl font-bold font-sans tracking-tight ${
-              isLight ? 'text-slate-800' : 'text-white'
-            }`}>
-              Event Schedule &amp; Timings are Tentative
-            </h3>
-            <p className={`mt-3 text-xs sm:text-sm font-mono leading-relaxed ${
-              isLight ? 'text-slate-600' : 'text-slate-400'
-            }`}>
-              The summit program itinerary, session flow, and auditorium timings are currently tentative and subject to confirmation by the organizing committee. All finalized timings and round schedules will be published prior to the exhibition.
-            </p>
+                {/* Element 3: <BellToggle /> in exact previous format */}
+                <div className="flex justify-start mt-5">
+                  <BellToggle
+                    offLabel="Notify me"
+                    onLabel="You'll be notified"
+                    color={isLight ? '#334155' : '#f5f5f5'}
+                    background={isLight ? '#e2e8f0' : '#27272a'}
+                    onColor="#ffffff"
+                    onBackground="#238636"
+                    size="md"
+                    count={3}
+                    onChange={(active: boolean) => console.log('active: ', active)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <form onSubmit={handleRegister} className="flex flex-col sm:flex-row gap-2.5 font-mono text-xs">
+                  <label htmlFor="entry-pass-email" className="sr-only">
+                    Visitor email address for entry pass alerts
+                  </label>
+                  <input
+                    id="entry-pass-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="visitor@dpsi.in"
+                    required
+                    className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all ${
+                      isLight
+                        ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 shadow-xs'
+                        : 'bg-[#0d1117] border-[#30363d] text-white placeholder-[#8b949e]'
+                    }`}
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-3 sm:whitespace-nowrap bg-[#238636] hover:bg-[#2ea043] active:scale-[0.98] text-white font-bold uppercase transition-all rounded-xl shadow-xs"
+                  >
+                    Get Entry Pass
+                  </button>
+                </form>
+
+                {registered && (
+                  <p className="mt-3 text-xs font-mono text-[#3fb950] font-bold">
+                    ✓ Entry pass registered! You will receive live round alerts.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>
+      </main>
 
       {/* ─── GITHUB UNIVERSE STYLE MINIMALIST FOOTER ─── */}
       <footer className={`py-10 font-mono text-xs border-t transition-colors duration-300 ${

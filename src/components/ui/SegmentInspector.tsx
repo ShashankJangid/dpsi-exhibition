@@ -180,7 +180,7 @@ const ZONE_METADATA: Record<string, ZoneMeta> = {
   },
   business: {
     title: 'Business Ventures Wing',
-    tagline: 'Booths B01 – B07 • Startups & FinTech',
+    tagline: 'Booths B01 – B08 • Startups & FinTech',
     icon: TrendingUp,
     accentColor: 'text-emerald-500 dark:text-emerald-400',
     accentBorder: 'border-emerald-500/40',
@@ -206,7 +206,7 @@ const ZONE_METADATA: Record<string, ZoneMeta> = {
     accentBorder: 'border-indigo-500/40',
     accentBg: 'bg-indigo-500/10',
     badgeText: 'All Main Aisles',
-    description: 'The central thoroughfare of the expo with 31 exhibition stalls, dual student laptops, and live audience judging.',
+    description: 'The central thoroughfare of the expo with 32 exhibition stalls, dual student laptops, and live audience judging.',
   },
 };
 

@@ -13,16 +13,53 @@ export interface BadgeData {
   credentialId: string;
   projectDomain?: string;
   venueLocation?: string;
+  qrPayload?: string;
 }
 
-function escapeXml(str: string): string {
+/**
+ * Strips XML 1.0 disallowed control characters, Unicode bidi override vectors,
+ * and normalizes excess whitespace to guarantee well-formed, injection-safe SVG.
+ */
+export function sanitizeInput(str: unknown, maxLength = 120): string {
+  if (typeof str !== 'string') return '';
   return str
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+export function escapeXml(str: unknown, maxLength = 120): string {
+  return sanitizeInput(str, maxLength)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 }
+
+/**
+ * Sanitizes QR code payload strings to prevent malicious URI schemes or injection.
+ */
+export function sanitizeQrPayload(payload: unknown, maxLength = 500): string {
+  const sanitized = sanitizeInput(payload, maxLength);
+  if (/^(javascript|data|vbscript):/i.test(sanitized)) {
+    return 'https://dpsiexhibition.pages.dev';
+  }
+  return sanitized;
+}
+
+// Pre-compiled high-performance regular expressions for badge field injection
+const RE_PARTICIPANT_NAME = /(<g transform="translate\(54, 236\)">[\s\S]*?<text x="0" y="44" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/;
+const RE_CLASS_SECTION = /(CLASS &amp; SECTION<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/;
+const RE_CREDENTIAL_ID = /(CREDENTIAL ID<\/text>\s*<text [^>]*)font-size="[^"]*"([^>]*)letter-spacing="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/;
+const RE_PROJECT_DOMAIN = /(PROJECT DOMAIN<\/text>[\s\S]*?<text [^>]*)font-size="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/;
+const RE_EXHIBITION_VENUE = /(EXHIBITION VENUE<\/text>[\s\S]*?<text [^>]*)font-size="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/;
+const RE_QR_CRED_ID = /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/;
+const RE_QR_NAME_SEC = /(<text x="0" y="44" class="font-mono" [^>]*)font-size="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/;
+const RE_TOPOTAGS = /<!-- 18 Topological Invariant Code Hexagons[\s\S]*?(?=\s*<\/g>\s*<\/g>\s*<\/g>\s*<!-- 2\. BOTTOM-RIGHT)/;
+const RE_MICRO_QR = /(<g transform="translate\(200, 32\)">\s*<rect\s+[^>]*\/>)[\s\S]*?(<\/g>\s*<\/g>\s*<\/g>\s*<\/svg>)/;
 
 function hashString(str: string): number {
   let h = 0x811c9dc5;
@@ -97,19 +134,31 @@ export function generateTopotagCells(credentialId: string): string {
  */
 export function generateMicroQrModules(credentialId: string): string {
   try {
-    const rawId = credentialId || 'CR100-0001';
+    const rawId = sanitizeInput(credentialId || 'CR100-0001', 500);
     const qr = QRCode.create(rawId, {
       errorCorrectionLevel: 'M',
     });
     const size = qr.modules.size;
     const moduleSize = 84.0 / size;
     const rects: string[] = [];
+
+    // Optimize DOM size: coalesce contiguous horizontal dark modules into single rects
     for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        if (qr.modules.get(r, c)) {
+      let runStart = -1;
+      for (let c = 0; c <= size; c++) {
+        const isDark = c < size && qr.modules.get(r, c);
+        if (isDark) {
+          if (runStart === -1) runStart = c;
+        } else if (runStart !== -1) {
+          const runLength = c - runStart;
+          const x = (runStart * moduleSize).toFixed(2);
+          const y = (r * moduleSize).toFixed(2);
+          const w = (runLength * moduleSize).toFixed(2);
+          const h = moduleSize.toFixed(2);
           rects.push(
-            `        <rect x="${(c * moduleSize).toFixed(2)}" y="${(r * moduleSize).toFixed(2)}" width="${moduleSize.toFixed(2)}" height="${moduleSize.toFixed(2)}" fill="#0F172A" shape-rendering="crispEdges"/>`
+            `        <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#0F172A" shape-rendering="crispEdges"/>`
           );
+          runStart = -1;
         }
       }
     }
@@ -130,29 +179,36 @@ export function generateAppleCardSvg(
 ): string {
   let svg = templateSvg;
   const rawName = (data.name || 'OFFICIAL DELEGATE').trim().toUpperCase();
-  const nameUpper = escapeXml(rawName);
-  const secUpper = escapeXml((data.classSection || 'EXPO 2026').trim().toUpperCase());
-  const idUpper = escapeXml((data.credentialId || 'CR100-0001').trim().toUpperCase());
-  const domainText = escapeXml(data.projectDomain || 'STEM & Autonomous Robotics');
-  const venueText = escapeXml(data.venueLocation || 'Maker Lab • Booth 01 (Hall A)');
+  const nameUpper = escapeXml(rawName, 60);
+  const secUpper = escapeXml((data.classSection || 'EXPO 2026').trim().toUpperCase(), 30);
+  const idUpper = escapeXml((data.credentialId || 'CR100-0001').trim().toUpperCase(), 20);
+  const domainText = escapeXml(data.projectDomain || 'STEM & Autonomous Robotics', 100);
+  const venueText = escapeXml(data.venueLocation || 'Maker Lab • Booth 01 (Hall A)', 100);
 
   // Dynamic font sizing for long participant names to prevent clipping
   let nameFontSize = '46';
-  if (rawName.length > 22) {
-    nameFontSize = '28';
-  } else if (rawName.length > 16) {
-    nameFontSize = '36';
+  let nameLengthAttr = '';
+  if (rawName.length > 25) {
+    nameFontSize = '26';
+    nameLengthAttr = ' textLength="460" lengthAdjust="spacingAndGlyphs"';
+  } else if (rawName.length > 18) {
+    nameFontSize = '32';
+  } else if (rawName.length > 13) {
+    nameFontSize = '38';
   }
 
   // 1. Primary participant name
   svg = svg.replace(
-    /(<g transform="translate\(54, 236\)">[\s\S]*?<text x="0" y="44" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3, _p4, p5) => `${p1}${nameFontSize}${p3}${nameUpper}${p5}`
+    RE_PARTICIPANT_NAME,
+    (_m, p1, _p2, p3, _p4, p5) => {
+      const cleanP3 = p3.replace(/^"/, '').replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${p1}${nameFontSize}"${nameLengthAttr}${cleanP3}${nameUpper}${p5}`;
+    }
   );
 
   // 2. Class & Section cardlet
   svg = svg.replace(
-    /(CLASS &amp; SECTION<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
+    RE_CLASS_SECTION,
     (_m, p1, _p2, p3) => `${p1}${secUpper}${p3}`
   );
 
@@ -160,52 +216,86 @@ export function generateAppleCardSvg(
   const credFontSize = idUpper.length > 10 ? '24' : idUpper.length > 8 ? '26' : '30';
   const credLetterSpacing = idUpper.length > 10 ? '0.4' : '1';
   svg = svg.replace(
-    /(CREDENTIAL ID<\/text>\s*<text [^>]*)font-size="[^"]*"([^>]*)letter-spacing="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/,
+    RE_CREDENTIAL_ID,
     (_m, p1, p2, p3, _p4, p5) => `${p1}font-size="${credFontSize}"${p2}letter-spacing="${credLetterSpacing}"${p3}${idUpper}${p5}`
   );
 
-  // 4. Project Domain
+  // 4. Project Domain with responsive font-sizing & strict box containment (< 420px)
+  let domainFontSize = '14.5';
+  let domainLengthAttr = '';
+  if (domainText.length > 55) {
+    domainFontSize = '11';
+    domainLengthAttr = ' textLength="415" lengthAdjust="spacingAndGlyphs"';
+  } else if (domainText.length > 40) {
+    domainFontSize = '12.5';
+  } else if (domainText.length > 25) {
+    domainFontSize = '13.5';
+  }
   svg = svg.replace(
-    /(PROJECT DOMAIN<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${domainText}${p3}`
+    RE_PROJECT_DOMAIN,
+    (_m, p1, p2, _p3, p4) => {
+      const cleanP1 = p1.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      const cleanP2 = p2.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${cleanP1}font-size="${domainFontSize}"${domainLengthAttr}${cleanP2}${domainText}${p4}`;
+    }
   );
 
-  // 5. Exhibition Venue
+  // 5. Exhibition Venue with responsive font-sizing & strict box containment (< 420px)
+  let venueFontSize = '13.5';
+  let venueLengthAttr = '';
+  if (venueText.length > 55) {
+    venueFontSize = '10.5';
+    venueLengthAttr = ' textLength="415" lengthAdjust="spacingAndGlyphs"';
+  } else if (venueText.length > 40) {
+    venueFontSize = '12';
+  } else if (venueText.length > 25) {
+    venueFontSize = '12.5';
+  }
   svg = svg.replace(
-    /(EXHIBITION VENUE<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${venueText}${p3}`
-  );
-
-  // 6. Baseline footer credential ID
-  svg = svg.replace(
-    /(DPSI-2026 &#8226; POWERED BY CL0UD \/\/ &#9729; EXPO\.PASS &#8226; )([A-Z0-9-]+)/,
-    (_m, p1) => `${p1}${idUpper}`
+    RE_EXHIBITION_VENUE,
+    (_m, p1, p2, _p3, p4) => {
+      const cleanP1 = p1.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      const cleanP2 = p2.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${cleanP1}font-size="${venueFontSize}"${venueLengthAttr}${cleanP2}${venueText}${p4}`;
+    }
   );
 
   // 7. Micro-QR cardlet ID with responsive sizing
   const qrCredFontSize = idUpper.length > 10 ? '14' : '16';
   svg = svg.replace(
-    /(<g transform="translate\(24, 48\)">[\s\S]*?<text x="0" y="24" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/,
+    RE_QR_CRED_ID,
     (_m, p1, _p2, p3, _p4, p5) => `${p1}${qrCredFontSize}${p3}${idUpper}${p5}`
   );
 
-  // 8. Micro-QR cardlet Name & Section
+  // 8. Micro-QR cardlet Name & Section with responsive sizing and width containment (< 160px)
+  const qrNameSec = secUpper ? `${nameUpper} &#8226; ${secUpper}` : nameUpper;
+  const qrNameFontSize = qrNameSec.length > 26 ? '7.5' : qrNameSec.length > 20 ? '8.5' : '9';
+  const qrNameLengthAttr = qrNameSec.length > 30 ? ' textLength="160" lengthAdjust="spacingAndGlyphs"' : '';
   svg = svg.replace(
-    /(<text x="0" y="44" class="font-mono" [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${nameUpper} &#8226; ${secUpper}${p3}`
+    RE_QR_NAME_SEC,
+    (_m, p1, p2, _p3, p4) => {
+      const cleanP1 = p1.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      const cleanP2 = p2.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${cleanP1}font-size="${qrNameFontSize}"${qrNameLengthAttr}${cleanP2}${qrNameSec}${p4}`;
+    }
   );
 
   // 9. Butterfly TopoTags Replacement (Unique per Credential ID)
   const dynamicTopotags = generateTopotagCells(data.credentialId);
-  svg = svg.replace(
-    /<!-- 18 Topological Invariant Code Hexagons[\s\S]*?(?=\s*<\/g>\s*<\/g>\s*<\/g>\s*<!-- 2\. BOTTOM-RIGHT)/,
-    () => dynamicTopotags
-  );
+  svg = svg
+    .replace(/<!-- 1\. UPPER-RIGHT: AUTHENTIC BUTTERFLY TOPOTAG[^>]*-->/g, `<!-- 1. UPPER-RIGHT: AUTHENTIC BUTTERFLY TOPOTAG (ENCODED ID: ${idUpper}) -->`)
+    .replace(/data-topotag-id="[^"]*"/g, `data-topotag-id="${idUpper}"`)
+    .replace(
+      RE_TOPOTAGS,
+      () => dynamicTopotags
+    );
 
-  // 10. Micro-QR Code Matrix Replacement (Unique per Credential ID)
-  const dynamicMicroQr = generateMicroQrModules(data.credentialId);
+  // 10. Micro-QR Code Matrix Replacement (Version 1 21x21 high-density optical lock keyed to Credential ID)
+  const qrPayloadRaw = data.qrPayload || idUpper;
+  const qrPayload = sanitizeQrPayload(qrPayloadRaw);
+  const dynamicMicroQr = generateMicroQrModules(qrPayload);
   svg = svg.replace(
-    /(<g transform="translate\(200, 32\)">\s*<rect x="-8" y="-8" [^>]*\/>)[\s\S]*?(<\/g>\s*<\/g>\s*<\/g>\s*<\/svg>)/,
+    RE_MICRO_QR,
     (_m, p1, p2) => `${p1}\n${dynamicMicroQr}\n      ${p2}`
   );
 
