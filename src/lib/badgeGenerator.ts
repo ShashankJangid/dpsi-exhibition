@@ -172,18 +172,15 @@ export function generateAppleCardSvg(
     (_m, p1, p2, p3, _p4, p5) => `${p1}font-size="${credFontSize}"${p2}letter-spacing="${credLetterSpacing}"${p3}${idUpper}${p5}`
   );
 
-  // 4. Project Domain with responsive font-sizing & strict box containment (< 335px)
+  // 4. Project Domain with responsive font-sizing & strict box containment (< 420px)
   let domainFontSize = '14.5';
   let domainLengthAttr = '';
   if (domainText.length > 55) {
-    domainFontSize = '9.5';
-    domainLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
-  } else if (domainText.length > 42) {
     domainFontSize = '11';
-    domainLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
-  } else if (domainText.length > 30) {
+    domainLengthAttr = ' textLength="415" lengthAdjust="spacingAndGlyphs"';
+  } else if (domainText.length > 40) {
     domainFontSize = '12.5';
-  } else if (domainText.length > 20) {
+  } else if (domainText.length > 25) {
     domainFontSize = '13.5';
   }
   svg = svg.replace(
@@ -195,18 +192,15 @@ export function generateAppleCardSvg(
     }
   );
 
-  // 5. Exhibition Venue with responsive font-sizing & strict box containment (< 335px)
+  // 5. Exhibition Venue with responsive font-sizing & strict box containment (< 420px)
   let venueFontSize = '13.5';
   let venueLengthAttr = '';
   if (venueText.length > 55) {
-    venueFontSize = '9';
-    venueLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
-  } else if (venueText.length > 42) {
     venueFontSize = '10.5';
-    venueLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
-  } else if (venueText.length > 30) {
+    venueLengthAttr = ' textLength="415" lengthAdjust="spacingAndGlyphs"';
+  } else if (venueText.length > 40) {
     venueFontSize = '12';
-  } else if (venueText.length > 20) {
+  } else if (venueText.length > 25) {
     venueFontSize = '12.5';
   }
   svg = svg.replace(
