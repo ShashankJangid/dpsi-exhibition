@@ -148,12 +148,12 @@ export const PROPRIETARY_ACCESS_CODES = {
 } as const;
 
 export const OFFICIAL_TEACHERS_AND_INCHARGES: TeacherEntry[] = [
-  { name: 'Shashank Jandge', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0001' },
-  { name: 'Shubham', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0002' },
-  { name: 'Divya', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0003' },
-  { name: 'Vaibhav', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0004' },
+  { name: 'Shashank Jangid', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0001' },
+  { name: 'Shubham Solanki', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0002' },
+  { name: 'Divya Chadha', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0003' },
+  { name: 'Vaibhav Mishra', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0004' },
   { name: 'Ajay', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0005' },
-  { name: 'Dana', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0006' },
+  { name: 'Dana Alsani', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0006' },
   { name: 'Amit', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0007' },
   { name: 'Krishna', role: 'INCHARGE', pass_code: 'TEACHER2026', credential_id: 'INC-0008' },
 ];

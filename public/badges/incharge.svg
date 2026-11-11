@@ -146,7 +146,7 @@
   <g transform="translate(54, 236)">
     <text x="0" y="0" class="font-sans" font-size="11" font-weight="700" fill="#94A3B8" letter-spacing="2.2">PARTICIPANT</text>
     <g clip-path="url(#participantNameClip)">
-      <text x="0" y="44" class="font-sans" font-size="46" font-weight="900" fill="#0F172A" letter-spacing="-1.2">SHASHANK JANDGE</text>
+      <text x="0" y="44" class="font-sans" font-size="46" font-weight="900" fill="#0F172A" letter-spacing="-1.2">SHASHANK JANGID</text>
     </g>
   </g>
 
@@ -235,7 +235,7 @@
         <text x="0" y="0" class="font-sans" font-size="12" font-weight="800" fill="#0F172A" letter-spacing="0.5">SUPERVISORY PASS</text>
         <text x="0" y="24" class="font-mono" font-size="16" font-weight="900" fill="#5B21B6" letter-spacing="1">INC-0001</text>
         <g clip-path="url(#microQrTextClip)">
-          <text x="0" y="44" class="font-mono" font-size="9" font-weight="600" fill="#94A3B8">SHASHANK JANDGE</text>
+          <text x="0" y="44" class="font-mono" font-size="9" font-weight="600" fill="#94A3B8">SHASHANK JANGID</text>
         </g>
       </g>
 

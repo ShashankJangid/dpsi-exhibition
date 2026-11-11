@@ -311,7 +311,7 @@ function PassAndAttendanceContent() {
 
   // Faculty Incharge / Teacher Pass State
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherEntry>(() => OFFICIAL_TEACHERS_AND_INCHARGES[0]);
-  const [facultyCustomName, setFacultyCustomName] = useState('Shashank Jandge');
+  const [facultyCustomName, setFacultyCustomName] = useState('Shashank Jangid');
   const [facultyCustomRole, setFacultyCustomRole] = useState('Faculty Incharge');
   const [facultyCustomDept, setFacultyCustomDept] = useState('');
   const [facultyCustomVenue, setFacultyCustomVenue] = useState('');
@@ -803,7 +803,7 @@ function PassAndAttendanceContent() {
   // Display name of the active credential holder
   const activeHolderName = useMemo(() => {
     if (currentRole === 'EXHIBITOR') return selectedStudent.student_name;
-    if (currentRole === 'INCHARGE') return selectedTeacher?.name || facultyCustomName || 'Shashank Jandge';
+    if (currentRole === 'INCHARGE') return selectedTeacher?.name || facultyCustomName || 'Shashank Jangid';
     return otherCustomName || roleConfig.classDefault;
   }, [currentRole, selectedStudent, selectedTeacher, facultyCustomName, otherCustomName, roleConfig]);
 
@@ -825,7 +825,7 @@ function PassAndAttendanceContent() {
     }
 
     if (currentRole === 'INCHARGE') {
-      const teacherName = (selectedTeacher?.name || facultyCustomName || 'SHASHANK JANDGE').trim().toUpperCase();
+      const teacherName = (selectedTeacher?.name || facultyCustomName || 'SHASHANK JANGID').trim().toUpperCase();
       return generateAppleCardSvg(template, {
         name: teacherName,
         classSection: '',
