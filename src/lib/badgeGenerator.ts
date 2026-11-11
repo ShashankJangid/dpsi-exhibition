@@ -290,10 +290,8 @@ export function generateAppleCardSvg(
       () => dynamicTopotags
     );
 
-  // 10. Micro-QR Code Matrix Replacement (Unique per Credential ID & Student Name)
-  const qrPayloadRaw = data.qrPayload || (data.name
-    ? `https://dpsi-exhibition.pages.dev/pass?id=${idUpper}`
-    : idUpper);
+  // 10. Micro-QR Code Matrix Replacement (Version 1 21x21 high-density optical lock keyed to Credential ID)
+  const qrPayloadRaw = data.qrPayload || idUpper;
   const qrPayload = sanitizeQrPayload(qrPayloadRaw);
   const dynamicMicroQr = generateMicroQrModules(qrPayload);
   svg = svg.replace(

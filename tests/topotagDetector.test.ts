@@ -198,10 +198,10 @@ describe('TopoTag Optical Failsafe & Matrix Invariant Suite', () => {
 
   test('All generated pass SVGs contain valid decodable ISO/IEC 18004 QR Codes', () => {
     const testCases = [
-      { path: 'passes/vips/VIP-0001_Dr_V_K_Sharma.svg', expectedUrl: 'https://dpsi-exhibition.pages.dev/pass?id=VIP-0001' },
-      { path: 'passes/judges/JDG-0001_Prof_Rajesh_K_Pathak.svg', expectedUrl: 'https://dpsi-exhibition.pages.dev/pass?id=JDG-0001' },
-      { path: 'passes/incharges/INC-0001_Shashank_Jangid.svg', expectedUrl: 'https://dpsi-exhibition.pages.dev/pass?id=INC-0001' },
-      { path: 'passes/students/EXH-0001-01_Hiya.svg', expectedUrl: 'https://dpsi-exhibition.pages.dev/pass?id=EXH-0001-01' },
+      { path: 'passes/vips/VIP-0001_Dr_V_K_Sharma.svg', expectedId: 'VIP-0001' },
+      { path: 'passes/judges/JDG-0001_Prof_Rajesh_K_Pathak.svg', expectedId: 'JDG-0001' },
+      { path: 'passes/incharges/INC-0001_Shashank_Jangid.svg', expectedId: 'INC-0001' },
+      { path: 'passes/students/EXH-0001-01_Hiya.svg', expectedId: 'EXH-0001-01' },
     ];
 
     for (const tc of testCases) {
@@ -249,7 +249,7 @@ describe('TopoTag Optical Failsafe & Matrix Invariant Suite', () => {
 
       const decoded = jsQR(data, width, height);
       assert.ok(decoded, `QR Code in ${tc.path} must be optically decodable`);
-      assert.strictEqual(decoded.data, tc.expectedUrl, `Decoded QR URL must match expected target`);
+      assert.strictEqual(decoded.data, tc.expectedId, `Decoded QR ID must match expected target`);
     }
   });
 

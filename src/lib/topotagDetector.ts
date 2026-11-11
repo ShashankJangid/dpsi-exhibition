@@ -261,21 +261,27 @@ export function detectTopotagFailsafe(
   const trySample = (origX: number, origY: number, sc: number): TopotagDetectionResult | null => {
     const offset = Math.max(2, Math.round(4 * (sc / 0.72)));
 
-    // Step 1: Verify all 12 white wing aperture points between/around the hexagon cells are bright white
+    // Step 1: Verify all 12 white wing aperture points between/around the hexagon cells are uniformly bright
     let apertureSum = 0;
+    let aMin = 255;
+    let aMax = 0;
     for (let k = 0; k < WHITE_APERTURE_COORDS.length; k++) {
       const pt = WHITE_APERTURE_COORDS[k];
       const ax = origX + pt.cx * sc;
       const ay = origY + pt.cy * sc;
       if (ax < 0 || ax >= width || ay < 0 || ay >= height) return null;
       const aLum = getLum(ax, ay);
-      if (aLum < 165) return null; // Reject immediately if background between cells is not bright white
+      if (aLum < 150) return null; // Reject immediately if background between cells is not bright white
+      if (aLum < aMin) aMin = aLum;
+      if (aLum > aMax) aMax = aLum;
       apertureSum += aLum;
     }
+    // White butterfly wing surface must be uniform across all 12 aperture points
+    if (aMax - aMin > 75) return null;
     const apertureLum = apertureSum / WHITE_APERTURE_COORDS.length;
-    if (apertureLum < 180) return null;
+    if (apertureLum < 165) return null;
 
-    // Step 2: Strict tri-state classification for all 18 hexagonal cells
+    // Step 2: Strict tri-state classification for all 18 hexagonal cells (supports both print & OLED/LCD phone screens)
     let observedMask = 0;
     let ringCount = 0;
     let solidCount = 0;
@@ -297,18 +303,20 @@ export function detectTopotagFailsafe(
       const pMax = Math.max(p1, p2, p3, p4);
 
       // Every single one of the 18 cells MUST have a dark hexagon perimeter contrasting with the white wing aperture
-      if (pLum > 105 || pMax > 135 || apertureLum - pLum < 75) {
+      const localContrast = apertureLum - pLum;
+      if (pLum > 135 || pMax > 155 || localContrast < 50) {
         return null;
       }
 
       const centerLum = getLum(sx, sy);
+      const contrastRatio = (centerLum - pLum) / localContrast;
 
       // Tri-state center verification:
-      // 1) Genus-1 Ring: bright white center hole inside dark hexagon perimeter
-      if (centerLum >= 160 && centerLum - pLum >= 65) {
+      // 1) Genus-1 Ring: bright center hole inside dark hexagon perimeter
+      if (contrastRatio >= 0.55 && centerLum - pLum >= 42 && centerLum >= 135) {
         observedMask |= (1 << i);
         ringCount++;
-      } else if (centerLum <= 95 && Math.abs(centerLum - pLum) <= 35) {
+      } else if (contrastRatio <= 0.25 && Math.abs(centerLum - pLum) <= 35 && centerLum <= 130) {
         // 2) Genus-0 Solid Hexagon: dark center matching dark hexagon perimeter
         solidCount++;
       } else {
@@ -360,14 +368,40 @@ export function detectTopotagFailsafe(
     }
   }
 
-  // Strategy 2: Close-up Butterfly Framing (user holds camera close to the butterfly)
-  const closeUpScales = [width * 0.0016, width * 0.0020, width * 0.0013, width * 0.0024];
-  const closeUpOriginsX = [width * 0.20, width * 0.25, width * 0.15, width * 0.30];
-  const closeUpOriginsY = [height * 0.15, height * 0.20, height * 0.25, height * 0.10];
+  // Strategy 2: Phone Screen / Centered Reticle Framing & Close-Up Butterfly Framing
+  const phoneAndCloseUpScales = [
+    baseScale * 0.55,
+    baseScale * 0.65,
+    baseScale * 0.75,
+    baseScale * 0.85,
+    width * 0.0013,
+    width * 0.0016,
+    width * 0.0020,
+    width * 0.0024,
+  ];
+  const phoneOriginsX = [
+    width * 0.15,
+    width * 0.20,
+    width * 0.25,
+    width * 0.30,
+    width * 0.35,
+    width * 0.40,
+    width * 0.45,
+    width * 0.50,
+    width * 0.55,
+  ];
+  const phoneOriginsY = [
+    height * 0.10,
+    height * 0.15,
+    height * 0.20,
+    height * 0.25,
+    height * 0.30,
+    height * 0.35,
+  ];
 
-  for (const sc of closeUpScales) {
-    for (const cy of closeUpOriginsY) {
-      for (const cx of closeUpOriginsX) {
+  for (const sc of phoneAndCloseUpScales) {
+    for (const cy of phoneOriginsY) {
+      for (const cx of phoneOriginsX) {
         const res = trySample(cx, cy, sc);
         if (res) return res;
       }
