@@ -744,7 +744,7 @@ export function PictureRailGallery({
       data-mode={layout.carousel ? "carousel" : "rail"}
       data-active={current ?? ""}
       aria-roledescription="picture rail gallery"
-      className={`relative isolate w-full overflow-hidden bg-background text-foreground ${className ?? ""}`}
+      className={`relative isolate w-full overflow-hidden ${className?.includes("bg-") ? "" : "bg-background"} text-foreground ${className ?? ""}`}
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" style={{ background: "radial-gradient(72% 58% at 50% 44%, color-mix(in oklab, var(--color-foreground, #1e293b) 4%, transparent), transparent 78%)" }} />
       {(eyebrow || heading) && (

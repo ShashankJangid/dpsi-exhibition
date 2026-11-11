@@ -785,11 +785,13 @@ export default function LandingPage() {
       </section>
 
       {/* ─── DEDICATED PHOTO VIEW SECTION: INNOVATION PICTURE RAIL GALLERY ─── */}
-      <section id="gallery" className={`scroll-mt-16 border-b py-14 transition-colors duration-300 ${
-        isLight ? 'border-slate-200/80 bg-slate-100/60' : 'border-[#30363d] bg-[#02040a]'
+      <section id="gallery" className={`scroll-mt-16 border-b py-12 transition-colors duration-300 w-full overflow-hidden ${
+        isLight ? 'border-slate-200/80 bg-slate-100/40' : 'border-[#30363d] bg-[#02040a]'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 mb-6">
+          <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b ${
+            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
+          }`}>
             <div>
               <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
                 PHOTO VIEW GALLERY
@@ -802,7 +804,7 @@ export default function LandingPage() {
               <p className={`mt-2 text-xs sm:text-sm font-mono max-w-xl ${
                 isLight ? 'text-slate-600' : 'text-slate-400'
               }`}>
-                Experience the student inventions suspended on a continuous brass gallery rail. Drag any wire to propagate physical momentum; click any frame to lift into high-resolution focus or flip for technical dossiers.
+                Experience all 44 student inventions suspended on a continuous brass gallery rail. Drag any wire to propagate physical momentum; click any frame to lift into high-resolution focus or flip for technical dossiers.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -818,17 +820,17 @@ export default function LandingPage() {
               </a>
             </div>
           </div>
+        </div>
 
-          <div className={`rounded-3xl border overflow-hidden p-2 sm:p-6 shadow-2xl ${
-            isLight ? 'border-slate-200/90 bg-white/90 shadow-slate-300/40' : 'border-[#30363d] bg-[#050811]/90 shadow-black'
-          }`}>
-            <PictureRailGallery
-              items={EXHIBITION_GALLERY_ITEMS}
-              eyebrow="DPS INDIRAPURAM • SUMMIT 2026"
-              heading="Curated Innovation Prints"
-              caption="Physics-driven pendulum swinging with sub-step Euler momentum. Click any frame to lift and examine."
-            />
-          </div>
+        {/* Spans full display width seamlessly without inner box borders or card container */}
+        <div className="w-full">
+          <PictureRailGallery
+            items={EXHIBITION_GALLERY_ITEMS}
+            eyebrow="DPS INDIRAPURAM • SUMMIT 2026"
+            heading="Curated Innovation Prints"
+            caption="Physics-driven pendulum swinging with sub-step Euler momentum. Click any frame to lift and examine."
+            className="bg-transparent"
+          />
         </div>
       </section>
 
@@ -972,14 +974,13 @@ export default function LandingPage() {
               </button>
             </div>
           ) : directoryView === 'rail' ? (
-            <div className={`mt-8 rounded-2xl border overflow-hidden p-2 sm:p-4 transition-colors ${
-              isLight ? 'border-slate-300/80 bg-white/70 shadow-xs' : 'border-[#30363d] bg-[#0d1117]/90'
-            }`}>
+            <div className="mt-8 w-full overflow-hidden">
               <PictureRailGallery
                 items={projectRailItems}
                 eyebrow="INVENTIONS PICTURE RAIL"
                 heading={selectedZone === 'all' ? 'All Inventions Gallery' : `${selectedZone} Inventions Gallery`}
                 caption="Drag any brass wire to swing the prints along the rail. Click any frame to lift it into 3D view or flip to study specifications."
+                className="bg-transparent"
               />
             </div>
           ) : (
