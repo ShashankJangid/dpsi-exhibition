@@ -674,7 +674,10 @@ export function PictureRailGallery({
     if (p.moved && lay.carousel) {
       const dx = event.clientX - p.x;
       const from = live.current.active ?? live.current.carouselIndex;
-      const step = Math.abs(dx) > 40 || Math.abs(p.v) > 0.45 ? (dx < 0 ? 1 : -1) : 0;
+      const distanceSteps = Math.round(Math.abs(dx) / 110);
+      const velocitySteps = Math.abs(p.v) > 0.4 ? Math.round(Math.abs(p.v) * 2) : 0;
+      const totalSteps = Math.max(1, Math.max(distanceSteps, velocitySteps));
+      const step = Math.abs(dx) > 30 || Math.abs(p.v) > 0.3 ? (dx < 0 ? totalSteps : -totalSteps) : 0;
       pointer.current.swipe = 0;
       const next = clamp(from + step, 0, live.current.count - 1);
       live.current.carouselIndex = next;
@@ -690,6 +693,31 @@ export function PictureRailGallery({
     stop();
     if ((p.kind !== "mouse" || lay.carousel) && live.current.active !== p.index) choose(p.index);
     else pendingOpen.current = p.index;
+  };
+
+  const wheelAccum = React.useRef(0);
+  const wheelStamp = React.useRef(0);
+
+  const onWheel = (event: React.WheelEvent) => {
+    // Recognize both horizontal deltaX (trackpad swipe) and vertical deltaY (mouse wheel)
+    const dx = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (Math.abs(dx) < 4) return;
+    const now = performance.now();
+    wheelAccum.current += dx;
+    // Step when wheel accumulator exceeds threshold
+    if (Math.abs(wheelAccum.current) >= 28 && now - wheelStamp.current > 140) {
+      wheelStamp.current = now;
+      const step = wheelAccum.current > 0 ? 1 : -1;
+      wheelAccum.current = 0;
+      stop();
+      const from = current ?? focusIndex;
+      const next = clamp(from + step, 0, count - 1);
+      if (next !== from) {
+        setFocusIndex(next);
+        choose(next);
+        impulse(next, step > 0 ? -14 : 14);
+      }
+    }
   };
 
   const onKeyDown = (event: React.KeyboardEvent) => {
@@ -733,6 +761,7 @@ export function PictureRailGallery({
         aria-label={heading ?? "Picture rail"}
         className="relative mt-5 w-full touch-pan-y select-none"
         style={{ height: layout.stageH, overflowX: "clip" }}
+        onWheel={onWheel}
         onPointerMove={onPointerMove}
         onPointerDown={onPointerDown}
         onPointerUp={(event) => finishPointer(event, false)}
@@ -828,13 +857,110 @@ export function PictureRailGallery({
             </div>
           );
         })}
+        {/* Floating Left & Right Navigation Arrows for effortless continuous scrolling */}
+        {count > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous frame (Scroll Left)"
+              title="Previous Frame (Scroll Left)"
+              disabled={(current ?? focusIndex) <= 0}
+              onClick={(e) => {
+                e.stopPropagation();
+                stop();
+                const prev = Math.max(0, (current ?? focusIndex) - 1);
+                setFocusIndex(prev);
+                choose(prev);
+                impulse(prev, 16);
+              }}
+              className="pointer-events-auto absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-40 p-2 sm:p-2.5 rounded-full border border-border/80 bg-background/85 backdrop-blur-md text-foreground shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-20 disabled:pointer-events-none hover:bg-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              aria-label="Next frame (Scroll Right)"
+              title="Next Frame (Scroll Right)"
+              disabled={(current ?? focusIndex) >= count - 1}
+              onClick={(e) => {
+                e.stopPropagation();
+                stop();
+                const next = Math.min(count - 1, (current ?? focusIndex) + 1);
+                setFocusIndex(next);
+                choose(next);
+                impulse(next, -16);
+              }}
+              className="pointer-events-auto absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-40 p-2 sm:p-2.5 rounded-full border border-border/80 bg-background/85 backdrop-blur-md text-foreground shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-20 disabled:pointer-events-none hover:bg-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
 
       {layout.carousel && count > 1 && (
-        <div className="relative z-10 mt-1 flex justify-center gap-1.5" role="group" aria-label={heading ?? "Prints"}>
-          {items.map((item, i) => (
-            <button key={item.id} type="button" aria-label={item.title} aria-current={carouselIndex === i} onClick={() => { stop(); choose(i); }} className={`h-1.5 rounded-full outline-none transition-[width,background-color] duration-300 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${carouselIndex === i ? "w-6 bg-foreground" : "w-1.5 bg-foreground/25 hover:bg-foreground/45"}`} />
-          ))}
+        <div className="relative z-10 mt-2 flex flex-col items-center gap-1.5" role="group" aria-label={heading ?? "Prints"}>
+          {count <= 12 ? (
+            <div className="flex justify-center gap-1.5">
+              {items.map((item, i) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-label={item.title}
+                  aria-current={carouselIndex === i}
+                  onClick={() => { stop(); choose(i); }}
+                  className={`h-1.5 rounded-full outline-none transition-[width,background-color] duration-300 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${carouselIndex === i ? "w-6 bg-foreground" : "w-1.5 bg-foreground/25 hover:bg-foreground/45"}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2.5 w-full max-w-sm px-4">
+              <button
+                type="button"
+                aria-label="Previous project"
+                disabled={(current ?? focusIndex) <= 0}
+                onClick={() => {
+                  stop();
+                  const prev = Math.max(0, (current ?? focusIndex) - 1);
+                  setFocusIndex(prev);
+                  choose(prev);
+                }}
+                className="text-xs font-mono px-2.5 py-1 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
+              >
+                &larr; Prev
+              </button>
+              <div className="flex-1 h-1.5 bg-foreground/15 rounded-full overflow-hidden relative">
+                <div
+                  className="h-full bg-foreground rounded-full transition-all duration-200"
+                  style={{ width: `${Math.round((((current ?? focusIndex) + 1) / count) * 100)}%` }}
+                />
+              </div>
+              <button
+                type="button"
+                aria-label="Next project"
+                disabled={(current ?? focusIndex) >= count - 1}
+                onClick={() => {
+                  stop();
+                  const next = Math.min(count - 1, (current ?? focusIndex) + 1);
+                  setFocusIndex(next);
+                  choose(next);
+                }}
+                className="text-xs font-mono px-2.5 py-1 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
+              >
+                Next &rarr;
+              </button>
+              <span className="text-[11px] font-mono tabular-nums text-muted-foreground font-semibold whitespace-nowrap">
+                {(current ?? focusIndex) + 1}/{count}
+              </span>
+            </div>
+          )}
+          <span className="text-[11px] font-mono text-muted-foreground/75 hidden sm:inline">
+            Scroll left / right or drag wire to browse all {count} projects
+          </span>
         </div>
       )}
 

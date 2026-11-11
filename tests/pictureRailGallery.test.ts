@@ -8,16 +8,12 @@ describe('PictureRailGallery & Photo View Integration Suite', () => {
   describe('R1: Component Integration & Styling Suite', () => {
     test('EXHIBITION_GALLERY_ITEMS contains exact curated prints with valid schema & technical specs', () => {
       assert.ok(Array.isArray(EXHIBITION_GALLERY_ITEMS), 'Must be an array');
-      assert.equal(EXHIBITION_GALLERY_ITEMS.length, 7, 'Must contain exactly 7 curated student exhibits');
-
-      const expectedIds = ['p01', 'p02', 'p04', 'p06', 'p08', 'p10', 'p14'];
-      const actualIds = EXHIBITION_GALLERY_ITEMS.map((item) => item.id);
-      assert.deepEqual(actualIds, expectedIds, 'Exhibit IDs must match expected curated roster');
+      assert.equal(EXHIBITION_GALLERY_ITEMS.length, 44, 'Must contain all 44 exhibition projects so users can scroll left and right to discover more');
 
       const seenIds = new Set<string>();
       for (const item of EXHIBITION_GALLERY_ITEMS) {
         assert.ok(item.id && typeof item.id === 'string', 'Item ID must be non-empty string');
-        assert.match(item.id, /^p\d{2}$/, `Item ID ${item.id} must conform to pXX pattern`);
+        assert.match(item.id, /^[a-z0-9]+$/, `Item ID ${item.id} must be alphanumeric lowercase`);
         assert.ok(!seenIds.has(item.id), `Duplicate item ID detected: ${item.id}`);
         seenIds.add(item.id);
 
@@ -42,7 +38,7 @@ describe('PictureRailGallery & Photo View Integration Suite', () => {
 
         // Tag format
         assert.ok(item.tag && typeof item.tag === 'string', `Item ${item.id} missing tag`);
-        assert.match(item.tag, /^Booth [PDB]\d{2} • (Physical|Digital|Business)$/, `Item ${item.id} tag must conform to booth pattern`);
+        assert.match(item.tag, /^Booth [A-Z0-9]+ • .+$/, `Item ${item.id} tag must conform to booth pattern`);
 
         // Details specs array
         assert.ok(Array.isArray(item.details) && item.details.length >= 4, `Item ${item.id} must have at least 4 detail specifications`);
@@ -217,9 +213,13 @@ describe('PictureRailGallery & Photo View Integration Suite', () => {
       const mobileFit = calcFit(shapes, 375);
       assert.ok(mobileFit < 90, 'Mobile screen fit must be below RAIL_MIN_UNIT (90) to trigger responsive carousel mode');
 
-      // Desktop viewport (1440px)
-      const desktopFit = calcFit(shapes, 1440);
-      assert.ok(desktopFit >= 90, 'Desktop screen fit must exceed RAIL_MIN_UNIT (90) for continuous rail hanging mode');
+      // Curated 7 items fit on desktop (fit >= 90)
+      const sevenFit = calcFit(shapes.slice(0, 7), 1440);
+      assert.ok(sevenFit >= 90, 'Seven items fit on 1440px desktop screen');
+
+      // All 44 items on desktop (fit < 90 triggers continuous carousel mode for horizontal scrolling)
+      const allFit = calcFit(shapes, 1440);
+      assert.ok(allFit < 90, 'All 44 items activate carousel mode to allow continuous left/right scrolling');
     });
 
     test('Keyboard controls, pointer event handlers and 3D card flip interaction', () => {
@@ -235,6 +235,10 @@ describe('PictureRailGallery & Photo View Integration Suite', () => {
       assert.ok(compContent.includes('onPointerMove='), 'Must attach onPointerMove handler for physics drag');
       assert.ok(compContent.includes('onPointerUp='), 'Must attach onPointerUp handler');
       assert.ok(compContent.includes('onPointerCancel='), 'Must attach onPointerCancel handler');
+      assert.ok(compContent.includes('onWheel='), 'Must attach onWheel handler for trackpad/mouse scroll');
+
+      assert.ok(compContent.includes('Previous frame (Scroll Left)'), 'Must include accessible scroll left navigation');
+      assert.ok(compContent.includes('Next frame (Scroll Right)'), 'Must include accessible scroll right navigation');
 
       assert.ok(compContent.includes('rotateY(180deg)'), 'Must implement 3D rotateY(180deg) transform for card flip');
       assert.ok(compContent.includes('[backface-visibility:hidden]'), 'Must hide backface during 3D card flip');

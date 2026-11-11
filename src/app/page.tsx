@@ -198,7 +198,7 @@ export default function LandingPage() {
 
   const projectRailItems: PictureRailItem[] = useMemo(() => {
     const list = filteredProjects.length > 0 ? filteredProjects : allProjects;
-    return list.slice(0, 16).map((p, idx) => {
+    return list.map((p, idx) => {
       const styles: PictureFrameStyle[] = ['black', 'oak', 'white'];
       const frame = styles[idx % styles.length];
       const drops = [-0.05, 0.08, -0.02, 0.12, -0.08, 0.04, -0.04, 0.06];
