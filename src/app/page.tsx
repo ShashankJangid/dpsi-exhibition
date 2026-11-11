@@ -337,7 +337,7 @@ export default function LandingPage() {
         });
       }
 
-      // 2. Global top progress beam + live header CAD MorphSVG timeline
+      // 2. Global top progress beam + live scroll percentage readout
       if (scrollProgressBarRef.current) {
         gsap.to(scrollProgressBarRef.current, {
           scaleX: 1,
@@ -353,25 +353,6 @@ export default function LandingPage() {
               }
             },
           },
-        });
-      }
-
-      if (headerMorphPathRef.current) {
-        const headerMorphTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: 'main',
-            start: 'top top',
-            end: 'bottom bottom',
-            scrub: 0.35,
-          },
-        });
-        EXHIBITION_SCROLL_ZONES.slice(1).forEach((zone) => {
-          headerMorphTl.to(headerMorphPathRef.current, {
-            morphSVG: { shape: zone.morph, type: 'rotational' },
-            stroke: zone.color,
-            ease: 'none',
-            duration: 1,
-          });
         });
       }
 
@@ -415,7 +396,7 @@ export default function LandingPage() {
           });
       }
 
-      // 4. Section navigation spy triggers in top-to-bottom document order
+      // 4. Section navigation spy & header MorphSVG emblem in top-to-bottom document order
       EXHIBITION_SCROLL_ZONES.forEach((zone) => {
         const targetEl = document.getElementById(zone.id);
         if (!targetEl) return;
@@ -428,6 +409,15 @@ export default function LandingPage() {
               setActiveScrollSection(zone.id);
               if (headerZoneCodeRef.current) {
                 headerZoneCodeRef.current.textContent = zone.code;
+              }
+              if (headerMorphPathRef.current) {
+                gsap.to(headerMorphPathRef.current, {
+                  morphSVG: { shape: zone.morph, type: 'rotational' },
+                  stroke: zone.color,
+                  duration: 0.45,
+                  ease: 'power2.out',
+                  overwrite: true,
+                });
               }
             }
           },

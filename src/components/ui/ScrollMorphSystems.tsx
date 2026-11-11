@@ -16,14 +16,14 @@ export const SECTION_MORPH_PATHS = {
 } as const;
 
 /**
- * Full-bleed contour paths (1440x48 viewBox) scrubbed by ScrollTrigger across the
- * GradientASCII horizon transition.
+ * Full-bleed open contour curves (1440x48 viewBox, monotonic X 0->1440)
+ * scrubbed by ScrollTrigger across the GradientASCII horizon transition.
  */
 export const HORIZON_CONTOUR_PATHS = {
-  baseline: 'M 0 46 L 240 46 L 480 44 L 720 42 L 960 44 L 1200 46 L 1440 46 L 1440 48 L 0 48 Z',
-  waveform: 'M 0 40 Q 180 12 360 32 T 720 18 T 1080 30 T 1440 18 L 1440 48 L 0 48 Z',
+  baseline: 'M 0 42 C 240 42 480 42 720 42 C 960 42 1200 42 1440 42',
+  waveform: 'M 0 36 C 240 10 480 44 720 18 C 960 42 1200 12 1440 28',
   elevation:
-    'M 0 40 L 160 40 L 210 20 L 420 20 L 470 36 L 680 36 L 730 12 L 980 12 L 1030 34 L 1240 34 L 1290 22 L 1440 22 L 1440 48 L 0 48 Z',
+    'M 0 38 L 180 38 L 240 20 L 520 20 L 580 34 L 780 34 L 840 12 L 1080 12 L 1140 32 L 1320 32 L 1360 22 L 1440 22',
 } as const;
 
 export const EXHIBITION_SCROLL_ZONES = [
@@ -154,9 +154,11 @@ export function HorizonMorphDivider({ isLight, contourPathRef }: HorizonMorphDiv
       <path
         ref={contourPathRef}
         d={HORIZON_CONTOUR_PATHS.baseline}
-        fill={isLight ? 'rgba(29, 78, 216, 0.08)' : 'rgba(56, 189, 248, 0.10)'}
-        stroke={isLight ? '#3b82f6' : '#38bdf8'}
-        strokeWidth={1.5}
+        fill="none"
+        stroke={isLight ? '#2563eb' : '#38bdf8'}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
