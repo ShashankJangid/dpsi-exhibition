@@ -7,11 +7,9 @@ import Image from 'next/image';
 import {
   ArrowRight,
   ArrowUpRight,
-  Sparkles,
   Vote,
   Sun,
   Moon,
-  Award,
   Search,
   Trophy,
   X,
@@ -74,7 +72,6 @@ export default function LandingPage() {
   const setProjects = useExhibitionStore((state) => state.setProjects);
   const setUser = useExhibitionStore((state) => state.setUser);
   const setDeviceFingerprint = useExhibitionStore((state) => state.setDeviceFingerprint);
-  const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
   const setSearchModalOpen = useExhibitionStore((state) => state.setSearchModalOpen);
   const setLeaderboardOpen = useExhibitionStore((state) => state.setLeaderboardOpen);
   const setAuthModalOpen = useExhibitionStore((state) => state.setAuthModalOpen);
@@ -456,23 +453,6 @@ export default function LandingPage() {
               <span className="hidden xl:inline">Search</span>
             </button>
 
-            {/* Delegate Pass Modal Trigger */}
-            <button
-              onClick={() => {
-                playClick();
-                setDelegatePassOpen(true);
-              }}
-              className={`hidden sm:flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
-                isLight
-                  ? 'border-slate-200/80 hover:bg-slate-200/50 text-slate-700'
-                  : 'border-[#30363d] hover:bg-[#161b22] text-slate-300'
-              }`}
-              title="View & Download Innovation Delegate Pass"
-            >
-              <Award className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden xl:inline">Delegate Pass</span>
-            </button>
-
             {/* Live Leaderboard Modal Trigger */}
             <button
               onClick={() => {
@@ -516,7 +496,6 @@ export default function LandingPage() {
               href="/expo"
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-mono font-black text-[11px] sm:text-xs uppercase tracking-wider transition-colors shrink-0"
             >
-              <Sparkles className="w-3.5 h-3.5" />
               <span>Enter 3D Hall ↗</span>
             </Link>
           </div>
@@ -538,9 +517,6 @@ export default function LandingPage() {
               <span className="flex items-center gap-2 text-[#3fb950] font-bold">
                 <span>NOVEMBER 14, 2026</span>
                 <span className="inline-block w-2 h-2 bg-[#3fb950] rounded-xs" />
-              </span>
-              <span className="hidden sm:inline font-medium">
-                IN-PERSON &amp; 3D VIRTUAL HALL • 44 RESEARCH BOOTHS
               </span>
             </div>
 
@@ -614,12 +590,12 @@ export default function LandingPage() {
                 <span className={`text-xs font-mono uppercase tracking-widest block mb-2 ${
                   isLight ? 'text-slate-500' : 'text-[#8b949e]'
                 }`}>
-                  SUMMIT ARCHITECTURE
+                  INNOVATION EXHIBITION ARCHITECTURE
                 </span>
                 <h2 className={`text-3xl sm:text-4xl font-extrabold tracking-tight font-mono ${
                   isLight ? 'text-slate-800' : 'text-white'
                 }`}>
-                  innovate-build-deploy/
+                  innovate-build-deploy
                 </h2>
                 <p className={`mt-4 text-sm leading-relaxed font-mono ${
                   isLight ? 'text-slate-600' : 'text-[#8b949e]'
@@ -695,7 +671,6 @@ export default function LandingPage() {
                   href="/expo"
                   className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 active:scale-[0.98] text-slate-950 font-mono font-black text-xs uppercase tracking-wider transition-all rounded-xl shadow-lg shadow-amber-500/25"
                 >
-                  <Sparkles className="w-4 h-4" />
                   <span>Launch 3D Hall ({isLight ? 'Light Showroom' : 'Cosmic Dark'})</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -794,10 +769,10 @@ export default function LandingPage() {
                   ? 'bg-white/80 border border-slate-300/80 text-blue-700 shadow-xs'
                   : 'bg-black/80 border border-slate-700 text-[#38bdf8]'
               }`}>
-                DPS INDIRAPURAM • ANNUAL INNOVATION SUMMIT
+                DPS INDIRAPURAM • ANNUAL INNOVATION EXHIBITION
               </span>
               <h2 className={`text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight max-w-2xl ${
-                isLight ? 'text-slate-800 drop-shadow-xs' : 'text-white drop-shadow-md'
+                isLight ? 'text-black font-black' : 'text-white drop-shadow-md'
               }`}>
                 Where Young Visionaries Shape Tomorrow
               </h2>
@@ -815,45 +790,11 @@ export default function LandingPage() {
       <section id="gallery" className={`scroll-mt-16 border-b py-12 transition-colors duration-300 w-full overflow-hidden ${
         isLight ? 'border-slate-200/80 bg-slate-100/40' : 'border-[#30363d] bg-[#02040a]'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 mb-6">
-          <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b ${
-            isLight ? 'border-slate-200/80' : 'border-[#30363d]'
-          }`}>
-            <div>
-              <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                PHOTO VIEW GALLERY
-              </span>
-              <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
-                isLight ? 'text-slate-800' : 'text-white'
-              }`}>
-                Innovation Picture Rail
-              </h2>
-              <p className={`mt-2 text-xs sm:text-sm font-mono max-w-xl ${
-                isLight ? 'text-slate-600' : 'text-slate-400'
-              }`}>
-                Experience all 44 student inventions suspended on a continuous brass gallery rail. Drag any wire to propagate physical momentum; click any frame to lift into high-resolution focus or flip for technical dossiers.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <a
-                href="#projects"
-                className={`px-3.5 py-2 rounded-xl border text-xs font-mono font-medium transition-all ${
-                  isLight
-                    ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
-                    : 'border-[#30363d] bg-[#0d1117] text-slate-300 hover:text-white'
-                }`}
-              >
-                Browse Booth Directory &darr;
-              </a>
-            </div>
-          </div>
-        </div>
-
         {/* Spans full display width seamlessly without inner box borders or card container */}
         <div className="w-full">
           <PictureRailGallery
             items={EXHIBITION_GALLERY_ITEMS}
-            eyebrow="DPS INDIRAPURAM • SUMMIT 2026"
+            eyebrow="DPS INDIRAPURAM • INNOVATION EXHIBITION 2026"
             heading="Curated Innovation Prints"
             caption="Physics-driven pendulum swinging with sub-step Euler momentum. Click any frame to lift and examine."
             className="bg-transparent"
@@ -1511,7 +1452,7 @@ export default function LandingPage() {
               <h2 className={`text-3xl font-black uppercase font-sans tracking-tight ${
                 isLight ? 'text-slate-800' : 'text-white'
               }`}>
-                Summit Schedule
+                Innovation Exhibition Schedule
               </h2>
             </div>
 

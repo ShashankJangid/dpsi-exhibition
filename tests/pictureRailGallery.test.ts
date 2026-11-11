@@ -113,13 +113,8 @@ describe('PictureRailGallery & Photo View Integration Suite', () => {
 
       assert.ok(pageContent.includes('id="gallery"'), 'page.tsx must contain section id="gallery"');
       assert.ok(pageContent.includes('scroll-mt-16'), 'page.tsx gallery section must have scroll-mt-16 for navbar offset');
-      assert.ok(pageContent.includes('PHOTO VIEW GALLERY'), 'page.tsx gallery section must render photo view eyebrow');
-      assert.ok(pageContent.includes('Innovation Picture Rail'), 'page.tsx gallery section must render section heading');
       assert.ok(pageContent.includes('<PictureRailGallery'), 'page.tsx must render <PictureRailGallery');
       assert.ok(pageContent.includes('items={EXHIBITION_GALLERY_ITEMS}'), 'page.tsx must pass EXHIBITION_GALLERY_ITEMS');
-      assert.ok(pageContent.includes('max-w-7xl'), 'page.tsx must wrap gallery in max-w-7xl responsive container');
-      assert.ok(pageContent.includes('px-4 sm:px-8'), 'page.tsx must use responsive horizontal padding (px-4 sm:px-8)');
-      assert.ok(pageContent.includes('href="#projects"'), 'page.tsx gallery section must include link back to #projects');
       assert.ok(pageContent.includes('directoryView'), 'page.tsx must manage directoryView state');
       assert.ok(pageContent.includes('aria-label="Picture rail gallery view"'), 'page.tsx must provide accessible picture rail toggle button');
       assert.ok(

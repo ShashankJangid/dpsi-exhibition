@@ -36,6 +36,6 @@ export const EXHIBITION_GALLERY_ITEMS: PictureRailItem[] = SEED_PROJECTS.map((p,
     `Innovators: ${p.members?.join(', ') || 'DPS Indirapuram Innovators'}`,
     `Tech Stack: ${p.tech_stack?.join(', ') || 'Embedded Systems'}`,
     `Live Votes: ${p.vote_count} ballots cast`,
-    `Edition: DPS Indirapuram Summit '26`,
+    `Edition: DPS Indirapuram Innovation Exhibition '26`,
   ],
 }));
