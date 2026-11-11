@@ -419,7 +419,7 @@ describe('Challenger Adversarial Stress & Vulnerability Suite', () => {
       // Verify page.tsx integration also doesn't use unsafe injection on gallery data
       const pagePath = path.resolve(process.cwd(), 'src/app/page.tsx');
       const pageContent = fs.readFileSync(pagePath, 'utf8');
-      const gallerySectionMatch = pageContent.match(/<section id="gallery"[\s\S]*?<\/section>/);
+      const gallerySectionMatch = pageContent.match(/<section id="(?:projects|gallery)"[\s\S]*?<\/section>/);
       assert.ok(gallerySectionMatch, 'Gallery section must exist in page.tsx');
       assert.doesNotMatch(
         gallerySectionMatch[0],

@@ -82,7 +82,7 @@ export default function LandingPage() {
 
   type FilterCategory = 'all' | 'Physical' | 'Digital' | 'Business' | 'Show & Tell' | 'Robotics';
   const [selectedZone, setSelectedZone] = useState<FilterCategory>('all');
-  const [directoryView, setDirectoryView] = useState<'grid' | 'rail'>('grid');
+  const [directoryView, setDirectoryView] = useState<'grid' | 'rail'>('rail');
   const [searchQuery, setSearchQuery] = useState('');
   const [scheduleFilter, setScheduleFilter] = useState<'all' | 'morning' | 'afternoon'>('all');
   const [email, setEmail] = useState('');
@@ -393,6 +393,11 @@ export default function LandingPage() {
               <a
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (item.href === '#gallery') {
+                    setDirectoryView('rail');
+                  }
+                }}
                 className={`flex items-center px-4 border-r transition-colors ${
                   isLight
                     ? 'border-slate-200/80 text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
@@ -784,23 +789,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── GITHUB UNIVERSE STYLE 35 INVENTIONS DIRECTORY ─── */}
-      <section id="projects" className={`scroll-mt-16 border-b pt-6 pb-12 transition-colors duration-300 ${
+      {/* ─── GITHUB UNIVERSE STYLE 35 INVENTIONS DIRECTORY & PHOTO VIEW GALLERY ─── */}
+      <section id="projects" className={`scroll-mt-16 border-b pt-6 pb-12 transition-colors duration-300 relative ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
+        {/* Dedicated Navigation Anchor for #gallery */}
+        <div id="gallery" className="scroll-mt-16 absolute -top-16" />
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b ${
             isLight ? 'border-slate-200/80' : 'border-[#30363d]'
           }`}>
             <div>
-              <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                COMPETING BOOTHS DIRECTORY
-              </span>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-mono text-[#3fb950] font-bold block">
+                  COMPETING BOOTHS DIRECTORY
+                </span>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  isLight
+                    ? 'border-emerald-300 text-emerald-800 bg-emerald-50'
+                    : 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
+                }`}>
+                  PHOTO VIEW GALLERY
+                </span>
+              </div>
               <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
                 isLight ? 'text-slate-800' : 'text-white'
               }`}>
                 All 35 Inventions
               </h2>
+              <p className={`mt-1.5 text-xs sm:text-sm font-mono max-w-xl ${
+                isLight ? 'text-slate-600' : 'text-slate-400'
+              }`}>
+                Innovation Picture Rail: Experience the 35 student inventions suspended on a continuous brass gallery rail. Drag any wire to propagate physical momentum; click any frame to lift or flip.
+              </p>
             </div>
 
             {/* Controls: Search Bar & Category Filter Tabs */}
@@ -924,14 +945,43 @@ export default function LandingPage() {
               </button>
             </div>
           ) : directoryView === 'rail' ? (
-            <div className={`mt-8 rounded-2xl border overflow-hidden p-2 sm:p-4 transition-colors ${
-              isLight ? 'border-slate-300/80 bg-white/70 shadow-xs' : 'border-[#30363d] bg-[#0d1117]/90'
+            <div className={`mt-8 rounded-3xl border overflow-hidden p-2 sm:p-6 shadow-2xl transition-colors ${
+              isLight ? 'border-slate-200/90 bg-white/90 shadow-slate-300/40' : 'border-[#30363d] bg-[#050811]/90 shadow-black'
             }`}>
               <PictureRailGallery
-                items={projectRailItems}
-                eyebrow="INVENTIONS PICTURE RAIL"
-                heading={selectedZone === 'all' ? 'All Inventions Gallery' : `${selectedZone} Inventions Gallery`}
-                caption="Drag any brass wire to swing the prints along the rail. Click any frame to lift it into 3D view or flip to study specifications."
+                items={projectRailItems.length > 0 ? projectRailItems : EXHIBITION_GALLERY_ITEMS}
+                eyebrow="DPS INDIRAPURAM • SUMMIT 2026"
+                heading={selectedZone === 'all' && !searchQuery ? 'Curated Innovation Prints' : `${selectedZone === 'all' ? 'All' : selectedZone} Inventions Gallery`}
+                caption="Physics-driven pendulum swinging with sub-step Euler momentum. Drag any brass wire to swing the prints along the rail. Click any frame to lift into 3D view or flip to study specifications."
+                action={
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        setDirectoryView('grid');
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition-all ${
+                        isLight
+                          ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
+                          : 'border-[#30363d] bg-[#161b22] text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span>Switch to Grid Card View</span>
+                    </button>
+                    <a
+                      href="#projects"
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition-all ${
+                        isLight
+                          ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
+                          : 'border-[#30363d] bg-[#161b22] text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      <span>Top of Booths</span>
+                    </a>
+                  </div>
+                }
               />
             </div>
           ) : (
@@ -1111,54 +1161,6 @@ export default function LandingPage() {
               <span>Explore Full 3D Interactive Floor Plan</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── DEDICATED PHOTO VIEW SECTION: INNOVATION PICTURE RAIL GALLERY ─── */}
-      <section id="gallery" className={`scroll-mt-16 border-b py-14 transition-colors duration-300 ${
-        isLight ? 'border-slate-200/80 bg-slate-100/60' : 'border-[#30363d] bg-[#02040a]'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <span className="text-xs font-mono text-[#3fb950] font-bold block mb-1">
-                PHOTO VIEW GALLERY
-              </span>
-              <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
-                isLight ? 'text-slate-800' : 'text-white'
-              }`}>
-                Innovation Picture Rail
-              </h2>
-              <p className={`mt-2 text-xs sm:text-sm font-mono max-w-xl ${
-                isLight ? 'text-slate-600' : 'text-slate-400'
-              }`}>
-                Experience the 35 student inventions suspended on a continuous brass gallery rail. Drag any wire to propagate physical momentum; click any frame to lift into high-resolution focus or flip for technical dossiers.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <a
-                href="#projects"
-                className={`px-3.5 py-2 rounded-xl border text-xs font-mono font-medium transition-all ${
-                  isLight
-                    ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
-                    : 'border-[#30363d] bg-[#0d1117] text-slate-300 hover:text-white'
-                }`}
-              >
-                Browse All Booths &rarr;
-              </a>
-            </div>
-          </div>
-
-          <div className={`rounded-3xl border overflow-hidden p-2 sm:p-6 shadow-2xl ${
-            isLight ? 'border-slate-200/90 bg-white/90 shadow-slate-300/40' : 'border-[#30363d] bg-[#050811]/90 shadow-black'
-          }`}>
-            <PictureRailGallery
-              items={EXHIBITION_GALLERY_ITEMS}
-              eyebrow="DPS INDIRAPURAM • SUMMIT 2026"
-              heading="Curated Innovation Prints"
-              caption="Physics-driven pendulum swinging with sub-step Euler momentum. Click any frame to lift and examine."
-            />
           </div>
         </div>
       </section>
@@ -1617,7 +1619,11 @@ export default function LandingPage() {
             <a href="#projects" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
               35 Inventions
             </a>
-            <a href="#gallery" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
+            <a
+              href="#gallery"
+              onClick={() => setDirectoryView('rail')}
+              className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}
+            >
               Photo View
             </a>
             <a href="#voting" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>

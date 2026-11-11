@@ -116,7 +116,7 @@ describe('PictureRailGallery & Photo View Integration Suite', () => {
       assert.ok(pageContent.includes('PHOTO VIEW GALLERY'), 'page.tsx gallery section must render photo view eyebrow');
       assert.ok(pageContent.includes('Innovation Picture Rail'), 'page.tsx gallery section must render section heading');
       assert.ok(pageContent.includes('<PictureRailGallery'), 'page.tsx must render <PictureRailGallery');
-      assert.ok(pageContent.includes('items={EXHIBITION_GALLERY_ITEMS}'), 'page.tsx must pass EXHIBITION_GALLERY_ITEMS');
+      assert.ok(pageContent.includes('EXHIBITION_GALLERY_ITEMS'), 'page.tsx must pass EXHIBITION_GALLERY_ITEMS');
       assert.ok(pageContent.includes('max-w-7xl'), 'page.tsx must wrap gallery in max-w-7xl responsive container');
       assert.ok(pageContent.includes('px-4 sm:px-8'), 'page.tsx must use responsive horizontal padding (px-4 sm:px-8)');
       assert.ok(pageContent.includes('href="#projects"'), 'page.tsx gallery section must include link back to #projects');
