@@ -814,11 +814,13 @@ export function PictureRailGallery({
                 <span
                   data-label
                   title={item.title || item.tag}
-                  className={`absolute whitespace-nowrap max-w-[160px] truncate rounded-[3px] border border-border bg-card px-2 py-[3px] text-[10px] font-medium leading-none shadow-[0_1px_2px_color-mix(in_oklab,var(--color-foreground,currentColor)_10%,transparent)] ${lit ? "text-card-foreground border-emerald-500/50 shadow-sm" : "text-muted-foreground"}`}
-                  style={{ top: top + h + 10, right: 0 }}
+                  className={`absolute max-w-[calc(100%+4px)] sm:max-w-[calc(100%+16px)] rounded-[3px] border border-border bg-card px-1.5 py-[3px] text-[10px] font-medium leading-none text-center shadow-[0_1px_2px_color-mix(in_oklab,var(--color-foreground,currentColor)_10%,transparent)] transition-all ${lit ? "text-card-foreground border-emerald-500/60 shadow-sm ring-1 ring-emerald-500/20" : "text-muted-foreground"}`}
+                  style={{ top: top + h + 10, left: "50%", transform: "translateX(-50%)" }}
                 >
-                  {lit && <span aria-hidden="true" className="mr-1 inline-block size-1.5 rounded-full bg-emerald-500 align-middle shrink-0" />}
-                  {item.title || item.tag}
+                  <span className="flex items-center justify-center gap-1 overflow-hidden">
+                    {lit && <span aria-hidden="true" className="size-1.5 rounded-full bg-emerald-500 shrink-0" />}
+                    <span className="truncate">{item.title || item.tag}</span>
+                  </span>
                 </span>
               )}
               <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute left-0 top-0" style={{ width: w, height: 0, transformOrigin: `${w / 2}px ${layout.pivotY + 1}px`, visibility: lifted === i ? "hidden" : undefined }}>
