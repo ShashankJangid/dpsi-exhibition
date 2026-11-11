@@ -694,7 +694,6 @@ function PassAndAttendanceContent() {
   const [scannerFocusStage, setScannerFocusStage] = useState<'MICRO_QR_PRIMARY' | 'TOPOTAG_FAILSAFE_STANDBY'>('MICRO_QR_PRIMARY');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isPhoneScanModalOpen, setIsPhoneScanModalOpen] = useState(false);
-  const [simulatorCredentialId, setSimulatorCredentialId] = useState('EXH-0001-01');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -2084,97 +2083,6 @@ function PassAndAttendanceContent() {
     };
     reader.readAsDataURL(file);
     e.target.value = '';
-  };
-
-  // No-Print Digital Optical Simulator: Rasterizes any pass SVG onto a canvas and runs the optical pixel detectors
-  const handleSimulateOpticalPassScan = (targetCredId: string, mode: 'MICRO_QR' | 'TOPOTAG_FAILSAFE') => {
-    const cleanId = targetCredId.trim().toUpperCase();
-    let roleKey: 'exhibitor' | 'incharge' | 'judge' | 'vip' = 'exhibitor';
-    let holderName = 'OFFICIAL DELEGATE';
-    let classSec = '';
-    let domain = '';
-    let venue = '';
-
-    if (cleanId.startsWith('INC-')) {
-      roleKey = 'incharge';
-      const t = OFFICIAL_TEACHERS_AND_INCHARGES.find((x) => x.credential_id.toUpperCase() === cleanId);
-      holderName = t?.name || 'SHASHANK JANGID';
-    } else if (cleanId.startsWith('VIP-')) {
-      roleKey = 'vip';
-      const v = OFFICIAL_VIP_GUESTS.find((x) => x.credential_id.toUpperCase() === cleanId);
-      holderName = v?.name || 'DR. V. K. SHARMA';
-    } else if (cleanId.startsWith('JDG-')) {
-      roleKey = 'judge';
-      const j = OFFICIAL_GRAND_JURY.find((x) => x.credential_id.toUpperCase() === cleanId);
-      holderName = j?.name || 'PROF. RAJESH K. PATHAK';
-    } else {
-      const s = OFFICIAL_STUDENTS_ROSTER.find((x) => getStudentCredentialId(x).toUpperCase() === cleanId) || OFFICIAL_STUDENTS_ROSTER[0];
-      const booth = getStudentBoothInfo(s);
-      holderName = s.student_name;
-      classSec = s.class_section;
-      domain = s.project_title;
-      venue = s.venue_location || booth.venue_location;
-    }
-
-    const template = badgeTemplates[roleKey];
-    if (!template) return;
-
-    let svg = generateAppleCardSvg(template, {
-      name: holderName,
-      classSection: classSec,
-      credentialId: cleanId,
-      projectDomain: domain,
-      venueLocation: venue,
-    });
-
-    // If testing TopoTag Failsafe, occlude the Micro-QR modules in the SVG to simulate a damaged/covered QR code
-    if (mode === 'TOPOTAG_FAILSAFE') {
-      svg = svg.replace(
-        /<g transform="translate\(200, 32\)">[\s\S]*?<\/g>\s*<\/g>\s*<\/g>\s*<\/svg>/,
-        '<g transform="translate(200, 32)"><rect x="-8" y="-8" width="100" height="100" rx="8" fill="#FFFFFF"/></g></g></g></svg>'
-      );
-    }
-
-    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const img = new window.Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 985;
-      canvas.height = 670;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, 985, 670);
-        ctx.drawImage(img, 0, 0, 985, 670);
-        const imageData = ctx.getImageData(0, 0, 985, 670);
-
-        // Always run Micro-QR first, then TopoTag failsafe if Micro-QR is not visible
-        const qrRes = scanImageDataWithMultiPass(imageData);
-        if (qrRes && qrRes.credentialId) {
-          setScannerFocusStage('MICRO_QR_PRIMARY');
-          playChime();
-          triggerHaptic(40);
-          setScanActiveIndicator(true);
-          setTimeout(() => setScanActiveIndicator(false), 1400);
-          setScannerInputCode(qrRes.credentialId);
-          handleScanCode(qrRes.credentialId, 'QR_CODE');
-        } else {
-          setScannerFocusStage('TOPOTAG_FAILSAFE_STANDBY');
-          const topoRes = detectTopotagFailsafe(imageData);
-          if (topoRes && topoRes.credentialId) {
-            playChime();
-            triggerHaptic(40);
-            setScanActiveIndicator(true);
-            setTimeout(() => setScanActiveIndicator(false), 1400);
-            setScannerInputCode(topoRes.credentialId);
-            handleScanCode(topoRes.credentialId, 'TOPOTAG_FAILSAFE', topoRes.hammingDistance);
-          }
-        }
-      }
-      URL.revokeObjectURL(url);
-    };
-    img.src = url;
   };
 
   return (
@@ -4182,74 +4090,6 @@ function PassAndAttendanceContent() {
                       className="hidden"
                       onChange={handleFileUpload}
                     />
-
-                    {/* No-Print Digital Pass Optical Tester (Test Any Pass Directly Without Printing) */}
-                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span className="text-[11px] font-mono font-bold text-amber-300 uppercase flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                          <span>No-Print Digital Pass Optical Tester (197 Official Passes)</span>
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          Renders pass SVG pixels &amp; runs live optical engine
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <select
-                          value={simulatorCredentialId}
-                          onChange={(e) => setSimulatorCredentialId(e.target.value)}
-                          className="flex-1 px-3 py-2.5 bg-black/50 border border-white/[0.12] rounded-xl text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
-                        >
-                          <optgroup label="Faculty Incharges (8)">
-                            {OFFICIAL_TEACHERS_AND_INCHARGES.map((t) => (
-                              <option key={t.credential_id} value={t.credential_id}>
-                                {t.credential_id} — {t.name} (Incharge)
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="Distinguished VIP Guests (6)">
-                            {OFFICIAL_VIP_GUESTS.map((v) => (
-                              <option key={v.credential_id} value={v.credential_id}>
-                                {v.credential_id} — {v.name} (VIP)
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="Grand Jury Evaluators (6)">
-                            {OFFICIAL_GRAND_JURY.map((j) => (
-                              <option key={j.credential_id} value={j.credential_id}>
-                                {j.credential_id} — {j.name} (Grand Jury)
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="Student Innovators (177)">
-                            {OFFICIAL_STUDENTS_ROSTER.map((s) => {
-                              const cid = getStudentCredentialId(s);
-                              return (
-                                <option key={cid} value={cid}>
-                                  {cid} — {s.student_name} ({s.class_section})
-                                </option>
-                              );
-                            })}
-                          </optgroup>
-                        </select>
-
-                        <button
-                          type="button"
-                          onClick={() => handleSimulateOpticalPassScan(simulatorCredentialId, 'MICRO_QR')}
-                          className="px-3.5 py-2.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 text-xs font-mono font-bold whitespace-nowrap active:scale-95 transition-all"
-                        >
-                          Scan Micro-QR
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleSimulateOpticalPassScan(simulatorCredentialId, 'TOPOTAG_FAILSAFE')}
-                          className="px-3.5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-mono font-bold whitespace-nowrap active:scale-95 transition-all"
-                        >
-                          Test TopoTag Failsafe
-                        </button>
-                      </div>
-                    </div>
 
                     {/* Manual Code Input */}
                     <form
