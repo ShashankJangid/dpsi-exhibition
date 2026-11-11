@@ -13,6 +13,7 @@ export interface BadgeData {
   credentialId: string;
   projectDomain?: string;
   venueLocation?: string;
+  qrPayload?: string;
 }
 
 function escapeXml(str: string): string {
@@ -138,16 +139,23 @@ export function generateAppleCardSvg(
 
   // Dynamic font sizing for long participant names to prevent clipping
   let nameFontSize = '46';
-  if (rawName.length > 22) {
-    nameFontSize = '28';
-  } else if (rawName.length > 16) {
-    nameFontSize = '36';
+  let nameLengthAttr = '';
+  if (rawName.length > 25) {
+    nameFontSize = '26';
+    nameLengthAttr = ' textLength="460" lengthAdjust="spacingAndGlyphs"';
+  } else if (rawName.length > 18) {
+    nameFontSize = '32';
+  } else if (rawName.length > 13) {
+    nameFontSize = '38';
   }
 
   // 1. Primary participant name
   svg = svg.replace(
     /(<g transform="translate\(54, 236\)">[\s\S]*?<text x="0" y="44" [^>]*font-size=")([^"]+)("[^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3, _p4, p5) => `${p1}${nameFontSize}${p3}${nameUpper}${p5}`
+    (_m, p1, _p2, p3, _p4, p5) => {
+      const cleanP3 = p3.replace(/^"/, '').replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${p1}${nameFontSize}"${nameLengthAttr}${cleanP3}${nameUpper}${p5}`;
+    }
   );
 
   // 2. Class & Section cardlet
@@ -164,22 +172,50 @@ export function generateAppleCardSvg(
     (_m, p1, p2, p3, _p4, p5) => `${p1}font-size="${credFontSize}"${p2}letter-spacing="${credLetterSpacing}"${p3}${idUpper}${p5}`
   );
 
-  // 4. Project Domain
+  // 4. Project Domain with responsive font-sizing & strict box containment (< 335px)
+  let domainFontSize = '14.5';
+  let domainLengthAttr = '';
+  if (domainText.length > 55) {
+    domainFontSize = '9.5';
+    domainLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
+  } else if (domainText.length > 42) {
+    domainFontSize = '11';
+    domainLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
+  } else if (domainText.length > 30) {
+    domainFontSize = '12.5';
+  } else if (domainText.length > 20) {
+    domainFontSize = '13.5';
+  }
   svg = svg.replace(
-    /(PROJECT DOMAIN<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${domainText}${p3}`
+    /(PROJECT DOMAIN<\/text>[\s\S]*?<text [^>]*)font-size="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, p2, _p3, p4) => {
+      const cleanP1 = p1.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      const cleanP2 = p2.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${cleanP1}font-size="${domainFontSize}"${domainLengthAttr}${cleanP2}${domainText}${p4}`;
+    }
   );
 
-  // 5. Exhibition Venue
+  // 5. Exhibition Venue with responsive font-sizing & strict box containment (< 335px)
+  let venueFontSize = '13.5';
+  let venueLengthAttr = '';
+  if (venueText.length > 55) {
+    venueFontSize = '9';
+    venueLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
+  } else if (venueText.length > 42) {
+    venueFontSize = '10.5';
+    venueLengthAttr = ' textLength="330" lengthAdjust="spacingAndGlyphs"';
+  } else if (venueText.length > 30) {
+    venueFontSize = '12';
+  } else if (venueText.length > 20) {
+    venueFontSize = '12.5';
+  }
   svg = svg.replace(
-    /(EXHIBITION VENUE<\/text>\s*<text [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${venueText}${p3}`
-  );
-
-  // 6. Baseline footer credential ID
-  svg = svg.replace(
-    /(DPSI-2026 &#8226; POWERED BY CL0UD \/\/ &#9729; EXPO\.PASS &#8226; )([A-Z0-9-]+)/,
-    (_m, p1) => `${p1}${idUpper}`
+    /(EXHIBITION VENUE<\/text>[\s\S]*?<text [^>]*)font-size="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, p2, _p3, p4) => {
+      const cleanP1 = p1.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      const cleanP2 = p2.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${cleanP1}font-size="${venueFontSize}"${venueLengthAttr}${cleanP2}${venueText}${p4}`;
+    }
   );
 
   // 7. Micro-QR cardlet ID with responsive sizing
@@ -189,10 +225,17 @@ export function generateAppleCardSvg(
     (_m, p1, _p2, p3, _p4, p5) => `${p1}${qrCredFontSize}${p3}${idUpper}${p5}`
   );
 
-  // 8. Micro-QR cardlet Name & Section
+  // 8. Micro-QR cardlet Name & Section with responsive sizing and width containment (< 160px)
+  const qrNameSec = `${nameUpper} &#8226; ${secUpper}`;
+  const qrNameFontSize = qrNameSec.length > 26 ? '7.5' : qrNameSec.length > 20 ? '8.5' : '9';
+  const qrNameLengthAttr = qrNameSec.length > 30 ? ' textLength="160" lengthAdjust="spacingAndGlyphs"' : '';
   svg = svg.replace(
-    /(<text x="0" y="44" class="font-mono" [^>]*>)([\s\S]*?)(<\/text>)/,
-    (_m, p1, _p2, p3) => `${p1}${nameUpper} &#8226; ${secUpper}${p3}`
+    /(<text x="0" y="44" class="font-mono" [^>]*)font-size="[^"]*"([^>]*>)([\s\S]*?)(<\/text>)/,
+    (_m, p1, p2, _p3, p4) => {
+      const cleanP1 = p1.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      const cleanP2 = p2.replace(/\s*textLength="[^"]*"/g, '').replace(/\s*lengthAdjust="[^"]*"/g, '');
+      return `${cleanP1}font-size="${qrNameFontSize}"${qrNameLengthAttr}${cleanP2}${qrNameSec}${p4}`;
+    }
   );
 
   // 9. Butterfly TopoTags Replacement (Unique per Credential ID)
@@ -202,8 +245,11 @@ export function generateAppleCardSvg(
     () => dynamicTopotags
   );
 
-  // 10. Micro-QR Code Matrix Replacement (Unique per Credential ID)
-  const dynamicMicroQr = generateMicroQrModules(data.credentialId);
+  // 10. Micro-QR Code Matrix Replacement (Unique per Credential ID & Student Name)
+  const qrPayload = data.qrPayload || (data.name
+    ? `https://dpsiexibition.pages.dev/pass?id=${idUpper}&name=${encodeURIComponent(rawName)}`
+    : idUpper);
+  const dynamicMicroQr = generateMicroQrModules(qrPayload);
   svg = svg.replace(
     /(<g transform="translate\(200, 32\)">\s*<rect x="-8" y="-8" [^>]*\/>)[\s\S]*?(<\/g>\s*<\/g>\s*<\/g>\s*<\/svg>)/,
     (_m, p1, p2) => `${p1}\n${dynamicMicroQr}\n      ${p2}`

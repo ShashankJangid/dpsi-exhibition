@@ -155,11 +155,12 @@ export interface AttendanceRecord {
   classSection: string;
   projectNumber: number;
   projectTitle: string;
-  mentor: string;
+  mentor?: string;
   passCode: string;
-  accessCode: string;
+  accessCode?: string;
   checkedIn: boolean;
   checkInTime?: string;
+  timestamp?: string;
 }
 
 
@@ -341,6 +342,13 @@ function PassAndAttendanceContent() {
     found: boolean;
     student?: StudentEntry;
     record?: AttendanceRecord;
+    specialRole?: {
+      title: string;
+      name: string;
+      role: string;
+      credentialId: string;
+      venueLocation: string;
+    };
     message?: string;
   } | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -434,8 +442,13 @@ function PassAndAttendanceContent() {
     let clean = code.trim().toUpperCase();
     if (!clean) return;
 
-    // Handle full URL strings (e.g. https://.../pass?id=EXH-0036-01)
-    const urlParamMatch = clean.match(/[?&]ID=([A-Z0-9-]+)/i);
+    // Handle full URL strings (e.g. https://.../pass?id=EXH-0036-01&name=OJAS+SINGH)
+    const urlParamMatch = code.match(/[?&]id=([A-Z0-9-]+)/i);
+    const urlNameMatch = code.match(/[?&]name=([^&#]+)/i);
+    const decodedUrlName = urlNameMatch
+      ? decodeURIComponent(urlNameMatch[1].replace(/\+/g, ' ')).trim().toUpperCase()
+      : '';
+
     if (urlParamMatch) {
       clean = urlParamMatch[1].toUpperCase();
     } else {
@@ -445,19 +458,110 @@ function PassAndAttendanceContent() {
       }
     }
 
-    // Direct match against authoritative student credential ID or student name
-    const matchedStudent = OFFICIAL_STUDENTS_ROSTER.find(
-      (s) =>
-        getStudentCredentialId(s).toUpperCase() === clean ||
-        s.student_name.toUpperCase() === clean ||
-        (clean.startsWith('EXH-') && clean.includes(String(s.project_number).padStart(4, '0')))
+    // A. Recognition of Faculty In-Charge passes
+    if (
+      clean === 'INC-2026' ||
+      clean === PROPRIETARY_ACCESS_CODES.TEACHER_INCHARGE ||
+      clean.includes('INCHARGE') ||
+      clean.includes('FACULTY')
+    ) {
+      setScannedResult({
+        found: true,
+        specialRole: {
+          title: 'DELHI PUBLIC SCHOOL INDIRAPURAM',
+          name: facultyCustomName.trim() || 'FACULTY IN-CHARGE',
+          role: 'TEACHER-IN-CHARGE • FACULTY LEADERSHIP',
+          credentialId: 'INC-2026',
+          venueLocation: 'Faculty Command Desk • Central Atrium',
+        },
+        message: 'Verified Faculty In-charge credentials authenticated for exhibition floor access.',
+      });
+      return;
+    }
+
+    // B. Recognition of Grand Jury passes
+    if (
+      clean === 'JURY-2026' ||
+      clean === PROPRIETARY_ACCESS_CODES.JUDGE_PANEL ||
+      clean.includes('JURY') ||
+      clean.includes('JUDGE')
+    ) {
+      setScannedResult({
+        found: true,
+        specialRole: {
+          title: 'DPSI TECH & INNOVATION EXHIBITION 2026',
+          name: 'HONORABLE GRAND JURY EVALUATOR',
+          role: 'GRAND JURY EVALUATOR • ALL-POD ACCESS',
+          credentialId: 'JURY-2026',
+          venueLocation: 'VIP & Evaluation Pavilion • Main Stage',
+        },
+        message: 'Verified Grand Jury credentials authenticated for all 44 research pods.',
+      });
+      return;
+    }
+
+    // C. Recognition of VIP Delegate passes
+    if (
+      clean === 'VIP-2026' ||
+      clean === PROPRIETARY_ACCESS_CODES.VIP_DELEGATE ||
+      clean.includes('VIP')
+    ) {
+      setScannedResult({
+        found: true,
+        specialRole: {
+          title: 'DISTINGUISHED SUMMIT DELEGATE',
+          name: 'DISTINGUISHED VIP GUEST',
+          role: 'VIP DELEGATE • CEREMONIAL ENCLOSURE',
+          credentialId: 'VIP-2026',
+          venueLocation: 'Main Auditorium VIP Enclosure',
+        },
+        message: 'Distinguished VIP Delegate pass authenticated.',
+      });
+      return;
+    }
+
+    // D. Recognition of Operations / Staff passes
+    if (
+      clean === 'STAFF-2026' ||
+      clean === PROPRIETARY_ACCESS_CODES.STAFF_OPS ||
+      clean.includes('STAFF')
+    ) {
+      setScannedResult({
+        found: true,
+        specialRole: {
+          title: 'OPERATIONS & MARSHAL CREW',
+          name: 'SUMMIT OPERATIONS STAFF',
+          role: 'OPERATIONS & LOGISTICS CREW',
+          credentialId: 'STAFF-2026',
+          venueLocation: 'Central Event Operations Desk',
+        },
+        message: 'Summit Operations & Event Control credentials authenticated.',
+      });
+      return;
+    }
+
+    // E. Strict Match for Student Exhibitors (Eliminates team member collision bug)
+    let matchedStudent = OFFICIAL_STUDENTS_ROSTER.find(
+      (s) => getStudentCredentialId(s).toUpperCase() === clean
     );
+
+    // If not matched by exact credential ID, match by URL decoded name or raw name
+    if (!matchedStudent && decodedUrlName) {
+      matchedStudent = OFFICIAL_STUDENTS_ROSTER.find(
+        (s) => s.student_name.trim().toUpperCase() === decodedUrlName
+      );
+    }
+    if (!matchedStudent) {
+      matchedStudent = OFFICIAL_STUDENTS_ROSTER.find(
+        (s) => s.student_name.trim().toUpperCase() === clean
+      );
+    }
 
     const matchedRecord = matchedStudent
       ? attendanceList.find(
           (r) =>
-            r.studentName === matchedStudent.student_name &&
-            r.projectNumber === matchedStudent.project_number
+            r.studentName.toUpperCase() === matchedStudent!.student_name.toUpperCase() &&
+            r.projectNumber === matchedStudent!.project_number
         )
       : attendanceList.find(
           (r) =>
@@ -468,25 +572,59 @@ function PassAndAttendanceContent() {
     const finalStudent = matchedStudent || (matchedRecord
       ? OFFICIAL_STUDENTS_ROSTER.find(
           (s) =>
-            s.student_name === matchedRecord.studentName &&
+            s.student_name.toUpperCase() === matchedRecord.studentName.toUpperCase() &&
             s.project_number === matchedRecord.projectNumber
         )
       : undefined);
 
-    if (finalStudent || matchedRecord) {
+    if (finalStudent) {
+      const nowTime = new Date().toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      const wasAlreadyCheckedIn = matchedRecord?.checkedIn;
+
+      // Automatically mark attendance as PRESENT on the official ledger
+      const updatedList = attendanceList.map((rec) => {
+        if (
+          rec.studentName.toUpperCase() === finalStudent.student_name.toUpperCase() &&
+          rec.projectNumber === finalStudent.project_number
+        ) {
+          return {
+            ...rec,
+            checkedIn: true,
+            timestamp: rec.checkedIn ? rec.timestamp : nowTime,
+          };
+        }
+        return rec;
+      });
+      saveAttendance(updatedList);
+
       setScannedResult({
         found: true,
         student: finalStudent,
-        record: matchedRecord,
-        message: 'Valid credential verified on official summit ledger.',
+        record: {
+          studentName: finalStudent.student_name,
+          classSection: finalStudent.class_section,
+          projectNumber: finalStudent.project_number,
+          projectTitle: finalStudent.project_title,
+          passCode: finalStudent.pass_code,
+          checkedIn: true,
+          checkInTime: wasAlreadyCheckedIn ? (matchedRecord?.checkInTime || nowTime) : nowTime,
+          timestamp: wasAlreadyCheckedIn ? (matchedRecord?.timestamp || nowTime) : nowTime,
+        },
+        message: wasAlreadyCheckedIn
+          ? `Verified! Student was already checked in at ${matchedRecord?.timestamp || nowTime}.`
+          : `Authenticated! Attendance recorded as PRESENT on the official summit ledger.`,
       });
     } else {
       setScannedResult({
         found: false,
-        message: `Credential code "${clean}" not found. Please verify with the Registration Desk.`,
+        message: `Credential code "${clean}" not found on the official summit registry. Please verify with the Registration Desk.`,
       });
     }
-  }, [attendanceList]);
+  }, [attendanceList, facultyCustomName]);
 
   const handleScanCodeRef = useRef(handleScanCode);
 
@@ -514,7 +652,7 @@ function PassAndAttendanceContent() {
         // Sample frame every 100ms (~10 FPS) for instant detection with low CPU overhead
         if (now - lastScanTime > 100 && video.videoWidth > 0 && video.videoHeight > 0) {
           lastScanTime = now;
-          const scale = Math.min(1, 640 / video.videoWidth);
+          const scale = Math.min(1, 1024 / Math.max(video.videoWidth, video.videoHeight));
           const w = Math.floor(video.videoWidth * scale);
           const h = Math.floor(video.videoHeight * scale);
 
@@ -524,7 +662,7 @@ function PassAndAttendanceContent() {
             ctx.drawImage(video, 0, 0, w, h);
             const imageData = ctx.getImageData(0, 0, w, h);
             const code = jsQR(imageData.data, imageData.width, imageData.height, {
-              inversionAttempts: 'dontInvert',
+              inversionAttempts: 'attemptBoth',
             });
 
             if (code && code.data && code.data.trim()) {
@@ -578,15 +716,21 @@ function PassAndAttendanceContent() {
   // Filter students for innovator lookup
   const filteredStudents = useMemo(() => {
     if (!studentSearchQuery.trim()) return OFFICIAL_STUDENTS_ROSTER.slice(0, 15);
-    const q = studentSearchQuery.toLowerCase();
-    return OFFICIAL_STUDENTS_ROSTER.filter(
-      (s) =>
+    const q = studentSearchQuery.toLowerCase().trim();
+    return OFFICIAL_STUDENTS_ROSTER.filter((s) => {
+      const boothInfo = getStudentBoothInfo(s.project_number);
+      const credId = getStudentCredentialId(s).toLowerCase();
+      return (
         s.student_name.toLowerCase().includes(q) ||
         s.class_section.toLowerCase().includes(q) ||
         s.project_title.toLowerCase().includes(q) ||
         s.pass_code.toLowerCase().includes(q) ||
-        s.project_number.toString() === q
-    );
+        s.project_number.toString() === q ||
+        credId.includes(q) ||
+        boothInfo.booth_code.toLowerCase().includes(q) ||
+        boothInfo.venue_location.toLowerCase().includes(q)
+      );
+    });
   }, [studentSearchQuery]);
 
   // Unique class sections in roster
@@ -625,13 +769,13 @@ function PassAndAttendanceContent() {
     if (!template) return '';
 
     if (currentRole === 'EXHIBITOR') {
-      const boothInfo = getStudentBoothInfo(selectedStudent.project_number);
+      const boothInfo = getStudentBoothInfo(selectedStudent);
       return generateAppleCardSvg(template, {
         name: selectedStudent.student_name,
         classSection: selectedStudent.class_section,
         credentialId: activeCredentialId,
         projectDomain: selectedStudent.project_title,
-        venueLocation: boothInfo.venue_location,
+        venueLocation: selectedStudent.venue_location || boothInfo.venue_location,
       });
     }
 
@@ -789,7 +933,7 @@ function PassAndAttendanceContent() {
       `"${r.classSection}"`,
       r.projectNumber,
       `"${r.projectTitle.replace(/"/g, '""')}"`,
-      `"${r.mentor.replace(/"/g, '""')}"`,
+      `"${(r.mentor || '').replace(/"/g, '""')}"`,
       `"${r.passCode}"`,
       r.checkedIn ? 'PRESENT' : 'ABSENT',
       `"${r.checkInTime || 'N/A'}"`,
@@ -1204,7 +1348,7 @@ function PassAndAttendanceContent() {
                           <span>Student Innovator Directory ({OFFICIAL_STUDENTS_ROSTER.length} Registered Exhibitors)</span>
                         </div>
                         <span className="text-[11px] font-mono text-slate-400">
-                          Active: {selectedStudent.student_name} ({selectedStudent.class_section}) • {getStudentBoothInfo(selectedStudent.project_number).venue_location}
+                          Active: {selectedStudent.student_name} ({selectedStudent.class_section}) • {selectedStudent.venue_location || getStudentBoothInfo(selectedStudent).venue_location}
                         </span>
                       </div>
 
@@ -1244,7 +1388,7 @@ function PassAndAttendanceContent() {
                                 </span>
                               </span>
                               <span className="text-[10px] shrink-0 font-mono opacity-80">
-                                {getStudentCredentialId(st)} • Booth {getStudentBoothInfo(st.project_number).booth_code}
+                                {getStudentCredentialId(st)} • {st.booth_codes ? `Booths ${st.booth_codes}` : `Booth ${getStudentBoothInfo(st).booth_code}`}
                               </span>
                             </button>
                           );
@@ -2030,6 +2174,36 @@ function PassAndAttendanceContent() {
                         </div>
                         <p className="text-xs mt-1 text-slate-300 font-mono">{scannedResult.message}</p>
 
+                        {scannedResult.found && scannedResult.specialRole && (
+                          <div className="mt-3.5 pt-3.5 border-t border-emerald-500/30 grid grid-cols-2 gap-2.5 text-xs font-mono text-slate-200">
+                            <div>
+                              <span className="text-slate-400 block text-[10px]">AUTHORIZED HOLDER</span>
+                              <span className="font-bold text-white text-sm">{scannedResult.specialRole.name}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block text-[10px]">ORGANIZATION / ROLE</span>
+                              <span className="font-bold text-amber-300">{scannedResult.specialRole.role}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block text-[10px]">ASSIGNED VENUE</span>
+                              <span className="font-bold text-emerald-300">{scannedResult.specialRole.venueLocation}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block text-[10px]">CREDENTIAL ID</span>
+                              <span className="text-amber-400 font-bold">{scannedResult.specialRole.credentialId}</span>
+                            </div>
+                            <div className="col-span-2 mt-1 pt-2.5 border-t border-emerald-500/20 flex items-center justify-between">
+                              <div>
+                                <span className="text-[10px] text-slate-400 block">SECURITY CLEARANCE</span>
+                                <span className="text-xs text-emerald-300 font-semibold">{scannedResult.specialRole.title}</span>
+                              </div>
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                                ALL-ARENA ACCESS
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         {scannedResult.found && (scannedResult.student || scannedResult.record) && (
                           <div className="mt-3.5 pt-3.5 border-t border-emerald-500/30 grid grid-cols-2 gap-2.5 text-xs font-mono text-slate-200">
                             <div>
@@ -2041,8 +2215,10 @@ function PassAndAttendanceContent() {
                               <span className="font-bold">{scannedResult.student?.class_section || scannedResult.record?.classSection}</span>
                             </div>
                             <div>
-                              <span className="text-slate-400 block text-[10px]">PROJECT BOOTH</span>
-                              <span className="font-bold text-emerald-300">#{scannedResult.student?.project_number || scannedResult.record?.projectNumber}</span>
+                              <span className="text-slate-400 block text-[10px]">PHYSICAL BOOTH</span>
+                              <span className="font-bold text-emerald-300">
+                                {scannedResult.student?.venue_location || getStudentBoothInfo(scannedResult.student || scannedResult.record?.projectNumber || 1).venue_location}
+                              </span>
                             </div>
                             <div>
                               <span className="text-slate-400 block text-[10px]">CREDENTIAL ID</span>
@@ -2052,13 +2228,13 @@ function PassAndAttendanceContent() {
                                   : scannedResult.record?.passCode || 'N/A'}
                               </span>
                             </div>
-                            <div className="col-span-2 mt-1 pt-2.5 border-t border-emerald-500/20 flex items-center justify-between">
-                              <div>
-                                <span className="text-[10px] text-slate-400 block">TOPOTAG OPTICAL SEAL</span>
-                                <span className="text-xs text-emerald-300 font-semibold">18-cell genus-1 topology verified</span>
-                              </div>
-                              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
-                                MATCHED TO CARD
+                            <div className="col-span-2 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
+                              <span className="text-xs font-mono text-emerald-300 font-bold flex items-center gap-1.5">
+                                <Check className="w-4 h-4 text-emerald-400" />
+                                <span>STATUS: PRESENT (Recorded at {scannedResult.record?.timestamp || 'Just now'})</span>
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                                CHECKED IN
                               </span>
                             </div>
                           </div>
@@ -2098,7 +2274,7 @@ function PassAndAttendanceContent() {
                         classSection: st.class_section,
                         credentialId: getStudentCredentialId(st),
                         projectDomain: st.project_title,
-                        venueLocation: getStudentBoothInfo(st.project_number).venue_location,
+                        venueLocation: st.venue_location || getStudentBoothInfo(st).venue_location,
                       })
                     : '';
                   return (
