@@ -33,7 +33,7 @@ import ProjectCardSkeleton from '@/components/ui/ProjectCardSkeleton';
 import PictureRailGallery, { type PictureRailItem, type PictureFrameStyle } from '@/components/ui/picture-rail-gallery';
 import { EXHIBITION_GALLERY_ITEMS } from '@/components/ui/demo';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
-import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult } from '@/lib/firebase';
+import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult, subscribeToUserVotedProjects } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
 
 // React Bits Components loaded dynamically for SSR safety
@@ -170,6 +170,37 @@ export default function LandingPage() {
       unsubProjects();
     };
   }, [setIsMobile, setDeviceFingerprint, setUser, setProjects, setSearchModalOpen]);
+
+  // Load locally saved votes from localStorage on client mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('dpsi_voted_project_ids');
+      if (stored) {
+        const ids = JSON.parse(stored);
+        if (Array.isArray(ids)) {
+          ids.forEach((id: string) => markProjectVoted(id));
+        }
+      }
+    } catch {
+      // LocalStorage access fallback
+    }
+  }, [markProjectVoted]);
+
+  // Subscribe to verified user votes from Firestore when user identity is present
+  useEffect(() => {
+    if (!user?.id) return;
+    const unsub = subscribeToUserVotedProjects(user.id, (ids) => {
+      ids.forEach((id) => markProjectVoted(id));
+      try {
+        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
+        const merged = Array.from(new Set([...existing, ...ids]));
+        localStorage.setItem('dpsi_voted_project_ids', JSON.stringify(merged));
+      } catch {
+        // localStorage fallback
+      }
+    });
+    return () => unsub();
+  }, [user?.id, markProjectVoted]);
 
   const allProjects = storeProjects.length > 0 ? storeProjects : SEED_PROJECTS;
   const filteredProjects = allProjects.filter((p) => {

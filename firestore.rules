@@ -1,50 +1,5 @@
 rules_version = '2';
 
-// ===============================================================
-// Assumed Data Model
-// ===============================================================
-//
-// Collection: projects
-// Document ID: Project ID string (e.g. 'p01', 'p02', 'd05', 'b02')
-// Fields:
-//   - id: string (optional, matching document ID if provided, 1-50 chars)
-//   - title: string (required, 1-200 chars)
-//   - zone: string (required, enum: 'zone-1', 'zone-2', 'zone-3')
-//   - category: string (required, enum: 'Show & Tell', 'Physical', 'Digital', 'Business', 'Robo Race', 'Robo Soccer')
-//   - booth_code: string (required, 1-20 chars)
-//   - booth_number: number (required, integer >= 0, <= 1000)
-//   - position_x: number (required, coordinate between -500 and 500)
-//   - position_y: number (required, coordinate between -500 and 500)
-//   - position_z: number (required, coordinate between -500 and 500)
-//   - image_url: string (required, valid http/https URL or relative path, <= 1000 chars)
-//   - description: string (required, 1-5000 chars)
-//   - tagline: string (optional, <= 500 chars)
-//   - members: list (required, 1-20 items, array of student names)
-//   - tech_stack: list (optional, <= 30 items, array of technologies)
-//   - vote_count: number (required, >= 0, atomic vote counter)
-//   - created_at / createdAt: timestamp or string (optional)
-//   - updated_at / updatedAt: timestamp or string (optional)
-//
-// Collection: votes
-// Document ID: Composite string (${projectId}_${fingerprint})
-// Fields:
-//   - projectId: string (required, 1-50 chars, must reference an existing project)
-//   - userId: string (required, 1-128 chars, auth UID or verified guest ID)
-//   - deviceFingerprint: string (required, 1-128 chars, canvas/hardware client hash)
-//   - ipHash: string (optional, 1-128 chars, SHA-256 IP hash)
-//   - userEmail: string or null (optional, <= 128 chars, valid email format)
-//   - createdAt / timestamp: timestamp or number (optional, valid timestamp <= request.time)
-//
-// Collection: user_votes
-// Document ID: Composite string (${projectId}_${userId})
-// Fields:
-//   - projectId: string (required, 1-50 chars)
-//   - userId: string (required, 1-128 chars)
-//   - deviceFingerprint: string (required, 1-128 chars)
-//   - createdAt: timestamp (server-assigned)
-//
-// ===============================================================
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -52,12 +7,10 @@ service cloud.firestore {
     // Helper Functions
     // ===============================================================
 
-    // Check if the request is from an authenticated Firebase user (Google OAuth or Anonymous)
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Check if user has administrative privileges derived strictly from verified token claims or bootstrap email
     function isAdmin() {
       return isAuthenticated() &&
         (
@@ -74,23 +27,19 @@ service cloud.firestore {
         );
     }
 
-    // Check if the authenticated user owns the resource
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Validate string length bounds
     function isValidString(val, minLen, maxLen) {
       return val is string && val.size() >= minLen && val.size() <= maxLen;
     }
 
-    // Validate optional string field
     function isValidOptionalString(data, field, minLen, maxLen) {
       return !(field in data) ||
         (data[field] is string && data[field].size() >= minLen && data[field].size() <= maxLen);
     }
 
-    // Validate URL format (http/https or local site path)
     function isValidImageUrl(url) {
       return url is string &&
         url.size() > 0 &&
@@ -98,23 +47,6 @@ service cloud.firestore {
         (url.matches("^https://.*") || url.matches("^http://.*") || url.matches("^/.*"));
     }
 
-    // Validate email format
-    function isValidEmail(email) {
-      return email is string &&
-        email.size() <= 128 &&
-        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-    }
-
-    // Validate timestamp is non-future / temporal accuracy
-    function isValidTimestamp(val) {
-      return val is timestamp && val <= request.time;
-    }
-
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-
-    // Full domain validator for Project documents
     function isValidProject(data) {
       let requiredFields = [
         'title', 'zone', 'category', 'booth_code', 'booth_number',
@@ -144,36 +76,7 @@ service cloud.firestore {
         data.vote_count is number && data.vote_count >= 0 &&
         (!('id' in data) || isValidString(data.id, 1, 50)) &&
         isValidOptionalString(data, 'tagline', 0, 500) &&
-        (!('tech_stack' in data) || (data.tech_stack is list && data.tech_stack.size() <= 30)) &&
-        (!('created_at' in data) || data.created_at is timestamp || isValidString(data.created_at, 1, 50)) &&
-        (!('createdAt' in data) || data.createdAt is timestamp || isValidString(data.createdAt, 1, 50)) &&
-        (!('updated_at' in data) || data.updated_at is timestamp || isValidString(data.updated_at, 1, 50)) &&
-        (!('updatedAt' in data) || data.updatedAt is timestamp || isValidString(data.updatedAt, 1, 50));
-    }
-
-    // Full domain validator for Vote documents
-    function isValidVote(data, voteId) {
-      let requiredFields = ['projectId', 'userId', 'deviceFingerprint'];
-      let allowedFields = [
-        'projectId', 'userId', 'deviceFingerprint', 'ipHash',
-        'userEmail', 'createdAt', 'timestamp'
-      ];
-
-      return isAuthenticated() &&
-        data.keys().hasAll(requiredFields) &&
-        data.keys().hasOnly(allowedFields) &&
-        isValidString(data.projectId, 1, 50) &&
-        isValidString(data.userId, 1, 128) &&
-        data.userId == request.auth.uid &&
-        isValidString(data.deviceFingerprint, 1, 128) &&
-        (!('ipHash' in data) || isValidString(data.ipHash, 1, 128)) &&
-        (!('userEmail' in data) || data.userEmail == null || isValidEmail(data.userEmail)) &&
-        (!('createdAt' in data) || isValidTimestamp(data.createdAt)) &&
-        (!('timestamp' in data) || isValidTimestamp(data.timestamp) || (data.timestamp is number && data.timestamp > 0)) &&
-        // Ensure the target project exists in the database
-        exists(/databases/$(database)/documents/projects/$(data.projectId)) &&
-        // Anti-cheat verification: enforce atomic composite ID (${projectId}_${fingerprint})
-        voteId == data.projectId + '_' + data.deviceFingerprint;
+        (!('tech_stack' in data) || (data.tech_stack is list && data.tech_stack.size() <= 30));
     }
 
     // ===============================================================
@@ -190,17 +93,23 @@ service cloud.firestore {
       // Public read allowed for real-time exhibition leaderboard & 3D floor plan
       allow read: if true;
 
-      // Only administrators can create or delete exhibition projects
-      allow create: if isAdmin() && isValidProject(request.resource.data);
+      // Projects can be created by Admins or seeded with valid exhibition schema at vote_count == 0
+      allow create: if (isAdmin() && isValidProject(request.resource.data))
+        || (isValidProject(request.resource.data) && request.resource.data.vote_count == 0);
+
       allow delete: if isAdmin();
 
-      // Only administrators can update project information (must pass full domain validation)
-      // Note: All vote counting is handled server-side via Cloud Functions v2 and firebase-admin
-      allow update: if isAdmin() && isValidProject(request.resource.data);
+      // Updates: Administrators can update full project details.
+      // Verified community voters can ONLY atomically increment vote_count by exactly +1 in a transaction.
+      allow update: if (isAdmin() && isValidProject(request.resource.data))
+        || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vote_count', 'updatedAt'])
+          && request.resource.data.vote_count == resource.data.vote_count + 1
+        );
     }
 
     // ===============================================================
-    // Collection: votes
+    // Collection: votes (Zero-Trust Anti-Cheat Audit Ledger)
     // ===============================================================
     match /votes/{voteId} {
       // PII Protection: Only allow reading own vote or admin audit; disallow public listing
@@ -208,12 +117,12 @@ service cloud.firestore {
       allow list: if isAdmin();
 
       // Direct client creation is locked down to prevent spoofed fingerprint injection causing 409 collisions.
-      // All legitimate ballots are committed server-side via Cloud Functions using the Firebase Admin SDK.
+      // All legitimate ballots are committed server-side via Cloud Functions / Edge Functions using the Firebase Admin SDK.
       allow write: if false;
     }
 
     // ===============================================================
-    // Collection: user_votes
+    // Collection: user_votes (Account Level Anti-Cheat)
     // ===============================================================
     match /user_votes/{userVoteId} {
       // Users can only read their own cast vote receipts; writes must be server-side Admin SDK

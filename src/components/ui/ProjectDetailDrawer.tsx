@@ -173,6 +173,14 @@ export default function ProjectDetailDrawer() {
       }
 
       markProjectVoted(selectedProject.id);
+      try {
+        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
+        if (!existing.includes(selectedProject.id)) {
+          localStorage.setItem('dpsi_voted_project_ids', JSON.stringify([...existing, selectedProject.id]));
+        }
+      } catch {
+        // localStorage fallback
+      }
       incrementProjectVote(selectedProject.id);
       setVoteSuccessMessage(res.message || 'Vote successfully verified and recorded!');
 
