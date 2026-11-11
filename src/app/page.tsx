@@ -22,6 +22,10 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
+import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import confetti from 'canvas-confetti';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
@@ -32,6 +36,15 @@ import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import SearchModal from '@/components/ui/SearchModal';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
 import ProjectCardSkeleton from '@/components/ui/ProjectCardSkeleton';
+import {
+  SECTION_MORPH_PATHS,
+  HORIZON_CONTOUR_PATHS,
+  EXHIBITION_SCROLL_ZONES,
+  HeaderScrollTelemetry,
+  HeroBlueprintReticle,
+  HorizonMorphDivider,
+  ArenaMorphIcon,
+} from '@/components/ui/ScrollMorphSystems';
 import PictureRailGallery, { type PictureRailItem, type PictureFrameStyle } from '@/components/ui/picture-rail-gallery';
 import { EXHIBITION_GALLERY_ITEMS } from '@/components/ui/demo';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
@@ -88,6 +101,19 @@ export default function LandingPage() {
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
   const [isProjectsLoading, setIsProjectsLoading] = useState(true);
+  const [activeScrollSection, setActiveScrollSection] = useState<string>('stage');
+
+  // GSAP + ScrollTrigger + MorphSVG refs
+  const pageContainerRef = useRef<HTMLDivElement>(null);
+  const scrollProgressBarRef = useRef<HTMLDivElement>(null);
+  const headerMorphPathRef = useRef<SVGPathElement>(null);
+  const headerZoneCodeRef = useRef<HTMLSpanElement>(null);
+  const headerProgressPctRef = useRef<HTMLSpanElement>(null);
+  const heroReticleRingRef = useRef<SVGCircleElement>(null);
+  const heroReticleCoreRef = useRef<SVGPathElement>(null);
+  const horizonSectionRef = useRef<HTMLElement>(null);
+  const horizonOverlayRef = useRef<HTMLDivElement>(null);
+  const horizonContourPathRef = useRef<SVGPathElement>(null);
 
   // Floating Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -279,6 +305,256 @@ export default function LandingPage() {
     }
   }, [allProjects, selectProject]);
 
+  // Master GSAP ScrollTrigger + MorphSVG choreography (SSR-safe, reduced-motion compliant)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !pageContainerRef.current) return;
+    gsap.registerPlugin(ScrollTrigger, MorphSVGPlugin, DrawSVGPlugin);
+
+    const mm = gsap.matchMedia(pageContainerRef);
+    let fontsCancelled = false;
+
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      // 1. Hero CAD reticle initial stroke draw + scrubbed morph on exit
+      if (heroReticleRingRef.current) {
+        gsap.from(heroReticleRingRef.current, {
+          drawSVG: '0%',
+          duration: 1.05,
+          ease: 'power2.out',
+        });
+      }
+      if (heroReticleCoreRef.current) {
+        gsap.to(heroReticleCoreRef.current, {
+          morphSVG: { shape: SECTION_MORPH_PATHS.projects, type: 'rotational' },
+          rotation: 90,
+          transformOrigin: '50% 50%',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#stage',
+            start: 'top 60%',
+            end: 'bottom top',
+            scrub: 0.6,
+          },
+        });
+      }
+
+      // 2. Global top progress beam + live header CAD MorphSVG timeline
+      if (scrollProgressBarRef.current) {
+        gsap.to(scrollProgressBarRef.current, {
+          scaleX: 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: 'main',
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 0.2,
+            onUpdate: (self) => {
+              if (headerProgressPctRef.current) {
+                headerProgressPctRef.current.textContent = `${String(Math.round(self.progress * 100)).padStart(2, '0')}%`;
+              }
+            },
+          },
+        });
+      }
+
+      if (headerMorphPathRef.current) {
+        const headerMorphTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: 'main',
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 0.35,
+          },
+        });
+        EXHIBITION_SCROLL_ZONES.slice(1).forEach((zone) => {
+          headerMorphTl.to(headerMorphPathRef.current, {
+            morphSVG: { shape: zone.morph, type: 'rotational' },
+            stroke: zone.color,
+            ease: 'none',
+            duration: 1,
+          });
+        });
+      }
+
+      // 3. Horizon overlay parallax + scrubbed CAD contour wave morphing
+      if (horizonSectionRef.current && horizonOverlayRef.current) {
+        gsap.fromTo(
+          horizonOverlayRef.current,
+          { y: 26 },
+          {
+            y: -26,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: horizonSectionRef.current,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 0.65,
+            },
+          },
+        );
+      }
+
+      if (horizonSectionRef.current && horizonContourPathRef.current) {
+        const contourTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: horizonSectionRef.current,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.6,
+          },
+        });
+        contourTl
+          .to(horizonContourPathRef.current, {
+            morphSVG: HORIZON_CONTOUR_PATHS.waveform,
+            ease: 'none',
+            duration: 1,
+          })
+          .to(horizonContourPathRef.current, {
+            morphSVG: HORIZON_CONTOUR_PATHS.elevation,
+            ease: 'none',
+            duration: 1,
+          });
+      }
+
+      // 4. Section navigation spy triggers in top-to-bottom document order
+      EXHIBITION_SCROLL_ZONES.forEach((zone) => {
+        const targetEl = document.getElementById(zone.id);
+        if (!targetEl) return;
+        ScrollTrigger.create({
+          trigger: targetEl,
+          start: 'top 46%',
+          end: 'bottom 46%',
+          onToggle: (self) => {
+            if (self.isActive) {
+              setActiveScrollSection(zone.id);
+              if (headerZoneCodeRef.current) {
+                headerZoneCodeRef.current.textContent = zone.code;
+              }
+            }
+          },
+        });
+      });
+
+      // 5. Three Arenas stagger + SVG corner mark morphing on reveal
+      const arenaCards = gsap.utils.toArray<HTMLElement>('[data-gsap-arena-card]');
+      if (arenaCards.length > 0) {
+        gsap.set(arenaCards, { opacity: 0, y: 24 });
+        ScrollTrigger.batch(arenaCards, {
+          start: 'top 86%',
+          once: true,
+          onEnter: (batch) => {
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.55,
+              stagger: 0.12,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            });
+            batch.forEach((card) => {
+              const glyph = card.querySelector<SVGPathElement>('[data-arena-morph-path]');
+              const targetShape = glyph?.dataset.morphTarget;
+              if (glyph && targetShape) {
+                gsap.to(glyph, {
+                  morphSVG: { shape: targetShape, type: 'rotational' },
+                  duration: 0.75,
+                  ease: 'power2.inOut',
+                });
+              }
+            });
+          },
+        });
+      }
+
+      // 6. Voting pillar cards & Schedule bento panels dynamic reveal
+      const votingCards = gsap.utils.toArray<HTMLElement>('[data-gsap-voting-card]');
+      if (votingCards.length > 0) {
+        gsap.set(votingCards, { opacity: 0, y: 20 });
+        ScrollTrigger.batch(votingCards, {
+          start: 'top 88%',
+          once: true,
+          onEnter: (batch) =>
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.5,
+              stagger: 0.1,
+              ease: 'power2.out',
+              clearProps: 'transform,opacity',
+            }),
+        });
+      }
+
+      const schedulePanels = gsap.utils.toArray<HTMLElement>('[data-gsap-schedule-panel]');
+      if (schedulePanels.length > 0) {
+        gsap.set(schedulePanels, { opacity: 0, y: 22 });
+        ScrollTrigger.batch(schedulePanels, {
+          start: 'top 88%',
+          once: true,
+          onEnter: (batch) =>
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.55,
+              stagger: 0.14,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            }),
+        });
+      }
+    });
+
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (!fontsCancelled) ScrollTrigger.refresh();
+      });
+    }
+
+    return () => {
+      fontsCancelled = true;
+      mm.revert();
+    };
+  }, []);
+
+  // Re-batch project grid cards on filter/search/view transitions & refresh lower ScrollTriggers
+  useEffect(() => {
+    if (typeof window === 'undefined' || !pageContainerRef.current) return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    if (isProjectsLoading || directoryView !== 'grid') {
+      const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+      return () => cancelAnimationFrame(raf);
+    }
+
+    const mm = gsap.matchMedia(pageContainerRef);
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const cards = gsap.utils.toArray<HTMLElement>('[data-gsap-project-card]');
+      if (cards.length === 0) return;
+
+      gsap.set(cards, { opacity: 0, y: 18 });
+      ScrollTrigger.batch(cards, {
+        interval: 0.08,
+        batchMax: 6,
+        start: 'top 92%',
+        once: true,
+        onEnter: (batch) =>
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            duration: 0.42,
+            stagger: 0.05,
+            ease: 'power2.out',
+            clearProps: 'transform,opacity',
+          }),
+      });
+    });
+
+    const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => {
+      cancelAnimationFrame(raf);
+      mm.revert();
+    };
+  }, [isProjectsLoading, selectedZone, directoryView, searchQuery]);
+
   // Dynamic Category Counts
   const categoryCounts = useMemo(() => {
     const counts = {
@@ -451,6 +727,7 @@ export default function LandingPage() {
     return (
       <div
         key={p.id}
+        data-gsap-project-card
         role="button"
         tabIndex={0}
         onClick={() => selectProject(p)}
@@ -460,7 +737,7 @@ export default function LandingPage() {
             selectProject(p);
           }
         }}
-        className={`group rounded-2xl border transition-all duration-200 overflow-hidden cursor-pointer ${
+        className={`group rounded-2xl border transition-[border-color,box-shadow] duration-200 overflow-hidden cursor-pointer ${
           isFeatured ? 'lg:col-span-2 grid grid-cols-1 md:grid-cols-12' : 'flex flex-col justify-between'
         } ${
           isLight
@@ -637,13 +914,14 @@ export default function LandingPage() {
 
   return (
     <div
+      ref={pageContainerRef}
       suppressHydrationWarning
       className={`min-h-screen bg-transparent transition-colors duration-300 font-sans selection:bg-[#2ea043] selection:text-black overflow-x-clip ${
         isLight ? 'text-slate-900' : 'text-[#f0f6fc]'
       }`}
     >
       {/* ─── GITHUB UNIVERSE GRID NAVBAR ─── */}
-      <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 ${
+      <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 relative ${
         isLight
           ? 'bg-[#dfe3e8]/90 border-slate-300/80 shadow-xs'
           : 'bg-[#000000]/95 border-[#30363d]'
@@ -678,23 +956,39 @@ export default function LandingPage() {
               { href: '#projects', label: '44 Inventions' },
               { href: '#voting', label: 'Live Voting' },
               { href: '#schedule', label: 'Schedule' },
-            ].map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className={`flex items-center px-4 border-r transition-colors ${
-                  isLight
-                    ? 'border-slate-200/80 text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
-                    : 'border-[#30363d] text-[#c9d1d9] hover:text-white hover:bg-[#161b22]'
-                }`}
-              >
-                {item.label}
-              </a>
-            ))}
+            ].map((item) => {
+              const isActive = activeScrollSection === item.href.slice(1);
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`relative flex items-center px-3 xl:px-3.5 border-r transition-colors whitespace-nowrap ${
+                    isActive
+                      ? isLight
+                        ? 'border-slate-200/80 text-slate-950 font-bold bg-white/50'
+                        : 'border-[#30363d] text-white font-bold bg-[#161b22]/80'
+                      : isLight
+                      ? 'border-slate-200/80 text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
+                      : 'border-[#30363d] text-[#c9d1d9] hover:text-white hover:bg-[#161b22]'
+                  }`}
+                >
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute inset-x-0 bottom-0 h-[2px] bg-[#3fb950]" />
+                  )}
+                </a>
+              );
+            })}
           </nav>
 
-          {/* Right Action: Launch 3D Hall & Theme Toggle */}
+          {/* Right Action: Telemetry Morph, Search, Leaderboard, Theme & Launch 3D Hall */}
           <div className="ml-auto flex items-stretch">
+            <HeaderScrollTelemetry
+              isLight={isLight}
+              morphPathRef={headerMorphPathRef}
+              zoneCodeRef={headerZoneCodeRef}
+              progressPctRef={headerProgressPctRef}
+            />
             {/* Quick Search Button */}
             <button
               onClick={() => {
@@ -759,6 +1053,13 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+        {/* Scrubbed Scroll Progress Rail */}
+        <div
+          ref={scrollProgressBarRef}
+          aria-hidden="true"
+          style={{ transform: 'scaleX(0)' }}
+          className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-gradient-to-r from-[#3fb950] via-[#38bdf8] to-[#f0883e] pointer-events-none"
+        />
       </header>
 
       <main>
@@ -780,13 +1081,18 @@ export default function LandingPage() {
               </span>
             </div>
 
-            {/* Massive Conference Title with Neon Block Accent */}
-            <div className="flex items-start justify-between gap-4">
+            {/* Massive Conference Title with Neon Block Accent & Morphing CAD Reticle */}
+            <div className="flex items-center justify-between gap-4">
               <h1 className={`text-4xl sm:text-7xl md:text-9xl font-black tracking-tighter uppercase font-sans leading-none ${
                 isLight ? 'text-slate-800' : 'text-white'
               }`}>
                 EXPO&apos;26<span className="inline-block w-5 h-5 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-[#2ea043] ml-1.5 sm:ml-2 -mb-1 align-baseline" /><span className="inline-block w-5 h-5 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-[#db61a2] -mb-1 align-baseline" />
               </h1>
+              <HeroBlueprintReticle
+                isLight={isLight}
+                reticleRingRef={heroReticleRingRef}
+                reticleCoreRef={heroReticleCoreRef}
+              />
             </div>
           </div>
 
@@ -982,7 +1288,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── ELEMENT 1: <GradientASCII /> ─── */}
-      <section className={`relative overflow-hidden transition-colors duration-300 ${isLight ? 'bg-transparent' : 'bg-[#000000]'}`}>
+      <section ref={horizonSectionRef} className={`relative overflow-hidden transition-colors duration-300 ${isLight ? 'bg-transparent' : 'bg-[#000000]'}`}>
         <div className="max-w-7xl mx-auto">
           <div
             style={{
@@ -1023,7 +1329,7 @@ export default function LandingPage() {
             }`} />
 
             {/* Exhibition Horizon Headline Overlay */}
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+            <div ref={horizonOverlayRef} className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
               <span className={`px-3 py-1 rounded font-mono text-xs mb-4 backdrop-blur-sm ${
                 isLight
                   ? 'bg-white/80 border border-slate-300/80 text-blue-700 shadow-xs'
@@ -1044,6 +1350,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        <HorizonMorphDivider isLight={isLight} contourPathRef={horizonContourPathRef} />
       </section>
 
       {/* ─── DEDICATED PHOTO VIEW SECTION: INNOVATION PICTURE RAIL GALLERY ─── */}
@@ -1080,18 +1387,25 @@ export default function LandingPage() {
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Arena 1 */}
-            <div className={`p-6 border rounded-2xl flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
+            <div data-gsap-arena-card className={`p-6 border rounded-2xl flex flex-col justify-between transition-[border-color,box-shadow] duration-300 hover:-translate-y-1 ${
               isLight
                 ? 'border-slate-300/80 bg-white/90 backdrop-blur-md shadow-xs hover:border-sky-400/80 hover:shadow-sky-500/10 hover:shadow-lg'
                 : 'border-[#30363d] bg-[#0d1117] hover:border-sky-500/50 hover:shadow-sky-500/10 hover:shadow-lg'
             }`}>
               <div>
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] font-bold border ${
-                  isLight ? 'bg-sky-50 border-sky-200 text-sky-700' : 'bg-sky-950/50 border-sky-800/80 text-sky-400'
-                }`}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-                  ZONE 01 • ST01–ST08
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] font-bold border ${
+                    isLight ? 'bg-sky-50 border-sky-200 text-sky-700' : 'bg-sky-950/50 border-sky-800/80 text-sky-400'
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                    ZONE 01 • ST01–ST08
+                  </span>
+                  <ArenaMorphIcon
+                    initialPath={SECTION_MORPH_PATHS.stage}
+                    targetPath={SECTION_MORPH_PATHS.arenas}
+                    colorClass="text-sky-500"
+                  />
+                </div>
                 <h3 className={`text-xl font-bold mt-4 font-sans tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Show &amp; Tell Prototypes
                 </h3>
@@ -1125,18 +1439,25 @@ export default function LandingPage() {
             </div>
 
             {/* Arena 2 */}
-            <div className={`p-6 border rounded-2xl flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
+            <div data-gsap-arena-card className={`p-6 border rounded-2xl flex flex-col justify-between transition-[border-color,box-shadow] duration-300 hover:-translate-y-1 ${
               isLight
                 ? 'border-slate-300/80 bg-white/90 backdrop-blur-md shadow-xs hover:border-amber-400/80 hover:shadow-amber-500/10 hover:shadow-lg'
                 : 'border-[#30363d] bg-[#0d1117] hover:border-amber-500/50 hover:shadow-amber-500/10 hover:shadow-lg'
             }`}>
               <div>
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] font-bold border ${
-                  isLight ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-amber-950/50 border-amber-800/80 text-amber-400'
-                }`}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  ZONE 02 • INNOVATION PODS
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] font-bold border ${
+                    isLight ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-amber-950/50 border-amber-800/80 text-amber-400'
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    ZONE 02 • INNOVATION PODS
+                  </span>
+                  <ArenaMorphIcon
+                    initialPath={SECTION_MORPH_PATHS.gallery}
+                    targetPath={SECTION_MORPH_PATHS.projects}
+                    colorClass="text-amber-500"
+                  />
+                </div>
                 <h3 className={`text-xl font-bold mt-4 font-sans tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   The Innovation Hub
                 </h3>
@@ -1168,18 +1489,25 @@ export default function LandingPage() {
             </div>
 
             {/* Arena 3 */}
-            <div className={`p-6 border rounded-2xl flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
+            <div data-gsap-arena-card className={`p-6 border rounded-2xl flex flex-col justify-between transition-[border-color,box-shadow] duration-300 hover:-translate-y-1 ${
               isLight
                 ? 'border-slate-300/80 bg-white/90 backdrop-blur-md shadow-xs hover:border-pink-400/80 hover:shadow-pink-500/10 hover:shadow-lg'
                 : 'border-[#30363d] bg-[#0d1117] hover:border-pink-500/50 hover:shadow-pink-500/10 hover:shadow-lg'
             }`}>
               <div>
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] font-bold border ${
-                  isLight ? 'bg-pink-50 border-pink-200 text-pink-700' : 'bg-pink-950/50 border-pink-800/80 text-pink-400'
-                }`}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
-                  ZONE 03 • ROBOTICS ARENAS
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] font-bold border ${
+                    isLight ? 'bg-pink-50 border-pink-200 text-pink-700' : 'bg-pink-950/50 border-pink-800/80 text-pink-400'
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
+                    ZONE 03 • ROBOTICS ARENAS
+                  </span>
+                  <ArenaMorphIcon
+                    initialPath={SECTION_MORPH_PATHS.stage}
+                    targetPath={SECTION_MORPH_PATHS.schedule}
+                    colorClass="text-pink-500"
+                  />
+                </div>
                 <h3 className={`text-xl font-bold mt-4 font-sans tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Robotics Arena &amp; Drone Pit
                 </h3>
@@ -1494,7 +1822,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className={`p-5 rounded-2xl border transition-all ${
+            <div data-gsap-voting-card className={`p-5 rounded-2xl border transition-[border-color,box-shadow] ${
               isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3">
@@ -1508,7 +1836,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className={`p-5 rounded-2xl border transition-all ${
+            <div data-gsap-voting-card className={`p-5 rounded-2xl border transition-[border-color,box-shadow] ${
               isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center mb-3">
@@ -1522,7 +1850,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className={`p-5 rounded-2xl border transition-all ${
+            <div data-gsap-voting-card className={`p-5 rounded-2xl border transition-[border-color,box-shadow] ${
               isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
             }`}>
               <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mb-3">
@@ -1548,7 +1876,7 @@ export default function LandingPage() {
             isLight ? 'divide-slate-200/80' : 'divide-[#30363d]'
           }`}>
             {/* Left Column: Innovation Exhibition Schedule (Tentative) */}
-            <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 bg-transparent">
+            <div data-gsap-schedule-panel className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 bg-transparent">
               <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b gap-4 ${
                 isLight ? 'border-slate-200/80' : 'border-[#30363d]'
               }`}>
@@ -1595,7 +1923,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right Column: Live Round Notifications & Digital Pass */}
-            <div className={`lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 ${
+            <div data-gsap-schedule-panel className={`lg:col-span-6 p-6 sm:p-8 flex flex-col justify-start gap-6 ${
               isLight ? 'bg-[#f1f5f9]/50 backdrop-blur-sm' : 'bg-[#000000]/60'
             }`}>
               <div>
