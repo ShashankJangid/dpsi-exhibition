@@ -362,7 +362,7 @@ export default function ProjectDetailDrawer() {
                   <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-200 bg-slate-950/80 px-2.5 py-1 rounded-md border border-slate-700/80 backdrop-blur-md">
                     <MapPin className="w-3.5 h-3.5 text-amber-400" />
                     <span>
-                      Floor Coordinates: [{selectedProject.position_x}, {selectedProject.position_z}]
+                      Booth {selectedProject.booth_code} • {selectedProject.zone === 'zone-1' ? 'Zone 1 (Show & Tell)' : selectedProject.zone === 'zone-3' ? 'Zone 3 (Robotics)' : 'Zone 2 (Innovation Hub)'}
                     </span>
                   </div>
                 </div>

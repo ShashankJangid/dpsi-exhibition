@@ -19,7 +19,7 @@ const FILTER_TABS: { label: string; value: CategoryType | 'All' }[] = [
   { label: 'All Projects', value: 'All' },
   { label: 'Physical (P01-P12)', value: 'Physical' },
   { label: 'Digital (D01-D12)', value: 'Digital' },
-  { label: 'Business (B01-B07)', value: 'Business' },
+  { label: 'Business (B01-B08)', value: 'Business' },
   { label: 'Show & Tell', value: 'Show & Tell' },
   { label: 'Robo Race', value: 'Robo Race' },
   { label: 'Robo Soccer', value: 'Robo Soccer' },

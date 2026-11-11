@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
@@ -25,6 +25,17 @@ export default function AuthModal() {
   const [guestEmail, setGuestEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setAuthError(null);
+        setAuthModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setAuthModalOpen]);
 
   if (!isAuthModalOpen) return null;
 
@@ -96,13 +107,23 @@ export default function AuthModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 dark:bg-black/80 backdrop-blur-md">
+      <div
+        onClick={() => {
+          setAuthError(null);
+          setAuthModalOpen(false);
+        }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 dark:bg-black/80 backdrop-blur-md cursor-pointer"
+      >
         <motion.div
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-modal-title"
           initial={{ opacity: 0, scale: 0.96, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative w-full max-w-md rounded-3xl bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 border border-slate-300/80 dark:border-slate-800 shadow-2xl p-6 sm:p-7 text-slate-800 dark:text-slate-100 overflow-hidden"
+          className="relative w-full max-w-md rounded-3xl bg-[#f8fafc]/98 dark:bg-[#0c1220]/95 border border-slate-300/80 dark:border-slate-800 shadow-2xl p-6 sm:p-7 text-slate-800 dark:text-slate-100 overflow-hidden cursor-default"
         >
           {/* Subtle Ambient Radial Highlight */}
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
@@ -140,7 +161,7 @@ export default function AuthModal() {
                   Official Expo
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+              <h2 id="auth-modal-title" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
                 Voter Verification
               </h2>
             </div>
@@ -315,12 +336,13 @@ export default function AuthModal() {
               className="space-y-3.5 font-sans"
             >
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="guest-name-input" className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Attendee or Judge Name <span className="text-amber-500">*</span>
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
+                    id="guest-name-input"
                     type="text"
                     required
                     placeholder="Enter your name"
@@ -332,12 +354,13 @@ export default function AuthModal() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="guest-email-input" className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Email Address <span className="text-slate-500 text-[10px]">(Optional)</span>
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
+                    id="guest-email-input"
                     type="email"
                     placeholder="name@example.com"
                     value={guestEmail}

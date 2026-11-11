@@ -332,7 +332,7 @@ export const SEED_PROJECTS: Project[] = [
     members: [
       'Abhyudaya Singh (11-A)',
       'Abeer Singhal (11-A)',
-      'Vdwan Bhatnagar (11-C)',
+      'Vidwan Bhatnagar (11-C)',
       'Neel Arora (11-C)',
       'Amish Chandra (11-E)',
       'Harshil Verma (11-G)',

@@ -42,6 +42,53 @@ export function getStudentCredentialId(student: StudentEntry): string {
   return `EXH-${String(student.project_number).padStart(4, '0')}-01`;
 }
 
+export const PROJECT_NUMBER_TO_BOOTH: Record<number, { booth_code: string; zone: string; venue_location: string }> = {
+  1: { booth_code: 'B02', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B02' },
+  2: { booth_code: 'P02', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P02' },
+  3: { booth_code: 'B05', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B05' },
+  4: { booth_code: 'P11', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P11' },
+  5: { booth_code: 'B04', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B04' },
+  6: { booth_code: 'B01', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B01' },
+  7: { booth_code: 'B07', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B07' },
+  8: { booth_code: 'B03', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B03' },
+  9: { booth_code: 'B06', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B06' },
+  10: { booth_code: 'D08', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D08' },
+  11: { booth_code: 'D01', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D01' },
+  12: { booth_code: 'D09', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D09' },
+  13: { booth_code: 'ST02', zone: 'Zone 1 (Show & Tell)', venue_location: 'Zone 1 • Booth ST02' },
+  14: { booth_code: 'D06', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D06' },
+  15: { booth_code: 'B08', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth B08' },
+  16: { booth_code: 'D07', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D07' },
+  17: { booth_code: 'D04', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D04' },
+  18: { booth_code: 'D02', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D02' },
+  19: { booth_code: 'D03', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D03' },
+  20: { booth_code: 'P10', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P10' },
+  21: { booth_code: 'D03', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D03' },
+  22: { booth_code: 'P03', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P03' },
+  23: { booth_code: 'P07', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P07' },
+  24: { booth_code: 'P08', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P08' },
+  25: { booth_code: 'P05', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P05' },
+  26: { booth_code: 'D10', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D10' },
+  27: { booth_code: 'P09', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P09' },
+  28: { booth_code: 'P04', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P04' },
+  29: { booth_code: 'P06', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P06' },
+  30: { booth_code: 'D05', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D05' },
+  31: { booth_code: 'P01', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P01' },
+  32: { booth_code: 'D12', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D12' },
+  33: { booth_code: 'P12', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth P12' },
+  34: { booth_code: 'ST01', zone: 'Zone 1 (Show & Tell)', venue_location: 'Zone 1 • Booth ST01' },
+  35: { booth_code: 'D11', zone: 'Zone 2 (Innovation Hub)', venue_location: 'Zone 2 • Booth D11' },
+  36: { booth_code: 'ST03', zone: 'Zone 1 (Show & Tell)', venue_location: 'Zone 1 • Booth ST03' },
+};
+
+export function getStudentBoothInfo(projectNumber: number): { booth_code: string; zone: string; venue_location: string } {
+  return PROJECT_NUMBER_TO_BOOTH[projectNumber] || {
+    booth_code: `P${String(projectNumber).padStart(2, '0')}`,
+    zone: 'Zone 2 (Innovation Hub)',
+    venue_location: `Zone 2 • Booth ${projectNumber}`,
+  };
+}
+
 export interface TeacherEntry {
   name: string;
   role: 'INCHARGE' | 'MENTOR';
@@ -208,7 +255,7 @@ export const OFFICIAL_PROJECTS_CATALOG: OfficialProjectEntry[] = [
   },
   {
     "project_number": 10,
-    "title": "Caferia System (Munchly)",
+    "title": "Cafeteria System (Munchly)",
     "solution_type": "Digital Solution",
     "grade": "6",
     "mentor": "Shashank",
@@ -529,7 +576,7 @@ export const OFFICIAL_PROJECTS_CATALOG: OfficialProjectEntry[] = [
     ]
   },
   {
-    "project_number": 33,
+    "project_number": 34,
     "title": "Aeroplane",
     "solution_type": "Physical Solution",
     "grade": "",
@@ -870,7 +917,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 10,
-    "project_title": "Caferia System (Munchly)",
+    "project_title": "Cafeteria System (Munchly)",
     "solution_type": "Digital Solution",
     "mentor": "Shashank"
   },
@@ -880,7 +927,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 10,
-    "project_title": "Caferia System (Munchly)",
+    "project_title": "Cafeteria System (Munchly)",
     "solution_type": "Digital Solution",
     "mentor": "Shashank"
   },
@@ -890,7 +937,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 10,
-    "project_title": "Caferia System (Munchly)",
+    "project_title": "Cafeteria System (Munchly)",
     "solution_type": "Digital Solution",
     "mentor": "Shashank"
   },
@@ -900,7 +947,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 10,
-    "project_title": "Caferia System (Munchly)",
+    "project_title": "Cafeteria System (Munchly)",
     "solution_type": "Digital Solution",
     "mentor": "Shashank"
   },
@@ -910,7 +957,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 10,
-    "project_title": "Caferia System (Munchly)",
+    "project_title": "Cafeteria System (Munchly)",
     "solution_type": "Digital Solution",
     "mentor": "Shashank"
   },
@@ -1709,7 +1756,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "class_section": "7-D",
     "role": "EXHIBITOR",
     "pass_code": "987654",
-    "project_number": 33,
+    "project_number": 34,
     "project_title": "Aeroplane",
     "solution_type": "Physical Solution",
     "mentor": "Shubham"
@@ -1719,7 +1766,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "class_section": "7-D",
     "role": "EXHIBITOR",
     "pass_code": "987654",
-    "project_number": 33,
+    "project_number": 34,
     "project_title": "Aeroplane",
     "solution_type": "Physical Solution",
     "mentor": "Shubham"

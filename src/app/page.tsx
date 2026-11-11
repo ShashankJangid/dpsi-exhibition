@@ -16,6 +16,10 @@ import {
   Share2,
   LayoutGrid,
   Image as ImageIcon,
+  ShieldCheck,
+  Layers,
+  Lock,
+  CheckCircle2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -412,7 +416,7 @@ export default function LandingPage() {
             {[
               { href: '#stage', label: 'Stage' },
               { href: '#gallery', label: 'Photo View' },
-              { href: '#projects', label: '35 Inventions' },
+              { href: '#projects', label: '44 Inventions' },
               { href: '#arenas', label: '3 Arenas' },
               { href: '#voting', label: 'Live Voting' },
               { href: '#schedule', label: 'Schedule' },
@@ -597,7 +601,7 @@ export default function LandingPage() {
                 <p className={`mt-4 text-sm leading-relaxed font-mono ${
                   isLight ? 'text-slate-600' : 'text-[#8b949e]'
                 }`}>
-                  35 student research teams across Physical Computing, Artificial Intelligence,
+                  44 student research teams across Physical Computing, Artificial Intelligence,
                   Sustainable Enterprise, and Combat Robotics.
                 </p>
               </div>
@@ -622,7 +626,7 @@ export default function LandingPage() {
                 <div className={`p-3.5 border rounded-xl transition-all duration-200 hover:-translate-y-0.5 ${
                   isLight ? 'border-slate-300/80 bg-white/80 backdrop-blur-md shadow-xs hover:shadow-sm' : 'border-[#21262d] bg-[#0d1117] hover:border-[#30363d]'
                 }`}>
-                  <span className="text-[#d2a8ff] font-bold block tabular-nums">07 BOOTHS</span>
+                  <span className="text-[#d2a8ff] font-bold block tabular-nums">08 BOOTHS</span>
                   <span className={`mt-1 block text-pretty ${isLight ? 'text-slate-800 font-semibold' : 'text-white'}`}>
                     Business Ventures (B)
                   </span>
@@ -679,7 +683,7 @@ export default function LandingPage() {
                       : 'bg-[#161b22] hover:bg-[#21262d] border-[#30363d] text-white'
                   }`}
                 >
-                  <span>Browse 35 Projects</span>
+                  <span>Browse 44 Projects</span>
                 </a>
               </div>
             </div>
@@ -693,7 +697,7 @@ export default function LandingPage() {
       }`}>
         <div className="py-2 overflow-hidden">
           <TextLoop
-            text="DPSI TECH & INNOVATION EXPO 2026 ✦ 35 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ VERIFIED COMMUNITY BALLOT"
+            text="DPSI TECH & INNOVATION EXPO 2026 ✦ 44 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ VERIFIED COMMUNITY BALLOT"
             shape="wave"
             speed={90}
             direction="forward"
@@ -776,7 +780,7 @@ export default function LandingPage() {
               <p className={`mt-3 text-xs sm:text-sm font-mono max-w-lg ${
                 isLight ? 'text-slate-600' : 'text-slate-300'
               }`}>
-                Explore 35 breakthrough inventions engineered across physical computing, artificial intelligence, and sustainable enterprise.
+                Explore 44 breakthrough inventions engineered across physical computing, artificial intelligence, and sustainable enterprise.
               </p>
             </div>
           </div>
@@ -799,7 +803,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── GITHUB UNIVERSE STYLE 35 INVENTIONS DIRECTORY ─── */}
+      {/* ─── GITHUB UNIVERSE STYLE 44 INVENTIONS DIRECTORY ─── */}
       <section id="projects" className={`scroll-mt-16 border-b pt-6 pb-12 transition-colors duration-300 ${
         isLight ? 'border-slate-200/80 bg-transparent' : 'border-[#30363d] bg-transparent'
       }`}>
@@ -814,7 +818,7 @@ export default function LandingPage() {
               <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
                 isLight ? 'text-slate-800' : 'text-white'
               }`}>
-                All 35 Inventions
+                All 44 Inventions
               </h2>
             </div>
 
@@ -1281,19 +1285,95 @@ export default function LandingPage() {
       </section>
 
       {/* ─── LIVE VOTING ─── */}
-      <section id="voting" className={`scroll-mt-16 border-b py-14 transition-colors duration-300 ${
-        isLight ? 'border-slate-200/80 bg-white/30 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
+      <section id="voting" className={`scroll-mt-16 border-b py-16 transition-colors duration-300 ${
+        isLight ? 'border-slate-200/80 bg-white/40 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
       }`}>
-        <div className="max-w-xl mx-auto px-4 flex items-center justify-center">
-          <a
-            href="#projects"
-            onClick={() => playClick()}
-            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#238636] hover:bg-[#2ea043] text-white font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-95"
-          >
-            <Vote className="w-4 h-4" />
-            <span>Cast Your Vote</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </a>
+        <div className="max-w-5xl mx-auto px-4 sm:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mb-3">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>4-LAYER ANTI-CHEAT SYSTEM</span>
+            </span>
+            <h2 className={`text-3xl sm:text-4xl font-black uppercase font-sans tracking-tight ${
+              isLight ? 'text-slate-800' : 'text-white'
+            }`}>
+              Verified Community Voting
+            </h2>
+            <p className={`mt-3 text-xs sm:text-sm font-mono leading-relaxed ${
+              isLight ? 'text-slate-600' : 'text-slate-400'
+            }`}>
+              Every guest, student, teacher, and judge has an official ballot to recognize outstanding student research.
+              Protected by device fingerprinting and atomic rate-limiting for complete fairness.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            <div className={`p-5 rounded-2xl border transition-all ${
+              isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+            }`}>
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3">
+                <Lock className="w-4 h-4" />
+              </div>
+              <h3 className={`font-bold font-sans text-sm mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Hardware Fingerprinting
+              </h3>
+              <p className={`text-xs font-mono leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                1 vote per physical device ensures ballot integrity and prevents multi-browser ballot stuffing.
+              </p>
+            </div>
+
+            <div className={`p-5 rounded-2xl border transition-all ${
+              isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+            }`}>
+              <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center mb-3">
+                <Layers className="w-4 h-4" />
+              </div>
+              <h3 className={`font-bold font-sans text-sm mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Atomic Real-Time Tallies
+              </h3>
+              <p className={`text-xs font-mono leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                Firestore transactional counters update instantly with zero race conditions on the live Olympic podium.
+              </p>
+            </div>
+
+            <div className={`p-5 rounded-2xl border transition-all ${
+              isLight ? 'border-slate-300/80 bg-white/80 shadow-xs' : 'border-[#30363d] bg-[#0d1117]'
+            }`}>
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mb-3">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <h3 className={`font-bold font-sans text-sm mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Zero Friction Voting
+              </h3>
+              <p className={`text-xs font-mono leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                Vote via 1-click Google OAuth verification or instant attendee guest pass. No complicated setup.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href="#projects"
+              onClick={() => playClick()}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#238636] hover:bg-[#2ea043] text-white font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-95"
+            >
+              <Vote className="w-4 h-4" />
+              <span>Browse All 44 Inventions to Vote</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </a>
+            <Link
+              href="/expo"
+              onClick={() => playClick()}
+              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl border font-mono font-bold text-xs uppercase tracking-wider transition-all active:scale-95 ${
+                isLight
+                  ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
+                  : 'border-[#30363d] bg-[#161b22] hover:bg-[#21262d] text-white'
+              }`}
+            >
+              <span>Explore &amp; Vote in 3D Hall</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -1438,7 +1518,7 @@ export default function LandingPage() {
               Photo View
             </a>
             <a href="#projects" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
-              35 Inventions
+              44 Inventions
             </a>
             <a href="#voting" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
               Live Voting
