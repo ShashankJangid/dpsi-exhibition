@@ -7,7 +7,6 @@ import Image from 'next/image';
 import {
   ArrowRight,
   ArrowUpRight,
-  Sparkles,
   Vote,
   Sun,
   Moon,
@@ -495,7 +494,6 @@ export default function LandingPage() {
               href="/expo"
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-mono font-black text-[11px] sm:text-xs uppercase tracking-wider transition-colors shrink-0"
             >
-              <Sparkles className="w-3.5 h-3.5" />
               <span>Enter 3D Hall ↗</span>
             </Link>
           </div>
@@ -595,7 +593,7 @@ export default function LandingPage() {
                 <h2 className={`text-3xl sm:text-4xl font-extrabold tracking-tight font-mono ${
                   isLight ? 'text-slate-800' : 'text-white'
                 }`}>
-                  innovate-build-deploy/
+                  innovate-build-deploy
                 </h2>
                 <p className={`mt-4 text-sm leading-relaxed font-mono ${
                   isLight ? 'text-slate-600' : 'text-[#8b949e]'
@@ -671,7 +669,6 @@ export default function LandingPage() {
                   href="/expo"
                   className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 active:scale-[0.98] text-slate-950 font-mono font-black text-xs uppercase tracking-wider transition-all rounded-xl shadow-lg shadow-amber-500/25"
                 >
-                  <Sparkles className="w-4 h-4" />
                   <span>Launch 3D Hall ({isLight ? 'Light Showroom' : 'Cosmic Dark'})</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
