@@ -810,10 +810,15 @@ export function PictureRailGallery({
           return (
             <div key={item.id} ref={(node) => { hangs.current[i] = node; }} data-hang={i} className="pointer-events-none absolute left-0 top-0" style={{ width: w, height: 0, zIndex: lit ? 30 : 10 + i }}>
               <Hook x={w / 2} railTop={layout.railTop} railT={layout.railT} pivotY={layout.pivotY} />
-              {item.tag && (
-                <span data-label className={`absolute whitespace-nowrap rounded-[3px] border border-border bg-card px-1.5 py-[3px] text-[10px] font-medium leading-none tabular-nums shadow-[0_1px_2px_color-mix(in_oklab,var(--color-foreground,currentColor)_10%,transparent)] ${lit ? "text-card-foreground" : "text-muted-foreground"}`} style={{ top: top + h + 10, right: 0 }}>
-                  {lit && <span aria-hidden="true" className="mr-1 inline-block size-1.5 rounded-full bg-emerald-500 align-middle" />}
-                  {item.tag}
+              {(item.title || item.tag) && (
+                <span
+                  data-label
+                  title={item.title || item.tag}
+                  className={`absolute whitespace-nowrap max-w-[160px] truncate rounded-[3px] border border-border bg-card px-2 py-[3px] text-[10px] font-medium leading-none shadow-[0_1px_2px_color-mix(in_oklab,var(--color-foreground,currentColor)_10%,transparent)] ${lit ? "text-card-foreground border-emerald-500/50 shadow-sm" : "text-muted-foreground"}`}
+                  style={{ top: top + h + 10, right: 0 }}
+                >
+                  {lit && <span aria-hidden="true" className="mr-1 inline-block size-1.5 rounded-full bg-emerald-500 align-middle shrink-0" />}
+                  {item.title || item.tag}
                 </span>
               )}
               <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute left-0 top-0" style={{ width: w, height: 0, transformOrigin: `${w / 2}px ${layout.pivotY + 1}px`, visibility: lifted === i ? "hidden" : undefined }}>
@@ -1215,7 +1220,9 @@ function Detail({ uid, item, shape, index, total, labels, reduced, source, onLif
     const from = source();
     closeRef.current?.focus({ preventScroll: true });
     const overflow = document.body.style.overflow;
+    const touchAction = document.body.style.touchAction;
     document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
     let animation = null as Animation | null;
     if (figure && from && !reduced && from.width > 0) {
       const to = figure.getBoundingClientRect();
@@ -1232,7 +1239,15 @@ function Detail({ uid, item, shape, index, total, labels, reduced, source, onLif
     } else onLift(true);
     const raf = requestAnimationFrame(() => setShown(true));
     const spinState = angle.current;
-    return () => { cancelAnimationFrame(raf); animation?.cancel(); document.body.style.overflow = overflow; cancelAnimationFrame(spinState.raf); spinState.raf = 0; onLift(false); };
+    return () => {
+      cancelAnimationFrame(raf);
+      animation?.cancel();
+      document.body.style.overflow = overflow;
+      document.body.style.touchAction = touchAction;
+      cancelAnimationFrame(spinState.raf);
+      spinState.raf = 0;
+      onLift(false);
+    };
   }, [source, reduced, onLift]);
 
   const dismiss = React.useCallback(() => {
@@ -1283,8 +1298,20 @@ function Detail({ uid, item, shape, index, total, labels, reduced, source, onLif
   const byline = [item.artist, item.year].filter(Boolean).join(", ");
 
   return createPortal(
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-6 text-foreground" onKeyDown={onKeyDown}>
-      <div aria-hidden="true" className={`absolute inset-0 bg-background/90 backdrop-blur-xl transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain bg-background p-6 text-foreground"
+      onKeyDown={onKeyDown}
+    >
+      <div
+        aria-hidden="true"
+        className={`fixed inset-0 bg-background/98 sm:bg-background/95 backdrop-blur-2xl transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}
+        style={{ minHeight: "100dvh", minWidth: "100vw" }}
+        onClick={dismiss}
+      />
       <button ref={closeRef} type="button" onClick={dismiss} className={`absolute right-5 top-5 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium tracking-wide text-muted-foreground outline-none transition-[opacity,color] duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}>
         {labels.close}
         <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
