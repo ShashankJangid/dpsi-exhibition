@@ -20,6 +20,7 @@ import TwoDFallbackGrid from '@/components/ui/TwoDFallbackGrid';
 import AuthModal from '@/components/ui/AuthModal';
 import SearchModal from '@/components/ui/SearchModal';
 import MobileNavMenu from '@/components/ui/MobileNavMenu';
+import FeedbackModal from '@/components/ui/FeedbackModal';
 import CameraControlsWidget from '@/components/ui/CameraControlsWidget';
 import MinimapHUD from '@/components/ui/MinimapHUD';
 import GuidedTour from '@/components/canvas/GuidedTour';
@@ -270,6 +271,7 @@ export default function ExpoFloorPlanPage() {
       <SearchModal />
       <MobileNavMenu />
       <DelegatePassModal />
+      <FeedbackModal />
     </main>
   );
 }

@@ -32,6 +32,7 @@ import AuthModal from '@/components/ui/AuthModal';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import SearchModal from '@/components/ui/SearchModal';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
+import FeedbackModal from '@/components/ui/FeedbackModal';
 import ProjectCardSkeleton from '@/components/ui/ProjectCardSkeleton';
 import PictureRailGallery, { type PictureRailItem, type PictureFrameStyle } from '@/components/ui/picture-rail-gallery';
 import { EXHIBITION_GALLERY_ITEMS } from '@/components/ui/demo';
@@ -1833,6 +1834,7 @@ export default function LandingPage() {
       <SearchModal />
       <DelegatePassModal />
       <LiveLeaderboard />
+      <FeedbackModal />
 
       {/* Dynamic Floating Toast Notification */}
       <AnimatePresence>
