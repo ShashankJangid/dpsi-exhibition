@@ -86,56 +86,6 @@ export function HeaderScrollTelemetry({
   );
 }
 
-interface HeroReticleProps {
-  isLight: boolean;
-  reticleRingRef: React.RefObject<SVGCircleElement | null>;
-  reticleCoreRef: React.RefObject<SVGPathElement | null>;
-}
-
-/**
- * Architectural CAD emblem beside the hero EXPO'26 display headline that morphs as the page scrolls.
- */
-export function HeroBlueprintReticle({
-  isLight,
-  reticleRingRef,
-  reticleCoreRef,
-}: HeroReticleProps) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`hidden md:flex items-center justify-center w-20 h-20 rounded-2xl border shrink-0 relative ${
-        isLight
-          ? 'border-slate-300/80 bg-white/70 shadow-xs'
-          : 'border-[#30363d] bg-[#0d1117]/80'
-      }`}
-    >
-      <svg viewBox="0 0 24 24" className="w-12 h-12 overflow-visible">
-        <circle
-          ref={reticleRingRef}
-          cx="12"
-          cy="12"
-          r="10.2"
-          fill="none"
-          stroke={isLight ? '#94a3b8' : '#30363d'}
-          strokeWidth={0.75}
-          strokeDasharray="2 2"
-        />
-        <path
-          ref={reticleCoreRef}
-          d={SECTION_MORPH_PATHS.stage}
-          fill={isLight ? 'rgba(29, 78, 216, 0.08)' : 'rgba(56, 189, 248, 0.1)'}
-          stroke={isLight ? '#1d4ed8' : '#38bdf8'}
-          strokeWidth={1.6}
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="absolute bottom-1 right-1.5 text-[8px] font-mono tracking-wider text-slate-400">
-        CAD
-      </span>
-    </div>
-  );
-}
-
 interface HorizonMorphDividerProps {
   isLight: boolean;
   contourPathRef: React.RefObject<SVGPathElement | null>;

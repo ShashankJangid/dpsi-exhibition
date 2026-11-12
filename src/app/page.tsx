@@ -26,7 +26,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import confetti from 'canvas-confetti';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
@@ -43,7 +42,6 @@ import {
   HORIZON_CONTOUR_PATHS,
   EXHIBITION_SCROLL_ZONES,
   HeaderScrollTelemetry,
-  HeroBlueprintReticle,
   HorizonMorphDivider,
   ArenaMorphIcon,
 } from '@/components/ui/ScrollMorphSystems';
@@ -174,8 +172,6 @@ export default function LandingPage() {
   const headerMorphPathRef = useRef<SVGPathElement>(null);
   const headerZoneCodeRef = useRef<HTMLSpanElement>(null);
   const headerProgressPctRef = useRef<HTMLSpanElement>(null);
-  const heroReticleRingRef = useRef<SVGCircleElement>(null);
-  const heroReticleCoreRef = useRef<SVGPathElement>(null);
   const horizonSectionRef = useRef<HTMLElement>(null);
   const horizonOverlayRef = useRef<HTMLDivElement>(null);
   const horizonContourPathRef = useRef<SVGPathElement>(null);
@@ -373,36 +369,13 @@ export default function LandingPage() {
   // Master GSAP ScrollTrigger + MorphSVG choreography (SSR-safe, reduced-motion compliant)
   useEffect(() => {
     if (typeof window === 'undefined' || !pageContainerRef.current) return;
-    gsap.registerPlugin(ScrollTrigger, MorphSVGPlugin, DrawSVGPlugin);
+    gsap.registerPlugin(ScrollTrigger, MorphSVGPlugin);
 
     const mm = gsap.matchMedia(pageContainerRef);
     let fontsCancelled = false;
 
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      // 1. Hero CAD reticle initial stroke draw + scrubbed morph on exit
-      if (heroReticleRingRef.current) {
-        gsap.from(heroReticleRingRef.current, {
-          drawSVG: '0%',
-          duration: 1.05,
-          ease: 'power2.out',
-        });
-      }
-      if (heroReticleCoreRef.current) {
-        gsap.to(heroReticleCoreRef.current, {
-          morphSVG: { shape: SECTION_MORPH_PATHS.projects, type: 'rotational' },
-          rotation: 90,
-          transformOrigin: '50% 50%',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '#stage',
-            start: 'top 60%',
-            end: 'bottom top',
-            scrub: 0.6,
-          },
-        });
-      }
-
-      // 2. Global top progress beam + live scroll percentage readout
+      // 1. Global top progress beam + live scroll percentage readout
       if (scrollProgressBarRef.current) {
         gsap.to(scrollProgressBarRef.current, {
           scaleX: 1,
@@ -1150,19 +1123,12 @@ export default function LandingPage() {
               </span>
             </div>
 
-            {/* Massive Conference Title with Neon Block Accent & Morphing CAD Reticle */}
-            <div className="flex items-center justify-between gap-4">
-              <h1 className={`text-4xl sm:text-7xl md:text-9xl font-black tracking-tighter uppercase font-sans leading-none ${
-                isLight ? 'text-slate-800' : 'text-white'
-              }`}>
-                EXPO&apos;26<span className="inline-block w-5 h-5 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-[#2ea043] ml-1.5 sm:ml-2 -mb-1 align-baseline" /><span className="inline-block w-5 h-5 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-[#db61a2] -mb-1 align-baseline" />
-              </h1>
-              <HeroBlueprintReticle
-                isLight={isLight}
-                reticleRingRef={heroReticleRingRef}
-                reticleCoreRef={heroReticleCoreRef}
-              />
-            </div>
+            {/* Massive Conference Title with Neon Block Accent */}
+            <h1 className={`text-4xl sm:text-7xl md:text-9xl font-black tracking-tighter uppercase font-sans leading-none ${
+              isLight ? 'text-slate-800' : 'text-white'
+            }`}>
+              EXPO&apos;26<span className="inline-block w-5 h-5 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-[#2ea043] ml-1.5 sm:ml-2 -mb-1 align-baseline" /><span className="inline-block w-5 h-5 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-[#db61a2] -mb-1 align-baseline" />
+            </h1>
           </div>
 
           {/* Element 2: <TechText /> */}
