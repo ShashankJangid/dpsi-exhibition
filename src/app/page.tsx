@@ -38,9 +38,7 @@ import { EXHIBITION_GALLERY_ITEMS } from '@/components/ui/demo';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult, subscribeToUserVotedProjects } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
-
-const FEEDBACK_FORM_URL =
-  'https://docs.google.com/forms/d/e/1FAIpQLSdtQ5KIuKxaQxw_BmHqx685x8NfV4pkJv4wC-c8oDNnGeuqZA/viewform';
+import { FEEDBACK_FORM_URL } from '@/lib/utils';
 
 // React Bits Components loaded dynamically for SSR safety
 const GradientASCII = dynamic(() => import('@/components/reactbits/GradientASCII'), {
@@ -710,11 +708,12 @@ export default function LandingPage() {
               { href: '#projects', label: '44 Inventions' },
               { href: '#voting', label: 'Live Voting' },
               { href: '#schedule', label: 'Schedule' },
+              { href: '#feedback', label: 'Feedback' },
             ].map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className={`flex items-center px-4 border-r transition-colors ${
+                className={`flex items-center px-2.5 xl:px-3.5 border-r whitespace-nowrap transition-colors ${
                   isLight
                     ? 'border-slate-200/80 text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
                     : 'border-[#30363d] text-[#c9d1d9] hover:text-white hover:bg-[#161b22]'
@@ -760,6 +759,24 @@ export default function LandingPage() {
               <Trophy className="w-3.5 h-3.5 text-amber-500" />
               <span className="hidden xl:inline">Leaderboard</span>
             </button>
+
+            {/* Exhibition Feedback Form Button */}
+            <a
+              href={FEEDBACK_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => playClick()}
+              className={`flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
+                isLight
+                  ? 'border-slate-200/80 hover:bg-emerald-500/10 text-emerald-700 font-semibold'
+                  : 'border-[#30363d] hover:bg-emerald-500/10 text-[#3fb950] font-semibold'
+              }`}
+              title="Submit Exhibition Feedback"
+              aria-label="Submit Exhibition Feedback"
+            >
+              <MessageSquarePlus className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xl:inline">Feedback</span>
+            </a>
 
             <button
               onClick={toggleTheme}
