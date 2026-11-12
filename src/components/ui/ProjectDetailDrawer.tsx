@@ -74,6 +74,7 @@ export default function ProjectDetailDrawer() {
   const votedProjectIds = useExhibitionStore((state) => state.votedProjectIds);
   const markProjectVoted = useExhibitionStore((state) => state.markProjectVoted);
   const incrementProjectVote = useExhibitionStore((state) => state.incrementProjectVote);
+  const setProjectVoteCount = useExhibitionStore((state) => state.setProjectVoteCount);
   const user = useExhibitionStore((state) => state.user);
   const setAuthModalOpen = useExhibitionStore((state) => state.setAuthModalOpen);
   const setDelegatePassOpen = useExhibitionStore((state) => state.setDelegatePassOpen);
@@ -160,6 +161,15 @@ export default function ProjectDetailDrawer() {
 
       if (res.alreadyVoted) {
         markProjectVoted(selectedProject.id);
+        try {
+          const key = `dpsi_voted_v2_${user.id}`;
+          const existing = JSON.parse(localStorage.getItem(key) || '[]');
+          if (!existing.includes(selectedProject.id)) {
+            localStorage.setItem(key, JSON.stringify([...existing, selectedProject.id]));
+          }
+        } catch {
+          // localStorage fallback
+        }
         setVoteError(
           res.message ||
             'A vote has already been recorded for this project from this device or account.'
@@ -174,14 +184,19 @@ export default function ProjectDetailDrawer() {
 
       markProjectVoted(selectedProject.id);
       try {
-        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
+        const key = `dpsi_voted_v2_${user.id}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
         if (!existing.includes(selectedProject.id)) {
-          localStorage.setItem('dpsi_voted_project_ids', JSON.stringify([...existing, selectedProject.id]));
+          localStorage.setItem(key, JSON.stringify([...existing, selectedProject.id]));
         }
       } catch {
         // localStorage fallback
       }
-      incrementProjectVote(selectedProject.id);
+      if (typeof res.newVoteCount === 'number') {
+        setProjectVoteCount(selectedProject.id, res.newVoteCount);
+      } else {
+        incrementProjectVote(selectedProject.id);
+      }
       setVoteSuccessMessage(res.message || 'Vote successfully verified and recorded!');
 
       playChime();

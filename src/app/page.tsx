@@ -20,6 +20,7 @@ import {
   Lock,
   LayoutGrid,
   Image as ImageIcon,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
@@ -35,6 +36,7 @@ import AuthModal from '@/components/ui/AuthModal';
 import DelegatePassModal from '@/components/ui/DelegatePassModal';
 import SearchModal from '@/components/ui/SearchModal';
 import LiveLeaderboard from '@/components/ui/LiveLeaderboard';
+import FeedbackModal from '@/components/ui/FeedbackModal';
 import ProjectCardSkeleton from '@/components/ui/ProjectCardSkeleton';
 import {
   SECTION_MORPH_PATHS,
@@ -50,6 +52,7 @@ import { EXHIBITION_GALLERY_ITEMS } from '@/components/ui/demo';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult, subscribeToUserVotedProjects } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
+import { FEEDBACK_FORM_URL } from '@/lib/utils';
 
 // React Bits Components loaded dynamically for SSR safety
 const GradientASCII = dynamic(() => import('@/components/reactbits/GradientASCII'), {
@@ -75,6 +78,65 @@ const TextLoop = dynamic(() => import('@/components/reactbits/TextLoop'), {
   ssr: false,
 });
 
+interface RevealBatchOptions {
+  yOffset: number;
+  duration: number;
+  stagger: number;
+  ease: string;
+  thresholdPct: number;
+  interval?: number;
+  batchMax?: number;
+  onPendingPrepared?: (pending: HTMLElement[]) => void;
+  onRevealBatch?: (batch: HTMLElement[]) => void;
+}
+
+/**
+ * Reveals below-the-fold cards in ScrollTrigger batches while keeping
+ * elements already at or above the reveal cutoff immediately visible.
+ */
+function createSafeRevealBatch(selector: string, options: RevealBatchOptions) {
+  const elements = gsap.utils.toArray<HTMLElement>(selector);
+  if (elements.length === 0) return;
+
+  const cutoffY = window.innerHeight * (options.thresholdPct / 100);
+  const pending: HTMLElement[] = [];
+
+  elements.forEach((el) => {
+    if (el.getBoundingClientRect().top <= cutoffY) {
+      gsap.set(el, { clearProps: 'transform,opacity' });
+    } else {
+      pending.push(el);
+    }
+  });
+
+  if (pending.length === 0) return;
+
+  gsap.set(pending, { opacity: 0, y: options.yOffset });
+  options.onPendingPrepared?.(pending);
+
+  const reveal = (batch: Element[]) => {
+    const targets = batch as HTMLElement[];
+    gsap.to(targets, {
+      opacity: 1,
+      y: 0,
+      duration: options.duration,
+      stagger: options.stagger,
+      ease: options.ease,
+      clearProps: 'transform,opacity',
+    });
+    options.onRevealBatch?.(targets);
+  };
+
+  ScrollTrigger.batch(pending, {
+    ...(options.interval !== undefined ? { interval: options.interval } : {}),
+    ...(options.batchMax !== undefined ? { batchMax: options.batchMax } : {}),
+    start: `top ${options.thresholdPct}%`,
+    once: true,
+    onEnter: reveal,
+    onEnterBack: reveal,
+  });
+}
+
 export default function LandingPage() {
   const theme = useExhibitionStore((state) => state.theme);
   const toggleTheme = useExhibitionStore((state) => state.toggleTheme);
@@ -92,7 +154,9 @@ export default function LandingPage() {
   const user = useExhibitionStore((state) => state.user);
   const votedProjectIds = useExhibitionStore((state) => state.votedProjectIds);
   const markProjectVoted = useExhibitionStore((state) => state.markProjectVoted);
+  const setVotedProjectIds = useExhibitionStore((state) => state.setVotedProjectIds);
   const incrementProjectVote = useExhibitionStore((state) => state.incrementProjectVote);
+  const setProjectVoteCount = useExhibitionStore((state) => state.setProjectVoteCount);
 
   type FilterCategory = 'all' | 'Physical' | 'Digital' | 'Business' | 'Show & Tell' | 'Robotics';
   const [selectedZone, setSelectedZone] = useState<FilterCategory>('all');
@@ -101,6 +165,7 @@ export default function LandingPage() {
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
   const [isProjectsLoading, setIsProjectsLoading] = useState(true);
+  const [votingProjectId, setVotingProjectId] = useState<string | null>(null);
   const [activeScrollSection, setActiveScrollSection] = useState<string>('stage');
 
   // GSAP + ScrollTrigger + MorphSVG refs
@@ -171,11 +236,8 @@ export default function LandingPage() {
           name: firebaseUser.displayName || (currentUser?.id === firebaseUser.uid ? currentUser.name : 'Visitor'),
         });
       } else {
-        const currentUser = useExhibitionStore.getState().user;
-        // Retain local guest visitor pass if Firebase anonymous auth is unconfigured
-        if (!currentUser?.id.startsWith('guest_')) {
-          setUser(null);
-        }
+        setUser(null);
+        setVotedProjectIds([]);
       }
     });
 
@@ -195,38 +257,41 @@ export default function LandingPage() {
       unsubAuth();
       unsubProjects();
     };
-  }, [setIsMobile, setDeviceFingerprint, setUser, setProjects, setSearchModalOpen]);
-
-  // Load locally saved votes from localStorage on client mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('dpsi_voted_project_ids');
-      if (stored) {
-        const ids = JSON.parse(stored);
-        if (Array.isArray(ids)) {
-          ids.forEach((id: string) => markProjectVoted(id));
-        }
-      }
-    } catch {
-      // LocalStorage access fallback
-    }
-  }, [markProjectVoted]);
+  }, [setIsMobile, setDeviceFingerprint, setUser, setVotedProjectIds, setProjects, setSearchModalOpen]);
 
   // Subscribe to verified user votes from Firestore when user identity is present
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setVotedProjectIds([]);
+      return;
+    }
+
+    const storageKey = `dpsi_voted_v2_${user.id}`;
+    let localIds: string[] = [];
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          localIds = parsed.filter((id): id is string => typeof id === 'string');
+          setVotedProjectIds(localIds);
+        }
+      }
+    } catch {
+      // localStorage fallback
+    }
+
     const unsub = subscribeToUserVotedProjects(user.id, (ids) => {
-      ids.forEach((id) => markProjectVoted(id));
+      const merged = Array.from(new Set([...localIds, ...ids]));
+      setVotedProjectIds(merged);
       try {
-        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
-        const merged = Array.from(new Set([...existing, ...ids]));
-        localStorage.setItem('dpsi_voted_project_ids', JSON.stringify(merged));
+        localStorage.setItem(storageKey, JSON.stringify(merged));
       } catch {
         // localStorage fallback
       }
     });
     return () => unsub();
-  }, [user?.id, markProjectVoted]);
+  }, [user?.id, setVotedProjectIds]);
 
   const allProjects = storeProjects.length > 0 ? storeProjects : SEED_PROJECTS;
   const filteredProjects = allProjects.filter((p) => {
@@ -425,72 +490,52 @@ export default function LandingPage() {
       });
 
       // 5. Three Arenas stagger + SVG corner mark morphing on reveal
-      const arenaCards = gsap.utils.toArray<HTMLElement>('[data-gsap-arena-card]');
-      if (arenaCards.length > 0) {
-        gsap.set(arenaCards, { opacity: 0, y: 24 });
-        ScrollTrigger.batch(arenaCards, {
-          start: 'top 86%',
-          once: true,
-          onEnter: (batch) => {
-            gsap.to(batch, {
-              opacity: 1,
-              y: 0,
-              duration: 0.55,
-              stagger: 0.12,
-              ease: 'power3.out',
-              clearProps: 'transform,opacity',
-            });
-            batch.forEach((card) => {
-              const glyph = card.querySelector<SVGPathElement>('[data-arena-morph-path]');
-              const targetShape = glyph?.dataset.morphTarget;
-              if (glyph && targetShape) {
-                gsap.to(glyph, {
-                  morphSVG: { shape: targetShape, type: 'rotational' },
-                  duration: 0.75,
-                  ease: 'power2.inOut',
-                });
-              }
-            });
-          },
-        });
-      }
+      createSafeRevealBatch('[data-gsap-arena-card]', {
+        yOffset: 24,
+        duration: 0.55,
+        stagger: 0.12,
+        ease: 'power3.out',
+        thresholdPct: 86,
+        onPendingPrepared: (pending) => {
+          pending.forEach((card) => {
+            const glyph = card.querySelector<SVGPathElement>('[data-arena-morph-path]');
+            const fromShape = glyph?.dataset.morphFrom;
+            if (glyph && fromShape) {
+              gsap.set(glyph, { attr: { d: fromShape } });
+            }
+          });
+        },
+        onRevealBatch: (batch) => {
+          batch.forEach((card) => {
+            const glyph = card.querySelector<SVGPathElement>('[data-arena-morph-path]');
+            const targetShape = glyph?.dataset.morphTarget;
+            if (glyph && targetShape) {
+              gsap.to(glyph, {
+                morphSVG: { shape: targetShape, type: 'rotational' },
+                duration: 0.75,
+                ease: 'power2.inOut',
+              });
+            }
+          });
+        },
+      });
 
       // 6. Voting pillar cards & Schedule bento panels dynamic reveal
-      const votingCards = gsap.utils.toArray<HTMLElement>('[data-gsap-voting-card]');
-      if (votingCards.length > 0) {
-        gsap.set(votingCards, { opacity: 0, y: 20 });
-        ScrollTrigger.batch(votingCards, {
-          start: 'top 88%',
-          once: true,
-          onEnter: (batch) =>
-            gsap.to(batch, {
-              opacity: 1,
-              y: 0,
-              duration: 0.5,
-              stagger: 0.1,
-              ease: 'power2.out',
-              clearProps: 'transform,opacity',
-            }),
-        });
-      }
+      createSafeRevealBatch('[data-gsap-voting-card]', {
+        yOffset: 20,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: 'power2.out',
+        thresholdPct: 88,
+      });
 
-      const schedulePanels = gsap.utils.toArray<HTMLElement>('[data-gsap-schedule-panel]');
-      if (schedulePanels.length > 0) {
-        gsap.set(schedulePanels, { opacity: 0, y: 22 });
-        ScrollTrigger.batch(schedulePanels, {
-          start: 'top 88%',
-          once: true,
-          onEnter: (batch) =>
-            gsap.to(batch, {
-              opacity: 1,
-              y: 0,
-              duration: 0.55,
-              stagger: 0.14,
-              ease: 'power3.out',
-              clearProps: 'transform,opacity',
-            }),
-        });
-      }
+      createSafeRevealBatch('[data-gsap-schedule-panel]', {
+        yOffset: 22,
+        duration: 0.55,
+        stagger: 0.14,
+        ease: 'power3.out',
+        thresholdPct: 88,
+      });
     });
 
     if (document.fonts?.ready) {
@@ -517,24 +562,14 @@ export default function LandingPage() {
 
     const mm = gsap.matchMedia(pageContainerRef);
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      const cards = gsap.utils.toArray<HTMLElement>('[data-gsap-project-card]');
-      if (cards.length === 0) return;
-
-      gsap.set(cards, { opacity: 0, y: 18 });
-      ScrollTrigger.batch(cards, {
+      createSafeRevealBatch('[data-gsap-project-card]', {
+        yOffset: 18,
+        duration: 0.42,
+        stagger: 0.05,
+        ease: 'power2.out',
+        thresholdPct: 92,
         interval: 0.08,
         batchMax: 6,
-        start: 'top 92%',
-        once: true,
-        onEnter: (batch) =>
-          gsap.to(batch, {
-            opacity: 1,
-            y: 0,
-            duration: 0.42,
-            stagger: 0.05,
-            ease: 'power2.out',
-            clearProps: 'transform,opacity',
-          }),
       });
     });
 
@@ -565,38 +600,73 @@ export default function LandingPage() {
     return counts;
   }, [allProjects]);
 
-  // Direct Card Voting with Optimistic UI & Confetti
+  // Direct Card Voting with Verified Auth & Atomic Firestore Commit
   const handleDirectVote = async (p: Project, e: React.MouseEvent) => {
     playClick();
+    if (!user) {
+      setAuthModalOpen(true);
+      showToast('Please sign in to vote for this project');
+      return;
+    }
     if (votedProjectIds.includes(p.id)) {
       showToast(`Already verified vote for Booth ${p.booth_code}`);
       return;
     }
-    if (!user) {
-      setAuthModalOpen(true);
-      showToast('Please sign in or enter guest email to verify ballot');
-      return;
-    }
+    if (votingProjectId === p.id) return;
 
+    const targetEl = e.currentTarget as HTMLElement;
+    const rect = targetEl.getBoundingClientRect();
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+    setVotingProjectId(p.id);
     try {
       const fingerprint = await getDeviceFingerprint();
 
-      // Instant optimistic UI update
+      const res = await castVoteInFirebase({
+        projectId: p.id,
+        fingerprint,
+        userId: user.id,
+        userEmail: user.email,
+      });
+
+      if (res.alreadyVoted) {
+        markProjectVoted(p.id);
+        try {
+          const key = `dpsi_voted_v2_${user.id}`;
+          const existing = JSON.parse(localStorage.getItem(key) || '[]');
+          if (!existing.includes(p.id)) {
+            localStorage.setItem(key, JSON.stringify([...existing, p.id]));
+          }
+        } catch {
+          // localStorage fallback
+        }
+        showToast(res.message || `Notice: Vote was previously recorded for Booth ${p.booth_code}`);
+        return;
+      }
+
+      if (!res.success) {
+        showToast(res.message || 'Vote could not be verified. Please sign in and try again.');
+        return;
+      }
+
       markProjectVoted(p.id);
       try {
-        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
+        const key = `dpsi_voted_v2_${user.id}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
         if (!existing.includes(p.id)) {
-          localStorage.setItem('dpsi_voted_project_ids', JSON.stringify([...existing, p.id]));
+          localStorage.setItem(key, JSON.stringify([...existing, p.id]));
         }
       } catch {
         // localStorage fallback
       }
-      incrementProjectVote(p.id);
 
-      // Confetti burst from button position
-      const rect = (e.target as HTMLElement).getBoundingClientRect();
-      const x = (rect.left + rect.width / 2) / window.innerWidth;
-      const y = (rect.top + rect.height / 2) / window.innerHeight;
+      if (typeof res.newVoteCount === 'number') {
+        setProjectVoteCount(p.id, res.newVoteCount);
+      } else {
+        incrementProjectVote(p.id);
+      }
+
       confetti({
         particleCount: 55,
         spread: 60,
@@ -606,23 +676,11 @@ export default function LandingPage() {
       playChime();
       triggerHaptic(30);
 
-      showToast(`🎉 Verified ballot recorded for Booth ${p.booth_code}!`);
-
-      // Backend verification with token attachment and response verification
-      castVoteInFirebase({
-        projectId: p.id,
-        fingerprint,
-        userId: user.id,
-        userEmail: user.email,
-      }).then((res) => {
-        if (res.alreadyVoted) {
-          showToast(`Notice: Vote was previously recorded for Booth ${p.booth_code}`);
-        } else if (!res.success) {
-          showToast(res.message || 'Vote verification sync warning. Please check connection.');
-        }
-      });
+      showToast(`Verified ballot counted for Booth ${p.booth_code}!`);
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Vote submission failed. Please check connection.');
+    } finally {
+      setVotingProjectId(null);
     }
   };
 
@@ -840,15 +898,17 @@ export default function LandingPage() {
                   e.stopPropagation();
                   handleDirectVote(p, e);
                 }}
-                disabled={isVoted}
+                disabled={isVoted || votingProjectId === p.id}
                 className={`px-3 py-1 rounded-lg text-[11px] font-bold font-mono transition-all shadow-xs active:scale-95 ${
                   isVoted
                     ? 'bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 cursor-default'
+                    : votingProjectId === p.id
+                    ? 'bg-emerald-700/70 text-white cursor-wait'
                     : 'bg-[#238636] hover:bg-[#2ea043] text-white'
                 }`}
                 title={isVoted ? `Already voted for ${p.booth_code}` : `Cast verified vote for ${p.booth_code}`}
               >
-                {isVoted ? '✓ Voted' : 'Vote'}
+                {votingProjectId === p.id ? 'Voting...' : isVoted ? '✓ Voted' : 'Vote'}
               </button>
 
               <div className="flex items-center gap-1">
@@ -911,7 +971,7 @@ export default function LandingPage() {
       }`}
     >
       {/* ─── GITHUB UNIVERSE GRID NAVBAR ─── */}
-      <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 relative ${
+      <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b transition-colors duration-300 ${
         isLight
           ? 'bg-[#dfe3e8]/90 border-slate-300/80 shadow-xs'
           : 'bg-[#000000]/95 border-[#30363d]'
@@ -946,13 +1006,14 @@ export default function LandingPage() {
               { href: '#projects', label: '44 Inventions' },
               { href: '#voting', label: 'Live Voting' },
               { href: '#schedule', label: 'Schedule' },
+              { href: '#feedback', label: 'Feedback' },
             ].map((item) => {
               const isActive = activeScrollSection === item.href.slice(1);
               return (
                 <a
                   key={item.href}
                   href={item.href}
-                  className={`relative flex items-center px-3 xl:px-3.5 border-r transition-colors whitespace-nowrap ${
+                  className={`relative flex items-center px-2.5 xl:px-3 border-r transition-colors whitespace-nowrap ${
                     isActive
                       ? isLight
                         ? 'border-slate-200/80 text-slate-950 font-bold bg-white/50'
@@ -1012,6 +1073,24 @@ export default function LandingPage() {
               <Trophy className="w-3.5 h-3.5 text-amber-500" />
               <span className="hidden xl:inline">Leaderboard</span>
             </button>
+
+            {/* Exhibition Feedback Form Button */}
+            <a
+              href={FEEDBACK_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => playClick()}
+              className={`flex items-center gap-1.5 px-3 border-r font-mono text-xs transition-colors ${
+                isLight
+                  ? 'border-slate-200/80 hover:bg-emerald-500/10 text-emerald-700 font-semibold'
+                  : 'border-[#30363d] hover:bg-emerald-500/10 text-[#3fb950] font-semibold'
+              }`}
+              title="Submit Exhibition Feedback"
+              aria-label="Submit Exhibition Feedback"
+            >
+              <MessageSquarePlus className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xl:inline">Feedback</span>
+            </a>
 
             <button
               onClick={toggleTheme}
@@ -1981,6 +2060,70 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ─── EXHIBITION VISITOR & JURY FEEDBACK SECTION ─── */}
+      <section
+        id="feedback"
+        className={`scroll-mt-16 border-b py-12 transition-colors duration-300 ${
+          isLight ? 'border-slate-200/80 bg-white/35 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div
+            className={`relative overflow-hidden rounded-2xl border p-6 sm:p-8 lg:p-10 transition-all ${
+              isLight
+                ? 'border-slate-300/80 bg-white/85 backdrop-blur-md shadow-xs'
+                : 'border-[#30363d] bg-[#0d1117]/90'
+            }`}
+          >
+            {/* Subtle Ambient Corner Highlight */}
+            <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-emerald-500/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-amber-500/10 blur-3xl" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>VISITOR &amp; JURY FEEDBACK</span>
+                </div>
+
+                <h2
+                  className={`text-2xl sm:text-3xl font-black uppercase font-sans tracking-tight ${
+                    isLight ? 'text-slate-800' : 'text-white'
+                  }`}
+                >
+                  Share Your Exhibition Experience
+                </h2>
+
+                <p
+                  className={`mt-2.5 text-xs sm:text-sm font-mono leading-relaxed ${
+                    isLight ? 'text-slate-600' : 'text-slate-400'
+                  }`}
+                >
+                  Loved our 44 student innovation showcases or the interactive 3D Virtual Hall? Submit quick feedback to help the DPS Indirapuram Organizing Committee celebrate young innovators and elevate future summits.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:items-end gap-2.5 shrink-0">
+                <a
+                  href={FEEDBACK_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => playClick()}
+                  className="inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl bg-[#238636] hover:bg-[#2ea043] text-white font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+                >
+                  <MessageSquarePlus className="w-4 h-4 shrink-0" />
+                  <span>Give Feedback</span>
+                  <ArrowUpRight className="w-4 h-4 shrink-0" />
+                </a>
+                <span className={`text-[11px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Official Google Form • Opens in new tab
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       </main>
 
       {/* ─── GITHUB UNIVERSE STYLE MINIMALIST FOOTER ─── */}
@@ -2004,7 +2147,7 @@ export default function LandingPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
             <Link href="/expo" className={`hover:underline ${isLight ? 'text-blue-600 font-semibold' : 'text-white'}`}>
               3D Floor Plan
             </Link>
@@ -2020,6 +2163,14 @@ export default function LandingPage() {
             <a href="#schedule" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
               Schedule
             </a>
+            <a
+              href={FEEDBACK_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`font-semibold transition-colors ${isLight ? 'text-emerald-700 hover:text-emerald-900' : 'text-[#3fb950] hover:text-emerald-300'}`}
+            >
+              Feedback ↗
+            </a>
           </div>
         </div>
       </footer>
@@ -2030,6 +2181,7 @@ export default function LandingPage() {
       <SearchModal />
       <DelegatePassModal />
       <LiveLeaderboard />
+      <FeedbackModal />
 
       {/* Dynamic Floating Toast Notification */}
       <AnimatePresence>

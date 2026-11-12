@@ -235,7 +235,9 @@ interface ExhibitionState {
   setDeviceFingerprint: (fingerprint: string) => void;
   setUser: (user: ExhibitionUser | null) => void;
   markProjectVoted: (projectId: string) => void;
+  setVotedProjectIds: (ids: string[]) => void;
   incrementProjectVote: (projectId: string) => void;
+  setProjectVoteCount: (projectId: string, voteCount: number) => void;
   setProjects: (projects: Project[]) => void;
   zoomIn: () => void;
   zoomOut: () => void;
@@ -437,6 +439,8 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
     }
   },
 
+  setVotedProjectIds: (ids) => set({ votedProjectIds: ids }),
+
   incrementProjectVote: (projectId) => {
     const updated = get().projects.map((p) =>
       p.id === projectId ? { ...p, vote_count: p.vote_count + 1 } : p
@@ -447,6 +451,20 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
       selectedProject:
         selected && selected.id === projectId
           ? { ...selected, vote_count: selected.vote_count + 1 }
+          : selected,
+    });
+  },
+
+  setProjectVoteCount: (projectId, voteCount) => {
+    const updated = get().projects.map((p) =>
+      p.id === projectId ? { ...p, vote_count: voteCount } : p
+    );
+    const selected = get().selectedProject;
+    set({
+      projects: updated,
+      selectedProject:
+        selected && selected.id === projectId
+          ? { ...selected, vote_count: voteCount }
           : selected,
     });
   },
@@ -471,7 +489,11 @@ export const useExhibitionStore = create<ExhibitionState>((set, get) => ({
     });
     const incMap = new Map(complete.map((p) => [p.id.toLowerCase(), p]));
     const fullList = SEED_PROJECTS.map((sp) => incMap.get(sp.id.toLowerCase()) || sp);
-    set({ projects: fullList });
+    const currentSelected = get().selectedProject;
+    const updatedSelected = currentSelected
+      ? fullList.find((p) => p.id === currentSelected.id) || currentSelected
+      : null;
+    set({ projects: fullList, selectedProject: updatedSelected });
   },
 
   zoomIn: () => {

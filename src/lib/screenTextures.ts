@@ -144,7 +144,7 @@ export function getBoothMonitorTexture(project: Project): THREE.CanvasTexture {
   // Big Vote Number
   ctx.fillStyle = palette.accent;
   ctx.font = 'bold 36px "Segoe UI", sans-serif';
-  ctx.fillText(`${project.vote_count || 124}`, 310, 178);
+  ctx.fillText(`${project.vote_count ?? 0}`, 310, 178);
 
   ctx.fillStyle = '#64748b';
   ctx.font = '10px monospace';

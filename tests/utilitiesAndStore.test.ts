@@ -284,24 +284,28 @@ describe('Client Utilities & Security Helpers', () => {
     }
   });
 
-  test('firestore.rules enforces zero-trust lockdown on votes and user_votes collections', async () => {
+  test('firestore.rules enforces authenticated atomic voting and zero-trust immutability on votes and user_votes', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const rulesPath = path.resolve(__dirname, '../firestore.rules');
     const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
 
-    // Verify /votes/{voteId} disallows direct client creation
+    // Verify /votes/{voteId} requires auth, paired user_votes creation, and immutability
     assert.ok(
       rulesContent.includes('match /votes/{voteId}'),
       'Must contain /votes/{voteId} rule block'
     );
     assert.ok(
-      !rulesContent.includes('allow create: if isValidVote'),
-      'Direct client create on /votes must be removed'
+      rulesContent.includes('allow create: if isValidVote(voteId, request.resource.data);'),
+      '/votes create must enforce isValidVote'
     );
     assert.ok(
-      rulesContent.includes('allow write: if false;'),
-      'Direct client write on /votes must be locked down'
+      rulesContent.includes('data.userId == request.auth.uid'),
+      'Votes and user_votes must bind userId to authenticated UID'
+    );
+    assert.ok(
+      rulesContent.includes('allow update, delete: if false;'),
+      'Vote records must be immutable once created'
     );
 
     // Verify /user_votes/{userVoteId} security rules
@@ -310,8 +314,14 @@ describe('Client Utilities & Security Helpers', () => {
       'Must contain /user_votes/{userVoteId} rule block'
     );
     assert.ok(
-      rulesContent.includes('allow read: if isAuthenticated() && isOwner(resource.data.userId);'),
-      'Must allow reading user vote receipts only for the owner'
+      rulesContent.includes('allow list: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());'),
+      'Must allow listing user vote receipts only for the authenticated owner or admin'
+    );
+
+    // Verify /projects/{projectId} atomic increment requires user_votes receipt creation
+    assert.ok(
+      rulesContent.includes('existsAfter(userVotePath)'),
+      'Project vote increment must atomically require paired user_votes receipt creation'
     );
 
     // Verify isOwner helper exists
@@ -319,6 +329,13 @@ describe('Client Utilities & Security Helpers', () => {
       rulesContent.includes('function isOwner(userId)'),
       'Must define isOwner helper function'
     );
+  });
+
+  test('all SEED_PROJECTS initialize at 0 votes cleanly', () => {
+    assert.equal(SEED_PROJECTS.length, 44);
+    for (const p of SEED_PROJECTS) {
+      assert.equal(p.vote_count, 0, `Expected 0 initial votes for ${p.id}, got ${p.vote_count}`);
+    }
   });
 
   test('useExhibitionStore manages WebGL fallback notice, battery-saver low-FPS mode, and booth selection immutably', () => {

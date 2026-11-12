@@ -5,7 +5,12 @@ import dynamic from 'next/dynamic';
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { SEED_PROJECTS } from '@/data/seedProjects';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
-import { subscribeToProjects, onFirebaseAuthStateChange, checkRedirectResult } from '@/lib/firebase';
+import {
+  subscribeToProjects,
+  onFirebaseAuthStateChange,
+  checkRedirectResult,
+  subscribeToUserVotedProjects,
+} from '@/lib/firebase';
 import TopNavHUD from '@/components/ui/TopNavHUD';
 import MobileBottomDock from '@/components/ui/MobileBottomDock';
 import ProjectDetailDrawer from '@/components/ui/ProjectDetailDrawer';
@@ -15,6 +20,7 @@ import TwoDFallbackGrid from '@/components/ui/TwoDFallbackGrid';
 import AuthModal from '@/components/ui/AuthModal';
 import SearchModal from '@/components/ui/SearchModal';
 import MobileNavMenu from '@/components/ui/MobileNavMenu';
+import FeedbackModal from '@/components/ui/FeedbackModal';
 import CameraControlsWidget from '@/components/ui/CameraControlsWidget';
 import MinimapHUD from '@/components/ui/MinimapHUD';
 import GuidedTour from '@/components/canvas/GuidedTour';
@@ -36,6 +42,8 @@ export default function ExpoFloorPlanPage() {
   const setIsMobile = useExhibitionStore((state) => state.setIsMobile);
   const setProjects = useExhibitionStore((state) => state.setProjects);
   const setUser = useExhibitionStore((state) => state.setUser);
+  const user = useExhibitionStore((state) => state.user);
+  const setVotedProjectIds = useExhibitionStore((state) => state.setVotedProjectIds);
   const theme = useExhibitionStore((state) => state.theme);
   const isLight = theme === 'light';
 
@@ -68,13 +76,15 @@ export default function ExpoFloorPlanPage() {
     // 2. Centralized Firebase Auth state synchronization
     const unsubAuth = onFirebaseAuthStateChange((firebaseUser) => {
       if (firebaseUser) {
+        const currentUser = useExhibitionStore.getState().user;
         setUser({
           id: firebaseUser.uid,
-          email: firebaseUser.email || 'user@dpsi.in',
-          name: firebaseUser.displayName || 'Visitor',
+          email: firebaseUser.email || (currentUser?.id === firebaseUser.uid ? currentUser.email : 'visitor@dpsi.in'),
+          name: firebaseUser.displayName || (currentUser?.id === firebaseUser.uid ? currentUser.name : 'Visitor'),
         });
       } else {
         setUser(null);
+        setVotedProjectIds([]);
       }
     });
 
@@ -128,7 +138,41 @@ export default function ExpoFloorPlanPage() {
       unsubAuth();
       unsubProjects();
     };
-  }, [setIsMobile, setDeviceFingerprint, setProjects, setUser]);
+  }, [setIsMobile, setDeviceFingerprint, setProjects, setUser, setVotedProjectIds]);
+
+  // Subscribe to verified user votes from Firestore when user identity is present
+  useEffect(() => {
+    if (!user?.id) {
+      setVotedProjectIds([]);
+      return;
+    }
+
+    const storageKey = `dpsi_voted_v2_${user.id}`;
+    let localIds: string[] = [];
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          localIds = parsed.filter((id): id is string => typeof id === 'string');
+          setVotedProjectIds(localIds);
+        }
+      }
+    } catch {
+      // localStorage fallback
+    }
+
+    const unsub = subscribeToUserVotedProjects(user.id, (ids) => {
+      const merged = Array.from(new Set([...localIds, ...ids]));
+      setVotedProjectIds(merged);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(merged));
+      } catch {
+        // localStorage fallback
+      }
+    });
+    return () => unsub();
+  }, [user?.id, setVotedProjectIds]);
 
   return (
     <main className={`relative w-screen h-[100dvh] overflow-hidden font-sans transition-colors duration-300 ${
@@ -227,6 +271,7 @@ export default function ExpoFloorPlanPage() {
       <SearchModal />
       <MobileNavMenu />
       <DelegatePassModal />
+      <FeedbackModal />
     </main>
   );
 }

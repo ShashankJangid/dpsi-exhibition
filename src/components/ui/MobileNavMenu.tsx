@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { signOutFromFirebase } from '@/lib/firebase';
+import { FEEDBACK_FORM_URL } from '@/lib/utils';
 import {
   X,
   Search,
@@ -22,6 +23,7 @@ import {
   Sun,
   Moon,
   ArrowLeft,
+  MessageSquarePlus,
 } from 'lucide-react';
 
 export default function MobileNavMenu() {
@@ -296,6 +298,28 @@ export default function MobileNavMenu() {
           </div>
           <ChevronRight className="w-5 h-5 text-amber-600 dark:text-amber-400" />
         </button>
+
+        {/* Exhibition Feedback Form Button */}
+        <a
+          href={FEEDBACK_FORM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => setMobileMenuOpen(false)}
+          className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-100/90 via-emerald-50/60 to-transparent dark:from-emerald-500/20 dark:via-emerald-500/10 dark:to-emerald-600/5 border border-emerald-300 dark:border-emerald-500/40 text-left transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-600/30">
+              <MessageSquarePlus className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-emerald-900 dark:text-emerald-300 uppercase tracking-wide">
+                Give Exhibition Feedback
+              </h4>
+              <p className="text-[11px] text-emerald-800/80 dark:text-emerald-200/70">Share visitor &amp; jury feedback form</p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+        </a>
 
         {/* User Account / Sign In */}
         <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80">

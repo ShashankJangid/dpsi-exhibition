@@ -1,5 +1,54 @@
 rules_version = '2';
 
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// This security rules file assumes the following data structures for the
+// DPS Indirapuram Exhibition voting platform (Spark plan, client atomic transactions):
+//
+// Collection: projects
+// Document ID: {projectId} (lowercase slug matching ^[a-z0-9_-]{1,50}$, e.g., 'p01', 'st03')
+// Fields:
+//   - id: string (optional, 1-50 chars, must match {projectId}; immutable once set)
+//   - title: string (required, 1-200 chars)
+//   - zone: string (required, enum: 'zone-1' | 'zone-2' | 'zone-3')
+//   - category: string (required, enum: 'Show & Tell' | 'Physical' | 'Digital' | 'Business' | 'Robo Race' | 'Robo Soccer')
+//   - booth_code: string (required, 1-20 chars)
+//   - booth_number: number (required, 0..1000)
+//   - position_x: number (required, -500..500)
+//   - position_y: number (required, -500..500)
+//   - position_z: number (required, -500..500)
+//   - rotation_y: number (optional, -10..10)
+//   - image_url: string (required, 1-1000 chars, https://, http://, or relative /)
+//   - description: string (required, 1-5000 chars)
+//   - tagline: string (optional, 0-500 chars)
+//   - members: list (required, 1-20 items, non-empty student strings)
+//   - tech_stack: list (optional, 0-30 items)
+//   - vote_count: number (required, >= 0; voters may only increment by +1 atomically)
+//   - created_at: string (optional, 1-64 chars, immutable once set)
+//   - updated_at: string (optional, 1-64 chars)
+//   - createdAt: timestamp (optional, immutable once set)
+//   - updatedAt: timestamp (optional, must equal request.time on voter increment)
+//
+// Collection: votes (Hardware Fingerprint Anti-Cheat Audit Ledger)
+// Document ID: {voteId} = {projectId}_{deviceFingerprint}
+// Fields (immutable once created):
+//   - projectId: string (required, 1-50 chars matching ^[a-z0-9_-]+$, target project must exist)
+//   - userId: string (required, 1-128 chars, must equal request.auth.uid)
+//   - deviceFingerprint: string (required, 8-128 chars matching ^[a-zA-Z0-9_+=:.-]+$)
+//   - userEmail: string | null (optional, null or valid email string <= 254 chars)
+//   - createdAt: timestamp (optional, must equal request.time)
+//
+// Collection: user_votes (Account Level Anti-Cheat Receipt Ledger)
+// Document ID: {userVoteId} = {projectId}_{userId}
+// Fields (immutable once created):
+//   - projectId: string (required, 1-50 chars matching ^[a-z0-9_-]+$, target project must exist)
+//   - userId: string (required, 1-128 chars, must equal request.auth.uid)
+//   - createdAt: timestamp (optional, must equal request.time)
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -7,39 +56,63 @@ service cloud.firestore {
     // Helper Functions
     // ===============================================================
 
+    // Check if the user is authenticated via Firebase Auth (Google OAuth or Anonymous Auth)
     function isAuthenticated() {
       return request.auth != null;
     }
 
+    // Check if the user has verified admin privileges from trusted Auth token claims
     function isAdmin() {
-      return isAuthenticated() &&
+      return isAuthenticated() && (
+        ('admin' in request.auth.token && request.auth.token.admin == true) ||
+        ('role' in request.auth.token && request.auth.token.role == 'admin') ||
         (
-          request.auth.token.admin == true ||
-          request.auth.token.role == 'admin' ||
-          (
-            request.auth.token.email != null &&
-            request.auth.token.email_verified == true &&
-            request.auth.token.email in [
-              'admin@dpsi-visitor.in',
-              'admin@dpsites.org'
-            ]
-          )
-        );
+          'email' in request.auth.token &&
+          'email_verified' in request.auth.token &&
+          request.auth.token.email != null &&
+          request.auth.token.email_verified == true &&
+          request.auth.token.email in [
+            'admin@dpsi-visitor.in',
+            'admin@dpsites.org'
+          ]
+        )
+      );
     }
 
+    // Check if the authenticated user owns the specified userId
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Check if required fields exist in incoming document
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    // Check if incoming document contains only allowed fields
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    // Validate string length bounds
     function isValidString(val, minLen, maxLen) {
       return val is string && val.size() >= minLen && val.size() <= maxLen;
     }
 
+    // Validate optional string field (if present, must be within length bounds)
     function isValidOptionalString(data, field, minLen, maxLen) {
-      return !(field in data) ||
-        (data[field] is string && data[field].size() >= minLen && data[field].size() <= maxLen);
+      return !(field in data) || isValidString(data[field], minLen, maxLen);
     }
 
+    // Validate email format with strict upper length bound
+    function isValidEmail(email) {
+      return email is string &&
+        email.size() >= 3 &&
+        email.size() <= 254 &&
+        email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$");
+    }
+
+    // Validate project image URL (HTTPS, HTTP, or local relative path)
     function isValidImageUrl(url) {
       return url is string &&
         url.size() > 0 &&
@@ -47,7 +120,34 @@ service cloud.firestore {
         (url.matches("^https://.*") || url.matches("^http://.*") || url.matches("^/.*"));
     }
 
-    function isValidProject(data) {
+    // Validate canonical projectId slug format (prevents path traversal and whitespace)
+    function isValidProjectId(projectId) {
+      return projectId is string &&
+        projectId.size() >= 1 &&
+        projectId.size() <= 50 &&
+        projectId.matches("^[a-z0-9_-]+$");
+    }
+
+    // Validate sanitized device fingerprint format (matches client fingerprint.ts)
+    function isValidFingerprint(fp) {
+      return fp is string &&
+        fp.size() >= 8 &&
+        fp.size() <= 128 &&
+        fp.matches("^[a-zA-Z0-9_+=:.-]+$");
+    }
+
+    // Check whether a user_votes document ID ends with '_{request.auth.uid}' (avoids existence oracle on null get)
+    function isOwnUserVoteDoc(userVoteId) {
+      let suffix = '_' + request.auth.uid;
+      return userVoteId.size() > suffix.size() &&
+        userVoteId[userVoteId.size() - suffix.size() : userVoteId.size()] == suffix;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidProject(projectId, data) {
       let requiredFields = [
         'title', 'zone', 'category', 'booth_code', 'booth_number',
         'position_x', 'position_y', 'position_z', 'image_url',
@@ -55,13 +155,15 @@ service cloud.firestore {
       ];
       let allowedFields = [
         'id', 'title', 'zone', 'category', 'booth_code', 'booth_number',
-        'position_x', 'position_y', 'position_z', 'image_url',
+        'position_x', 'position_y', 'position_z', 'rotation_y', 'image_url',
         'description', 'tagline', 'members', 'tech_stack', 'vote_count',
         'created_at', 'createdAt', 'updated_at', 'updatedAt'
       ];
 
-      return data.keys().hasAll(requiredFields) &&
-        data.keys().hasOnly(allowedFields) &&
+      return isValidProjectId(projectId) &&
+        hasRequiredFields(data, requiredFields) &&
+        hasOnlyAllowedFields(data, allowedFields) &&
+        (!('id' in data) || (isValidProjectId(data.id) && data.id == projectId)) &&
         isValidString(data.title, 1, 200) &&
         data.zone in ['zone-1', 'zone-2', 'zone-3'] &&
         data.category in ['Show & Tell', 'Physical', 'Digital', 'Business', 'Robo Race', 'Robo Soccer'] &&
@@ -70,13 +172,73 @@ service cloud.firestore {
         data.position_x is number && data.position_x >= -500 && data.position_x <= 500 &&
         data.position_y is number && data.position_y >= -500 && data.position_y <= 500 &&
         data.position_z is number && data.position_z >= -500 && data.position_z <= 500 &&
+        (!('rotation_y' in data) || (data.rotation_y is number && data.rotation_y >= -10 && data.rotation_y <= 10)) &&
         isValidImageUrl(data.image_url) &&
         isValidString(data.description, 1, 5000) &&
-        data.members is list && data.members.size() > 0 && data.members.size() <= 20 &&
-        data.vote_count is number && data.vote_count >= 0 &&
-        (!('id' in data) || isValidString(data.id, 1, 50)) &&
         isValidOptionalString(data, 'tagline', 0, 500) &&
-        (!('tech_stack' in data) || (data.tech_stack is list && data.tech_stack.size() <= 30));
+        data.members is list && data.members.size() > 0 && data.members.size() <= 20 &&
+        isValidString(data.members[0], 1, 100) &&
+        (!('tech_stack' in data) || (data.tech_stack is list && data.tech_stack.size() <= 30)) &&
+        data.vote_count is number && data.vote_count >= 0 && data.vote_count <= 10000000 &&
+        isValidOptionalString(data, 'created_at', 1, 64) &&
+        isValidOptionalString(data, 'updated_at', 1, 64) &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    // Validate atomic +1 vote_count increment paired with a newly created user_votes receipt
+    function isValidProjectVoteIncrement(projectId) {
+      let affected = request.resource.data.diff(resource.data).affectedKeys();
+      let userVotePath = /databases/$(database)/documents/user_votes/$(projectId + '_' + request.auth.uid);
+
+      return isAuthenticated() &&
+        affected.hasOnly(['vote_count', 'updatedAt']) &&
+        resource.data.vote_count is number &&
+        resource.data.vote_count >= 0 &&
+        request.resource.data.vote_count is number &&
+        request.resource.data.vote_count == resource.data.vote_count + 1 &&
+        (!affected.hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time) &&
+        !exists(userVotePath) &&
+        existsAfter(userVotePath);
+    }
+
+    // Validate hardware-fingerprinted vote audit document creation (DAG -> user_votes, projects)
+    function isValidVote(voteId, data) {
+      let requiredFields = ['projectId', 'userId', 'deviceFingerprint'];
+      let allowedFields = ['projectId', 'userId', 'deviceFingerprint', 'userEmail', 'createdAt'];
+      let userVotePath = /databases/$(database)/documents/user_votes/$(data.projectId + '_' + request.auth.uid);
+
+      return isAuthenticated() &&
+        hasRequiredFields(data, requiredFields) &&
+        hasOnlyAllowedFields(data, allowedFields) &&
+        isValidProjectId(data.projectId) &&
+        isValidFingerprint(data.deviceFingerprint) &&
+        isValidString(data.userId, 1, 128) &&
+        data.userId == request.auth.uid &&
+        voteId == data.projectId + '_' + data.deviceFingerprint &&
+        (!('userEmail' in data) || data.userEmail == null || isValidEmail(data.userEmail)) &&
+        (!('createdAt' in data) || (data.createdAt is timestamp && data.createdAt == request.time)) &&
+        exists(/databases/$(database)/documents/projects/$(data.projectId)) &&
+        !exists(/databases/$(database)/documents/votes/$(voteId)) &&
+        !exists(userVotePath) &&
+        existsAfter(userVotePath);
+    }
+
+    // Validate account-level vote receipt creation (DAG root -> projects only)
+    function isValidUserVote(userVoteId, data) {
+      let requiredFields = ['projectId', 'userId'];
+      let allowedFields = ['projectId', 'userId', 'createdAt'];
+
+      return isAuthenticated() &&
+        hasRequiredFields(data, requiredFields) &&
+        hasOnlyAllowedFields(data, allowedFields) &&
+        isValidProjectId(data.projectId) &&
+        isValidString(data.userId, 1, 128) &&
+        data.userId == request.auth.uid &&
+        userVoteId == data.projectId + '_' + request.auth.uid &&
+        (!('createdAt' in data) || (data.createdAt is timestamp && data.createdAt == request.time)) &&
+        !exists(/databases/$(database)/documents/user_votes/$(userVoteId)) &&
+        exists(/databases/$(database)/documents/projects/$(data.projectId));
     }
 
     // ===============================================================
@@ -90,44 +252,51 @@ service cloud.firestore {
     // Collection: projects
     // ===============================================================
     match /projects/{projectId} {
-      // Public read allowed for real-time exhibition leaderboard & 3D floor plan
+      // Public read allowed for real-time exhibition leaderboard & 3D floor plan (no PII)
       allow read: if true;
 
-      // Projects can be created by Admins or seeded with valid exhibition schema at vote_count == 0
-      allow create: if (isAdmin() && isValidProject(request.resource.data))
-        || (isValidProject(request.resource.data) && request.resource.data.vote_count == 0);
-
+      // Only administrators can create or delete exhibition projects
+      allow create: if isAdmin() && isValidProject(projectId, request.resource.data);
       allow delete: if isAdmin();
 
-      // Updates: Administrators can update full project details.
-      // Verified community voters can ONLY atomically increment vote_count by exactly +1 in a transaction.
-      allow update: if (isAdmin() && isValidProject(request.resource.data))
-        || (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vote_count', 'updatedAt'])
-          && request.resource.data.vote_count == resource.data.vote_count + 1
-        );
+      // Administrators can update full validated project details;
+      // Authenticated voters can ONLY increment vote_count by +1 paired with a new user_votes receipt.
+      allow update: if (
+          isAdmin() &&
+          isValidProject(projectId, request.resource.data) &&
+          (!('id' in resource.data) || ('id' in request.resource.data && request.resource.data.id == resource.data.id)) &&
+          (!('created_at' in resource.data) || ('created_at' in request.resource.data && request.resource.data.created_at == resource.data.created_at)) &&
+          (!('createdAt' in resource.data) || ('createdAt' in request.resource.data && request.resource.data.createdAt == resource.data.createdAt))
+        ) || isValidProjectVoteIncrement(projectId);
     }
 
     // ===============================================================
-    // Collection: votes (Zero-Trust Anti-Cheat Audit Ledger)
+    // Collection: votes (Hardware Fingerprint Anti-Cheat Ledger)
     // ===============================================================
     match /votes/{voteId} {
-      // PII Protection: Only allow reading own vote or admin audit; disallow public listing
+      // PII Protection: Allow checking non-existent hardware lock or reading own vote / admin audit; deny public listing
       allow get: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
       allow list: if isAdmin();
 
-      // Direct client creation is locked down to prevent spoofed fingerprint injection causing 409 collisions.
-      // All legitimate ballots are committed server-side via Cloud Functions / Edge Functions using the Firebase Admin SDK.
-      allow write: if false;
+      // Authenticated clients may create an immutable hardware vote lock paired with user_votes in a transaction
+      allow create: if isValidVote(voteId, request.resource.data);
+      allow update, delete: if false;
     }
 
     // ===============================================================
-    // Collection: user_votes (Account Level Anti-Cheat)
+    // Collection: user_votes (Account Level Anti-Cheat Receipt Ledger)
     // ===============================================================
     match /user_votes/{userVoteId} {
-      // Users can only read their own cast vote receipts; writes must be server-side Admin SDK
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      allow write: if false;
+      // Users can check existence of their own receipt (even when resource == null) and list their own receipts
+      allow get: if isAuthenticated() && (
+        (resource == null && (isOwnUserVoteDoc(userVoteId) || isAdmin())) ||
+        (resource != null && (isOwner(resource.data.userId) || isAdmin()))
+      );
+      allow list: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
+
+      // Authenticated clients may create an immutable account vote receipt in a transaction
+      allow create: if isValidUserVote(userVoteId, request.resource.data);
+      allow update, delete: if false;
     }
   }
 }

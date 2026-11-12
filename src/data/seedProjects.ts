@@ -21,7 +21,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Real-time biomechanical analysis and rehabilitation diagnostics',
     members: ['Pulkit Chandra (11-C)', 'Aryan Jindal (11-A)'],
     tech_stack: ['FSR Sensors', 'ESP32-S3', 'TensorFlow Lite', 'Python'],
-    vote_count: 88,
+    vote_count: 0,
   },
   {
     id: 'p02',
@@ -39,7 +39,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Cost-effective embedded driver assistance and safety suite',
     members: ['Srishti Jain (11-F)', 'Shivangi Negi (11-F)', 'Pranshoo Mittal (11-B)'],
     tech_stack: ['OpenCV', 'Raspberry Pi 4', 'Ultrasonic Array', 'CAN Bus'],
-    vote_count: 94,
+    vote_count: 0,
   },
   {
     id: 'p03',
@@ -64,7 +64,7 @@ export const SEED_PROJECTS: Project[] = [
       'Samarth Bhatia (6-I)',
     ],
     tech_stack: ['Flow Sensors', 'Solenoid Valves', 'Arduino Mega', 'IoT Dashboard'],
-    vote_count: 79,
+    vote_count: 0,
   },
   {
     id: 'p04',
@@ -89,7 +89,7 @@ export const SEED_PROJECTS: Project[] = [
       'Sanvi Singh (7-A)',
     ],
     tech_stack: ['Biocomposites', 'Inductive Sensors', 'NodeMCU', 'Servo Actuators'],
-    vote_count: 82,
+    vote_count: 0,
   },
   {
     id: 'p05',
@@ -114,7 +114,7 @@ export const SEED_PROJECTS: Project[] = [
       'Angel Kansal (9-B)',
     ],
     tech_stack: ['Pixhawk PX4', 'Carbon Fiber Frame', 'Telemetry Radio', 'ArduPilot'],
-    vote_count: 102,
+    vote_count: 0,
   },
   {
     id: 'p06',
@@ -139,7 +139,7 @@ export const SEED_PROJECTS: Project[] = [
       'Pragyan Shanker (9-L)',
     ],
     tech_stack: ['DC Gear Motors', 'LIDAR', 'Arduino', 'Optical Sensors'],
-    vote_count: 85,
+    vote_count: 0,
   },
   {
     id: 'p07',
@@ -163,7 +163,7 @@ export const SEED_PROJECTS: Project[] = [
       'Ammelia R Mitra (11-C)',
     ],
     tech_stack: ['Conductive Thread', 'MAX30102', 'BLE 5.0', 'Flutter Mobile App'],
-    vote_count: 91,
+    vote_count: 0,
   },
   {
     id: 'p08',
@@ -181,7 +181,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'RFID queue orchestration and laboratory attendance counter',
     members: ['Akrish (6-E)', 'Arav (6-E)', 'Dhruv Jain (6-K)'],
     tech_stack: ['RC522 RFID', '16x2 I2C LCD', 'ESP8266', 'WebSockets'],
-    vote_count: 73,
+    vote_count: 0,
   },
   {
     id: 'p09',
@@ -206,7 +206,7 @@ export const SEED_PROJECTS: Project[] = [
       'Tarini Makhija (9-B)',
     ],
     tech_stack: ['Solenoid Lock', 'Load Cell HX711', 'UV-C LEDs', 'Twilio API'],
-    vote_count: 87,
+    vote_count: 0,
   },
   {
     id: 'p10',
@@ -224,7 +224,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Hardware turnstile integration for campus transit verification',
     members: ['Kumar Satvik (7-A)', 'Avyaan (7-B)', 'Eeshan (8-G)', 'Ted (11-H)'],
     tech_stack: ['NFC PN532', 'OpenCV FaceRec', 'Servo Gates', 'PostgreSQL'],
-    vote_count: 80,
+    vote_count: 0,
   },
   {
     id: 'p11',
@@ -242,7 +242,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'EEG brainwave signal decomposition for motor assist prosthetics',
     members: ['Ojas Panday (9-A)', 'Yug Bhargava (9-J)'],
     tech_stack: ['TGAM EEG Chip', 'Active Electrodes', 'Fast Fourier Transform', 'BLE'],
-    vote_count: 114,
+    vote_count: 0,
   },
   {
     id: 'p12',
@@ -260,7 +260,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Automated ceiling-mounted indoor clothes rack with humidity sensors',
     members: ['Arhan (6-I)', 'Adrit (6-I)', 'Aarav (6-I)', 'Shrihan Sinha (8-H)'],
     tech_stack: ['Rain Sensor', 'DHT22', 'Stepper Motor', 'Blynk IoT'],
-    vote_count: 75,
+    vote_count: 0,
   },
 
   // =========================================================================
@@ -290,7 +290,7 @@ export const SEED_PROJECTS: Project[] = [
       'Tavishi Gupta (7-F)',
     ],
     tech_stack: ['Next.js', 'PostgreSQL', 'UPI API', 'FastAPI'],
-    vote_count: 92,
+    vote_count: 0,
   },
   {
     id: 'd02',
@@ -313,7 +313,7 @@ export const SEED_PROJECTS: Project[] = [
       'Mishka Singla (11-B)',
     ],
     tech_stack: ['React Native', 'Firebase Firestore', 'Twilio IVR', 'Node.js'],
-    vote_count: 108,
+    vote_count: 0,
   },
   {
     id: 'd03',
@@ -338,7 +338,7 @@ export const SEED_PROJECTS: Project[] = [
       'Harshil Verma (11-G)',
     ],
     tech_stack: ['Gemini Pro API', 'LangChain', 'Next.js', 'Vector DB'],
-    vote_count: 99,
+    vote_count: 0,
   },
   {
     id: 'd04',
@@ -363,7 +363,7 @@ export const SEED_PROJECTS: Project[] = [
       'Tanishka Tomer (9-I)',
     ],
     tech_stack: ['YOLOv8', 'OpenCV', 'FastAPI', 'Mapbox GL'],
-    vote_count: 85,
+    vote_count: 0,
   },
   {
     id: 'd05',
@@ -390,7 +390,7 @@ export const SEED_PROJECTS: Project[] = [
       'Aadya Mehra (9-L)',
     ],
     tech_stack: ['YOLOv9', 'DeepStream SDK', 'PyTorch', 'Next.js'],
-    vote_count: 104,
+    vote_count: 0,
   },
   {
     id: 'd06',
@@ -414,7 +414,7 @@ export const SEED_PROJECTS: Project[] = [
       'Aradhya Singh (9-C)',
     ],
     tech_stack: ['Node.js', 'Redis', 'Tailwind CSS', 'WebSockets'],
-    vote_count: 83,
+    vote_count: 0,
   },
   {
     id: 'd07',
@@ -438,7 +438,7 @@ export const SEED_PROJECTS: Project[] = [
       'Erisha Gupta (8-E)',
     ],
     tech_stack: ['WebRTC', 'React', 'Python', 'FHIR Health Records'],
-    vote_count: 89,
+    vote_count: 0,
   },
   {
     id: 'd08',
@@ -462,7 +462,7 @@ export const SEED_PROJECTS: Project[] = [
       'Shanaya Sharma (6-I)',
     ],
     tech_stack: ['React', 'Supabase', 'Stripe/UPI', 'Chart.js'],
-    vote_count: 95,
+    vote_count: 0,
   },
   {
     id: 'd09',
@@ -486,7 +486,7 @@ export const SEED_PROJECTS: Project[] = [
       'Vanya Singh (6-I)',
     ],
     tech_stack: ['Vector Embeddings', 'Next.js', 'Cloudinary', 'PostgreSQL'],
-    vote_count: 81,
+    vote_count: 0,
   },
   {
     id: 'd10',
@@ -508,7 +508,7 @@ export const SEED_PROJECTS: Project[] = [
       'Vardaan Khokhar (9-L)',
     ],
     tech_stack: ['GraphHopper', 'Leaflet.js', 'GeoJSON', 'Python Flask'],
-    vote_count: 78,
+    vote_count: 0,
   },
   {
     id: 'd11',
@@ -531,7 +531,7 @@ export const SEED_PROJECTS: Project[] = [
       'Harish Mishra (12-H)',
     ],
     tech_stack: ['MediaPipe', 'WebAssembly', 'TensorFlow.js', 'WebRTC'],
-    vote_count: 112,
+    vote_count: 0,
   },
   {
     id: 'd12',
@@ -549,7 +549,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Perimeter threat detection and instant security guard alerts',
     members: ['Aavya Mishra (6-B)', 'Myra Chaudhary (6-B)', 'Arshita Shrivastava (6-B)'],
     tech_stack: ['Edge Computer Vision', 'RTSP Streaming', 'FastAPI', 'React'],
-    vote_count: 86,
+    vote_count: 0,
   },
 
   // =========================================================================
@@ -579,7 +579,7 @@ export const SEED_PROJECTS: Project[] = [
       'Triaansh (7-A)',
     ],
     tech_stack: ['Flutter', 'PoseNet', 'Firebase', 'FinTech Token Rewards'],
-    vote_count: 98,
+    vote_count: 0,
   },
   {
     id: 'b02',
@@ -604,7 +604,7 @@ export const SEED_PROJECTS: Project[] = [
       'Yashvardhan Mishra (7-D)',
     ],
     tech_stack: ['IoT Nutrient Dosing', 'Solar Inverter', 'Direct-to-Consumer Model'],
-    vote_count: 105,
+    vote_count: 0,
   },
   {
     id: 'b03',
@@ -622,7 +622,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Sustainable laboratory safety apparel and circular recycling pipeline',
     members: ['Hitesh (8-E)', 'Aayush (8-E)', 'Naysha (8-E)', 'Agamya Tripathi (8-E)', 'Ayaan (8-E)'],
     tech_stack: ['Bio-Polymers', 'Supply Chain ERP', 'B2B Procurement'],
-    vote_count: 77,
+    vote_count: 0,
   },
   {
     id: 'b04',
@@ -646,7 +646,7 @@ export const SEED_PROJECTS: Project[] = [
       'Luv Jindal (6-K)',
     ],
     tech_stack: ['Terrazzo Composite', 'AutoCAD', 'Acoustic Insulation', 'B2B Architecture'],
-    vote_count: 84,
+    vote_count: 0,
   },
   {
     id: 'b05',
@@ -664,7 +664,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Enterprise digital engineering and web infrastructure studio',
     members: ['Devansh Grover (7-H)'],
     tech_stack: ['Next.js', 'Tailwind CSS', 'PostgreSQL', 'Cloudflare Edge'],
-    vote_count: 90,
+    vote_count: 0,
   },
   {
     id: 'b06',
@@ -682,7 +682,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Verified collectibles marketplace with digital authentication',
     members: ['Nivaan Rastogi (8-I)', 'Vihaan Chaganti (8-I)'],
     tech_stack: ['React', 'Image Hashing', 'Escrow System', 'PostgreSQL'],
-    vote_count: 82,
+    vote_count: 0,
   },
   {
     id: 'b07',
@@ -708,7 +708,7 @@ export const SEED_PROJECTS: Project[] = [
       'Pratyush Kashyap (6-H)',
     ],
     tech_stack: ['Curriculum Engineering', 'Modular Hardware', 'EdTech LMS'],
-    vote_count: 101,
+    vote_count: 0,
   },
   {
     id: 'b08',
@@ -726,7 +726,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'IoT-automated indoor vertical agriculture and sustainable bio-farming',
     members: ['Aanya Sharma (8-B)', 'Devansh Singhal (8-B)', 'Rohan Gupta (8-D)'],
     tech_stack: ['Hydroponics Automation', 'IoT Microcontrollers', 'Bio-Telemetry'],
-    vote_count: 148,
+    vote_count: 0,
   },
 
   // =========================================================================
@@ -752,7 +752,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Interactive wind tunnel lift demonstration and airfoil analysis',
     members: ['Abir Bandyopadhyay (7-D)', 'Devraj Rautela (7-D)'],
     tech_stack: ['NACA Airfoils', 'Pitot Tube', 'Anemometer', 'Wind Tunnel'],
-    vote_count: 85,
+    vote_count: 0,
   },
   {
     id: 'st02',
@@ -770,7 +770,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Bipedal balance simulation and inverse kinematics showcase',
     members: ['Ojas Pandey (9-B)'],
     tech_stack: ['MuJoCo Physics', 'Inverse Kinematics', 'ROS 2', 'Python'],
-    vote_count: 92,
+    vote_count: 0,
   },
   {
     id: 'st03',
@@ -788,7 +788,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Autonomous quadruped robotics terrain traversal and companion AI',
     members: ['Ojas Singh (IX-A)', 'Agrima Jain (IX-D)'],
     tech_stack: ['Quadruped Kinematics', '4D LiDAR', 'RTK Navigation', 'SLAM', '☁ Expo Subsystem'],
-    vote_count: 120,
+    vote_count: 0,
   },
   {
     id: 'st04',
@@ -806,7 +806,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Reinforcement learning locomotion and low-latency teleoperation',
     members: ['Ojas Panday (IX-B)', 'Pranshoo Mittal (XI-B)'],
     tech_stack: ['RL Locomotion', 'MuJoCo', 'ROS 2', 'Teleoperation'],
-    vote_count: 98,
+    vote_count: 0,
   },
   {
     id: 'st05',
@@ -824,7 +824,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Real-time telemetry and wireless control racing chassis',
     members: ['Anshita (6-B)'],
     tech_stack: ['Brushless Motor', 'LiPo Telemetry', 'ESP-NOW Protocol', 'OLED HUD'],
-    vote_count: 89,
+    vote_count: 0,
   },
   {
     id: 'st06',
@@ -842,7 +842,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: '5-DOF robotic arm spatial manipulation challenge game',
     members: ['DPSI Robotics Society (Tech Wing)'],
     tech_stack: ['5x MG996R Servos', 'Leap Motion', 'Inverse Kinematics', 'Python'],
-    vote_count: 110,
+    vote_count: 0,
   },
   {
     id: 'st07',
@@ -860,7 +860,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Hexapod spider robot with multi-gait locomotion',
     members: ['Dhruv Jain (6-K)'],
     tech_stack: ['18x SG90 Servos', 'Tripod Gait Algorithm', 'PCA9685 Driver', 'ESP32'],
-    vote_count: 94,
+    vote_count: 0,
   },
   {
     id: 'st08',
@@ -878,7 +878,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Indoor precision hovering and vision-based altitude hold',
     members: ['Robotics Club Flight Crew'],
     tech_stack: ['Optical Flow PMW3901', 'ToF Lidar', 'Betaflight', 'ESP32'],
-    vote_count: 96,
+    vote_count: 0,
   },
 
   // =========================================================================
@@ -901,7 +901,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Championship-tier obstacle speed runner for the Robo Race circuit',
     members: ['Pranshoo Mittal (11-B)', 'Ojas Singh (9-A)'],
     tech_stack: ['Twin Planetary Motors', '7.4V Li-Po', 'NRF24L01+', 'Low-CG Chassis'],
-    vote_count: 115,
+    vote_count: 0,
   },
   {
     id: 'r02',
@@ -919,7 +919,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Gyro-stabilized drift competitor with active traction control',
     members: ['Ritvij Dwivedi (9-B)', 'Shashwat Singh (9-B)'],
     tech_stack: ['Brushless ESC', 'Electronic Gyro', 'Molded Carbon Chassis', '2.4GHz FHSS'],
-    vote_count: 106,
+    vote_count: 0,
   },
   {
     id: 's01',
@@ -937,7 +937,7 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'Omni-wheel robotic soccer striker with high-speed solenoid kicker',
     members: ['Pulkit Chandra (11-C)', 'Aryan Jindal (11-A)'],
     tech_stack: ['3x Omni Wheels', 'Pixy2 Vision Cam', 'High-Volt Solenoid', 'STM32'],
-    vote_count: 122,
+    vote_count: 0,
   },
   {
     id: 's02',
@@ -955,6 +955,6 @@ export const SEED_PROJECTS: Project[] = [
     tagline: 'High-torque lateral defensive soccer goalkeeper robot',
     members: ['Ashmit Roy (9-B)', 'Vatsal Kumar (9-B)'],
     tech_stack: ['GT2 Timing Belt', 'Coreless Servo Kicker', 'Dual Ping Sensors', 'Teensy 4.0'],
-    vote_count: 111,
+    vote_count: 0,
   },
 ];

@@ -33,6 +33,7 @@ export const EXHIBITION_SCROLL_ZONES = [
   { id: 'projects', code: '04 44 LABS', morph: SECTION_MORPH_PATHS.projects, color: '#a855f7' },
   { id: 'voting', code: '05 VOTING', morph: SECTION_MORPH_PATHS.voting, color: '#3fb950' },
   { id: 'schedule', code: '06 SCHEDULE', morph: SECTION_MORPH_PATHS.schedule, color: '#eab308' },
+  { id: 'feedback', code: '07 FEEDBACK', morph: SECTION_MORPH_PATHS.voting, color: '#3fb950' },
 ] as const;
 
 interface TelemetryBadgeProps {
@@ -54,7 +55,7 @@ export function HeaderScrollTelemetry({
   return (
     <div
       aria-hidden="true"
-      className={`hidden xl:flex items-center gap-2 px-3 border-r font-mono text-[11px] select-none ${
+      className={`hidden xl:flex items-center gap-1.5 px-2.5 border-r font-mono text-[11px] select-none shrink-0 ${
         isLight
           ? 'border-slate-200/80 text-slate-600'
           : 'border-[#30363d] text-[#8b949e]'
@@ -178,8 +179,9 @@ export function ArenaMorphIcon({ initialPath, targetPath, colorClass }: ArenaMor
     <svg aria-hidden="true" viewBox="0 0 24 24" className={`w-5 h-5 shrink-0 ${colorClass}`}>
       <path
         data-arena-morph-path
+        data-morph-from={initialPath}
         data-morph-target={targetPath}
-        d={initialPath}
+        d={targetPath}
         fill="none"
         stroke="currentColor"
         strokeWidth={1.75}

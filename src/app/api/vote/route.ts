@@ -259,7 +259,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Verified vote recorded successfully via multi-layer anti-cheat pipeline.',
+      edgePreflightOnly: true,
+      persisted: false,
+      message: 'Verified vote pre-flight recorded via multi-layer anti-cheat pipeline.',
     });
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Internal server error';

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useExhibitionStore, NavZoneId } from '@/store/useExhibitionStore';
 import { signOutFromFirebase } from '@/lib/firebase';
 import { isSoundEnabled, toggleSound, playClick } from '@/lib/sound';
+import { FEEDBACK_FORM_URL } from '@/lib/utils';
 import {
   Trophy,
   Box,
@@ -20,6 +21,7 @@ import {
   Compass,
   Volume2,
   VolumeX,
+  MessageSquarePlus,
 } from 'lucide-react';
 
 const ZONES: { id: NavZoneId; label: string }[] = [
@@ -265,8 +267,25 @@ function TopNavHUD() {
           >
             <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span className="hidden lg:inline text-[11px]">Leaderboard</span>
-            
           </button>
+
+          {/* Exhibition Feedback Link Button */}
+          <a
+            href={FEEDBACK_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => playClick()}
+            className={`hidden md:flex items-center gap-1.5 h-8 sm:h-8.5 px-2.5 rounded-xl border text-xs font-bold shadow-xs transition-all whitespace-nowrap shrink-0 ${
+              isLight
+                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-900'
+                : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+            }`}
+            title="Give Exhibition Feedback"
+            aria-label="Give Exhibition Feedback"
+          >
+            <MessageSquarePlus className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            <span className="hidden 2xl:inline text-[11px]">Feedback</span>
+          </a>
 
           {/* 3D Guided Virtual Tour Button */}
           {viewMode === '3d' && (

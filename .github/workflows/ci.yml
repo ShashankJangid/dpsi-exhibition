@@ -35,9 +35,6 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      - name: Run unit & security tests
-        run: npm test
-
   build:
     name: Production Build Verification
     needs: verify
@@ -57,9 +54,6 @@ jobs:
           npm ci --legacy-peer-deps
           npm --prefix firebase-functions ci
 
-      - name: Run unit & security tests
-        run: npm test
-
       - name: Build Next.js static export
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -78,6 +72,9 @@ jobs:
             exit 1
           fi
           echo "✅ Production static build verified successfully."
+
+      - name: Run unit & security tests
+        run: npm test
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
