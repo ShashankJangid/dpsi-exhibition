@@ -42,9 +42,11 @@ export default function LiveLeaderboard() {
     return list.sort((a, b) => b.vote_count - a.vote_count);
   }, [projects, activeTab]);
 
-  const maxVotes = useMemo(() => {
-    return Math.max(...sortedProjects.map((p) => p.vote_count), 1);
+  const actualMaxVotes = useMemo(() => {
+    return Math.max(...sortedProjects.map((p) => p.vote_count), 0);
   }, [sortedProjects]);
+
+  const maxVotes = Math.max(actualMaxVotes, 1);
 
   const top1 = sortedProjects[0] as Project | undefined;
   const top2 = sortedProjects[1] as Project | undefined;
@@ -255,14 +257,14 @@ export default function LiveLeaderboard() {
                             {top1.vote_count} votes
                           </span>
                           <span className="font-bold text-amber-700 dark:text-amber-400 tabular-nums">
-                            Leader (100%)
+                            {actualMaxVotes > 0 ? 'Leader (100%)' : '0%'}
                           </span>
                         </div>
                         <div className="w-full h-2 rounded-full bg-amber-200/80 dark:bg-amber-950/60 overflow-hidden">
                           <motion.div
                             className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400 shadow-sm"
                             initial={{ width: 0 }}
-                            animate={{ width: '100%' }}
+                            animate={{ width: actualMaxVotes > 0 ? '100%' : '0%' }}
                             transition={{ duration: 0.6, ease: 'easeOut' }}
                           />
                         </div>
@@ -457,7 +459,7 @@ export default function LiveLeaderboard() {
           {/* Footer */}
           <div className="p-3 bg-slate-50 dark:bg-[#07090e] border-t border-slate-200/90 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-4 sm:px-5 pb-safe">
             <span className="font-mono text-[11px] tabular-nums">
-              {sortedProjects.length} Competing Projects • Max {maxVotes} Votes
+              {sortedProjects.length} Competing Projects • Max {actualMaxVotes} Votes
             </span>
             <div className="flex items-center gap-1 text-amber-700 dark:text-amber-400 font-semibold text-[11px]">
               <Flame className="w-3.5 h-3.5 text-amber-500" />

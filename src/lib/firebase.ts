@@ -90,36 +90,32 @@ export async function checkRedirectResult(): Promise<User | null> {
 }
 
 /**
- * Sign in as a verified guest/judge visitor.
- * Guaranteed to succeed even if Firebase Anonymous Auth is unconfigured or blocked by network.
+ * Sign in as a verified visitor via Firebase Anonymous Auth.
+ * Issues a genuine Firebase Auth session (UID + ID Token) so votes are verified by Firestore Rules.
  */
 export async function signInAsGuest(name: string, email: string) {
-  const fallbackGuest = () => ({
-    uid: 'guest_' + Math.random().toString(36).substring(2, 12),
-    displayName: name,
-    email: email || `${name.toLowerCase().replace(/\s+/g, '')}@dpsi-visitor.in`,
-  });
+  const cleanEmailSlug = name.toLowerCase().replace(/[^a-z0-9._-]/g, '') || 'visitor';
+  const fallbackEmail = email.trim() || `${cleanEmailSlug}@dpsi-visitor.in`;
 
   if (!isFirebaseConfigured) {
-    return fallbackGuest();
+    return {
+      uid: 'guest_' + Math.random().toString(36).substring(2, 12),
+      displayName: name,
+      email: fallbackEmail,
+    };
   }
 
-  try {
-    const userCredential = await signInAnonymously(auth);
-    if (auth.currentUser) {
-      await updateProfile(auth.currentUser, {
-        displayName: name,
-      });
-    }
-    return {
-      uid: userCredential.user.uid,
+  const userCredential = await signInAnonymously(auth);
+  if (auth.currentUser) {
+    await updateProfile(auth.currentUser, {
       displayName: name,
-      email: email || `${name.toLowerCase().replace(/\s+/g, '')}@dpsi-visitor.in`,
-    };
-  } catch (err) {
-    console.warn('Notice: Firebase anonymous auth fallback used:', err);
-    return fallbackGuest();
+    });
   }
+  return {
+    uid: userCredential.user.uid,
+    displayName: name,
+    email: fallbackEmail,
+  };
 }
 
 /**
@@ -312,12 +308,24 @@ export async function castVoteInFirebase(
   const normalizedFingerprint = payload.fingerprint.replace(/\//g, '_').trim();
   const normalizedUserId = payload.userId.trim();
 
+  // Enforce authenticated Firebase session in browser environments when Firebase is configured
+  const authenticatedUser = typeof window !== 'undefined' && isFirebaseConfigured ? auth.currentUser : null;
+  if (typeof window !== 'undefined' && isFirebaseConfigured && !authenticatedUser) {
+    return {
+      success: false,
+      message: 'Please sign in first to cast a verified vote.',
+    };
+  }
+
+  const effectiveUserId = authenticatedUser?.uid || normalizedUserId;
+  const effectiveUserEmail = authenticatedUser?.email || payload.userEmail || null;
+
   const voteApiUrl =
     process.env.NEXT_PUBLIC_VOTE_API_URL ||
     process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_URL ||
     '/api/vote';
 
-  // 1. Authoritative Edge / Serverless API Verification
+  // 1. Authoritative Edge / Serverless API Verification & Rate Limiting
   try {
     const idToken = await getCurrentUserIdToken();
     const headers: Record<string, string> = {
@@ -334,19 +342,35 @@ export async function castVoteInFirebase(
         projectId: normalizedProjectId,
         deviceFingerprint: normalizedFingerprint,
         fingerprint: normalizedFingerprint,
-        userId: normalizedUserId,
-        userEmail: payload.userEmail,
+        userId: effectiveUserId,
+        userEmail: effectiveUserEmail,
       }),
     });
 
     const data = await response.json().catch(() => ({}));
 
-    // If edge returns success or explicit duplicate rejection, return immediately
-    if (response.ok || response.status === 409 || data.alreadyVoted) {
+    if (response.status === 409 || data.alreadyVoted) {
       return {
-        success: response.ok && Boolean(data.success),
-        message: data.message || (response.ok ? 'Vote recorded successfully' : 'Failed to record vote'),
-        alreadyVoted: Boolean(data.alreadyVoted) || response.status === 409,
+        success: false,
+        message: data.message || 'A verified vote has already been cast for this project.',
+        alreadyVoted: true,
+      };
+    }
+
+    if (response.status === 400 || response.status === 401 || response.status === 403 || response.status === 429) {
+      return {
+        success: false,
+        message: data.message || 'Vote validation or rate-limit check failed.',
+        alreadyVoted: false,
+      };
+    }
+
+    // Only return immediately if an authoritative backend actually persisted the vote
+    if (response.ok && data.success && !data.edgePreflightOnly && data.persisted !== false) {
+      return {
+        success: true,
+        message: data.message || 'Vote recorded successfully',
+        alreadyVoted: false,
         newVoteCount: typeof data.newVoteCount === 'number' ? data.newVoteCount : undefined,
       };
     }
@@ -354,28 +378,22 @@ export async function castVoteInFirebase(
     console.warn('Voting edge endpoint notice, falling back to direct Firestore atomic ledger:', fetchErr);
   }
 
-  // 2. Direct Atomic Firestore Anti-Cheat Transaction Engine (Offline/Direct Fallback)
+  // 2. Direct Atomic Firestore Anti-Cheat Transaction Engine
   if (isFirebaseConfigured && db) {
+    let passedPrechecks = false;
     try {
       const voteDocId = `${normalizedProjectId}_${normalizedFingerprint}`;
-      const userVoteDocId = `${normalizedProjectId}_${normalizedUserId}`;
+      const userVoteDocId = `${normalizedProjectId}_${effectiveUserId}`;
 
       const projectRef = doc(db, 'projects', normalizedProjectId);
       const voteRef = doc(db, 'votes', voteDocId);
       const userVoteRef = doc(db, 'user_votes', userVoteDocId);
 
       const newVoteTotal = await runTransaction(db, async (transaction) => {
-        const [projectSnap, voteSnap, userVoteSnap] = await Promise.all([
+        const [projectSnap, userVoteSnap] = await Promise.all([
           transaction.get(projectRef),
-          transaction.get(voteRef),
           transaction.get(userVoteRef),
         ]);
-
-        if (voteSnap.exists()) {
-          const err = new Error('Hardware Anti-Cheat Alert: This device has already voted for this project.');
-          (err as unknown as { alreadyVoted: boolean }).alreadyVoted = true;
-          throw err;
-        }
 
         if (userVoteSnap.exists()) {
           const err = new Error('Account Anti-Cheat Alert: Your account has already voted for this project.');
@@ -383,33 +401,37 @@ export async function castVoteInFirebase(
           throw err;
         }
 
-        const projectData = projectSnap.exists() ? projectSnap.data() : null;
+        if (!projectSnap.exists()) {
+          throw new Error(`Project ${normalizedProjectId} is not yet initialized in Firestore.`);
+        }
+
+        passedPrechecks = true;
+
+        const projectData = projectSnap.data();
         const currentCount =
           typeof projectData?.vote_count === 'number' && Number.isFinite(projectData.vote_count)
             ? projectData.vote_count
             : 0;
         const nextVoteCount = currentCount + 1;
 
-        transaction.set(voteRef, {
-          projectId: normalizedProjectId,
-          userId: normalizedUserId,
-          deviceFingerprint: normalizedFingerprint,
-          userEmail: payload.userEmail || null,
-          createdAt: serverTimestamp(),
-        });
-
         transaction.set(userVoteRef, {
           projectId: normalizedProjectId,
-          userId: normalizedUserId,
+          userId: effectiveUserId,
           createdAt: serverTimestamp(),
         });
 
-        if (projectSnap.exists()) {
-          transaction.update(projectRef, {
-            vote_count: nextVoteCount,
-            updatedAt: serverTimestamp(),
-          });
-        }
+        transaction.set(voteRef, {
+          projectId: normalizedProjectId,
+          userId: effectiveUserId,
+          deviceFingerprint: normalizedFingerprint,
+          userEmail: effectiveUserEmail,
+          createdAt: serverTimestamp(),
+        });
+
+        transaction.update(projectRef, {
+          vote_count: nextVoteCount,
+          updatedAt: serverTimestamp(),
+        });
 
         return nextVoteCount;
       });
@@ -431,6 +453,24 @@ export async function castVoteInFirebase(
               : 'A verified vote has already been cast for this project.',
         };
       }
+
+      const errCode = (txErr as { code?: string })?.code;
+      if (errCode === 'permission-denied' && passedPrechecks) {
+        return {
+          success: false,
+          alreadyVoted: true,
+          message: 'Hardware Anti-Cheat Alert: This device has already cast a vote for this project.',
+        };
+      }
+
+      console.error('Firestore vote transaction failed:', txErr);
+      return {
+        success: false,
+        message:
+          txErr instanceof Error
+            ? txErr.message
+            : 'Unable to record vote in Firestore. Please check connection and try again.',
+      };
     }
   }
 

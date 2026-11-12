@@ -138,12 +138,15 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       );
     }
 
-    // Edge receipt verification: Successful pre-flight and edge-level anti-cheat validation
+    // Edge receipt verification: Pre-flight rate limiting and schema validation passed;
+    // client commits the authoritative atomic vote transaction directly to Firestore.
     return new Response(
       JSON.stringify({
         success: true,
         verified: true,
-        message: 'Ballot verified by Cloudflare Edge pipeline.',
+        edgePreflightOnly: true,
+        persisted: false,
+        message: 'Ballot pre-flight verified by Cloudflare Edge pipeline.',
         projectId: normalizedProjectId,
         deviceFingerprint: normalizedFingerprint,
         userId: userId.trim(),

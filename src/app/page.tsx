@@ -79,7 +79,9 @@ export default function LandingPage() {
   const user = useExhibitionStore((state) => state.user);
   const votedProjectIds = useExhibitionStore((state) => state.votedProjectIds);
   const markProjectVoted = useExhibitionStore((state) => state.markProjectVoted);
+  const setVotedProjectIds = useExhibitionStore((state) => state.setVotedProjectIds);
   const incrementProjectVote = useExhibitionStore((state) => state.incrementProjectVote);
+  const setProjectVoteCount = useExhibitionStore((state) => state.setProjectVoteCount);
 
   type FilterCategory = 'all' | 'Physical' | 'Digital' | 'Business' | 'Show & Tell' | 'Robotics';
   const [selectedZone, setSelectedZone] = useState<FilterCategory>('all');
@@ -88,6 +90,7 @@ export default function LandingPage() {
   const [email, setEmail] = useState('');
   const [registered, setRegistered] = useState(false);
   const [isProjectsLoading, setIsProjectsLoading] = useState(true);
+  const [votingProjectId, setVotingProjectId] = useState<string | null>(null);
 
   // Floating Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -145,11 +148,8 @@ export default function LandingPage() {
           name: firebaseUser.displayName || (currentUser?.id === firebaseUser.uid ? currentUser.name : 'Visitor'),
         });
       } else {
-        const currentUser = useExhibitionStore.getState().user;
-        // Retain local guest visitor pass if Firebase anonymous auth is unconfigured
-        if (!currentUser?.id.startsWith('guest_')) {
-          setUser(null);
-        }
+        setUser(null);
+        setVotedProjectIds([]);
       }
     });
 
@@ -169,38 +169,41 @@ export default function LandingPage() {
       unsubAuth();
       unsubProjects();
     };
-  }, [setIsMobile, setDeviceFingerprint, setUser, setProjects, setSearchModalOpen]);
-
-  // Load locally saved votes from localStorage on client mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('dpsi_voted_project_ids');
-      if (stored) {
-        const ids = JSON.parse(stored);
-        if (Array.isArray(ids)) {
-          ids.forEach((id: string) => markProjectVoted(id));
-        }
-      }
-    } catch {
-      // LocalStorage access fallback
-    }
-  }, [markProjectVoted]);
+  }, [setIsMobile, setDeviceFingerprint, setUser, setVotedProjectIds, setProjects, setSearchModalOpen]);
 
   // Subscribe to verified user votes from Firestore when user identity is present
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setVotedProjectIds([]);
+      return;
+    }
+
+    const storageKey = `dpsi_voted_v2_${user.id}`;
+    let localIds: string[] = [];
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          localIds = parsed.filter((id): id is string => typeof id === 'string');
+          setVotedProjectIds(localIds);
+        }
+      }
+    } catch {
+      // localStorage fallback
+    }
+
     const unsub = subscribeToUserVotedProjects(user.id, (ids) => {
-      ids.forEach((id) => markProjectVoted(id));
+      const merged = Array.from(new Set([...localIds, ...ids]));
+      setVotedProjectIds(merged);
       try {
-        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
-        const merged = Array.from(new Set([...existing, ...ids]));
-        localStorage.setItem('dpsi_voted_project_ids', JSON.stringify(merged));
+        localStorage.setItem(storageKey, JSON.stringify(merged));
       } catch {
         // localStorage fallback
       }
     });
     return () => unsub();
-  }, [user?.id, markProjectVoted]);
+  }, [user?.id, setVotedProjectIds]);
 
   const allProjects = storeProjects.length > 0 ? storeProjects : SEED_PROJECTS;
   const filteredProjects = allProjects.filter((p) => {
@@ -299,38 +302,73 @@ export default function LandingPage() {
     return counts;
   }, [allProjects]);
 
-  // Direct Card Voting with Optimistic UI & Confetti
+  // Direct Card Voting with Verified Auth & Atomic Firestore Commit
   const handleDirectVote = async (p: Project, e: React.MouseEvent) => {
     playClick();
+    if (!user) {
+      setAuthModalOpen(true);
+      showToast('Please sign in to vote for this project');
+      return;
+    }
     if (votedProjectIds.includes(p.id)) {
       showToast(`Already verified vote for Booth ${p.booth_code}`);
       return;
     }
-    if (!user) {
-      setAuthModalOpen(true);
-      showToast('Please sign in or enter guest email to verify ballot');
-      return;
-    }
+    if (votingProjectId === p.id) return;
 
+    const targetEl = e.currentTarget as HTMLElement;
+    const rect = targetEl.getBoundingClientRect();
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+    setVotingProjectId(p.id);
     try {
       const fingerprint = await getDeviceFingerprint();
 
-      // Instant optimistic UI update
+      const res = await castVoteInFirebase({
+        projectId: p.id,
+        fingerprint,
+        userId: user.id,
+        userEmail: user.email,
+      });
+
+      if (res.alreadyVoted) {
+        markProjectVoted(p.id);
+        try {
+          const key = `dpsi_voted_v2_${user.id}`;
+          const existing = JSON.parse(localStorage.getItem(key) || '[]');
+          if (!existing.includes(p.id)) {
+            localStorage.setItem(key, JSON.stringify([...existing, p.id]));
+          }
+        } catch {
+          // localStorage fallback
+        }
+        showToast(res.message || `Notice: Vote was previously recorded for Booth ${p.booth_code}`);
+        return;
+      }
+
+      if (!res.success) {
+        showToast(res.message || 'Vote could not be verified. Please sign in and try again.');
+        return;
+      }
+
       markProjectVoted(p.id);
       try {
-        const existing = JSON.parse(localStorage.getItem('dpsi_voted_project_ids') || '[]');
+        const key = `dpsi_voted_v2_${user.id}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
         if (!existing.includes(p.id)) {
-          localStorage.setItem('dpsi_voted_project_ids', JSON.stringify([...existing, p.id]));
+          localStorage.setItem(key, JSON.stringify([...existing, p.id]));
         }
       } catch {
         // localStorage fallback
       }
-      incrementProjectVote(p.id);
 
-      // Confetti burst from button position
-      const rect = (e.target as HTMLElement).getBoundingClientRect();
-      const x = (rect.left + rect.width / 2) / window.innerWidth;
-      const y = (rect.top + rect.height / 2) / window.innerHeight;
+      if (typeof res.newVoteCount === 'number') {
+        setProjectVoteCount(p.id, res.newVoteCount);
+      } else {
+        incrementProjectVote(p.id);
+      }
+
       confetti({
         particleCount: 55,
         spread: 60,
@@ -340,23 +378,11 @@ export default function LandingPage() {
       playChime();
       triggerHaptic(30);
 
-      showToast(`🎉 Verified ballot recorded for Booth ${p.booth_code}!`);
-
-      // Backend verification with token attachment and response verification
-      castVoteInFirebase({
-        projectId: p.id,
-        fingerprint,
-        userId: user.id,
-        userEmail: user.email,
-      }).then((res) => {
-        if (res.alreadyVoted) {
-          showToast(`Notice: Vote was previously recorded for Booth ${p.booth_code}`);
-        } else if (!res.success) {
-          showToast(res.message || 'Vote verification sync warning. Please check connection.');
-        }
-      });
+      showToast(`Verified ballot counted for Booth ${p.booth_code}!`);
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Vote submission failed. Please check connection.');
+    } finally {
+      setVotingProjectId(null);
     }
   };
 
@@ -573,15 +599,17 @@ export default function LandingPage() {
                   e.stopPropagation();
                   handleDirectVote(p, e);
                 }}
-                disabled={isVoted}
+                disabled={isVoted || votingProjectId === p.id}
                 className={`px-3 py-1 rounded-lg text-[11px] font-bold font-mono transition-all shadow-xs active:scale-95 ${
                   isVoted
                     ? 'bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 cursor-default'
+                    : votingProjectId === p.id
+                    ? 'bg-emerald-700/70 text-white cursor-wait'
                     : 'bg-[#238636] hover:bg-[#2ea043] text-white'
                 }`}
                 title={isVoted ? `Already voted for ${p.booth_code}` : `Cast verified vote for ${p.booth_code}`}
               >
-                {isVoted ? '✓ Voted' : 'Vote'}
+                {votingProjectId === p.id ? 'Voting...' : isVoted ? '✓ Voted' : 'Vote'}
               </button>
 
               <div className="flex items-center gap-1">

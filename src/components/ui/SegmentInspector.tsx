@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExhibitionStore } from '@/store/useExhibitionStore';
+import { castVoteInFirebase } from '@/lib/firebase';
+import { getDeviceFingerprint } from '@/lib/fingerprint';
+import { playClick, playChime, triggerHaptic } from '@/lib/sound';
 import { Project, CategoryType } from '@/types';
 import {
   X,
@@ -220,9 +223,12 @@ export default function SegmentInspector() {
   const theme = useExhibitionStore((state) => state.theme);
   const isLight = theme === 'light';
   const votedProjectIds = useExhibitionStore((state) => state.votedProjectIds);
+  const markProjectVoted = useExhibitionStore((state) => state.markProjectVoted);
   const incrementProjectVote = useExhibitionStore((state) => state.incrementProjectVote);
+  const setProjectVoteCount = useExhibitionStore((state) => state.setProjectVoteCount);
   const user = useExhibitionStore((state) => state.user);
   const setAuthModalOpen = useExhibitionStore((state) => state.setAuthModalOpen);
+  const [votingProjectId, setVotingProjectId] = useState<string | null>(null);
 
   // Filter projects inside this active segment
   const segmentProjects = useMemo(() => {
@@ -266,14 +272,55 @@ export default function SegmentInspector() {
 
   const IconComponent = meta.icon;
 
-  const handleVote = (e: React.MouseEvent, project: Project) => {
+  const handleVote = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
+    playClick();
     if (!user) {
       setAuthModalOpen(true);
       return;
     }
-    if (votedProjectIds.includes(project.id)) return;
-    incrementProjectVote(project.id);
+    if (votedProjectIds.includes(project.id) || votingProjectId === project.id) return;
+
+    setVotingProjectId(project.id);
+    try {
+      const fingerprint = await getDeviceFingerprint();
+      const res = await castVoteInFirebase({
+        projectId: project.id,
+        fingerprint,
+        userId: user.id,
+        userEmail: user.email,
+      });
+
+      if (res.alreadyVoted) {
+        markProjectVoted(project.id);
+        return;
+      }
+
+      if (!res.success) {
+        return;
+      }
+
+      markProjectVoted(project.id);
+      try {
+        const key = `dpsi_voted_v2_${user.id}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!existing.includes(project.id)) {
+          localStorage.setItem(key, JSON.stringify([...existing, project.id]));
+        }
+      } catch {
+        // localStorage fallback
+      }
+
+      if (typeof res.newVoteCount === 'number') {
+        setProjectVoteCount(project.id, res.newVoteCount);
+      } else {
+        incrementProjectVote(project.id);
+      }
+      playChime();
+      triggerHaptic(30);
+    } finally {
+      setVotingProjectId(null);
+    }
   };
 
   return (
@@ -430,7 +477,7 @@ export default function SegmentInspector() {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={(e) => handleVote(e, project)}
-                      disabled={hasVoted}
+                      disabled={hasVoted || votingProjectId === project.id}
                       className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all ${
                         hasVoted
                           ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
