@@ -179,7 +179,7 @@ const totalPasses = studentEntries.length + inchargeEntries.length + judgeEntrie
 console.log(`\nTOTAL PASSES GENERATED: ${totalPasses}`);
 
 // 5. Generate passes/README.md
-const readmeContent = `# DPS Indirapuram Annual Tech & Innovation Exhibition 2026
+const readmeContent = `# DPS Indirapuram — DPSI Innovation Fest 2026
 ## Official CR-100 Pass Directory
 
 This directory contains the production-ready vector passes (SVG) for all **${totalPasses} registered participants** across the 4 summit categories.
@@ -262,7 +262,7 @@ const indexHtmlContent = `<!DOCTYPE html>
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
           <h1 class="text-lg font-bold tracking-tight text-white">DELHI PUBLIC SCHOOL INDIRAPURAM</h1>
         </div>
-        <p class="text-xs text-slate-400">Annual Tech & Innovation Exhibition 2026 &bull; Pass Directory (${totalPasses} Badges)</p>
+        <p class="text-xs text-slate-400">DPSI Innovation Fest 2026 &bull; Pass Directory (${totalPasses} Badges)</p>
       </div>
 
       <!-- Search & Category Filters -->

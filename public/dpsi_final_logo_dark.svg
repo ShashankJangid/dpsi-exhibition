@@ -63,7 +63,7 @@
     <!-- Row 3: Event Pill -->
     <g transform="translate(2, 85)">
       <rect x="0" y="0" width="188" height="18" rx="4" fill="url(#tag-gradient)" />
-      <text x="8" y="12.5" font-family="'Space Grotesk', monospace" font-size="8.5" font-weight="800" fill="#ffffff" letter-spacing="1.2">ANNUAL TECH &amp; INNOVATION EXPO</text>
+      <text x="8" y="12.5" font-family="'Space Grotesk', monospace" font-size="8.5" font-weight="800" fill="#ffffff" letter-spacing="1.2">DPSI INNOVATION FEST 2026</text>
     </g>
   </g>
 </svg>

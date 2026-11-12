@@ -1,5 +1,5 @@
 /**
- * DPS Indirapuram Tech & Innovation Summit 2026
+ * DPSI Innovation Fest 2026
  * Apple Card CR-100 Badge Generator
  * Replaces dynamic fields, unique Butterfly TopoTags, and Micro-QR codes
  * based on the participant Credential ID.

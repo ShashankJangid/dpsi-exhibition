@@ -136,7 +136,7 @@ function TopNavHUD() {
           {/* Exhibition Title & Live Badge */}
           <div className="hidden 2xl:flex items-center gap-2 pl-2 border-l border-slate-300/60 dark:border-slate-800">
             <span className={`text-xs font-extrabold tracking-tight whitespace-nowrap ${isLight ? 'text-slate-900' : 'text-white'}`}>
-              Innovation Fest
+              DPSI Innovation Fest
             </span>
             <span className="flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]" />

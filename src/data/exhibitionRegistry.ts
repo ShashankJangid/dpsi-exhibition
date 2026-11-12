@@ -1,4 +1,4 @@
-// Authoritative DPSI Tech & Innovation Exhibition 2026 Registry
+// Authoritative DPSI Innovation Fest 2026 Registry
 // Generated from official roster and verified TSV data
 
 export interface StudentEntry {
