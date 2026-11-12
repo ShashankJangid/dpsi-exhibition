@@ -2134,6 +2134,7 @@ export default function LandingPage() {
               target="_blank"
               rel="noopener noreferrer"
               className={`font-semibold transition-colors ${isLight ? 'text-emerald-700 hover:text-emerald-900' : 'text-[#3fb950] hover:text-emerald-300'}`}
+              title="Innovation Fest Feedback Form"
             >
               Feedback ↗
             </a>
