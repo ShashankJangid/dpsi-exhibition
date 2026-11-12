@@ -125,7 +125,7 @@ export default function MobileNavMenu() {
           </div>
           <div>
             <h2 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">Navigation Menu</h2>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">DPSI Tech & Innovation Expo</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">DPSI Innovation Fest</p>
           </div>
         </div>
 

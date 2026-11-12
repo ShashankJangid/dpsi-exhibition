@@ -25,12 +25,13 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dpsiexibition.pages.dev'),
-  title: 'DPSI Tech & Innovation Exhibition | 3D Floor Plan & Live Voting',
+  title: 'DPSI Innovation Fest | 3D Floor Plan & Live Voting',
   description:
     'Interactive 3D Virtual Floor Plan & Live Voting Platform matching the physical blueprint: 44 student inventions across Physical (P01–12), Digital (D01–12), Business (B01–08), Show & Tell (ST01–08), and Robotics Arenas for DPS Indirapuram.',
   keywords: [
     'DPSI',
     'DPS Indirapuram',
+    'DPSI Innovation Fest',
     'Tech Exhibition',
     'Innovation Summit',
     '3D Floor Plan',
@@ -38,11 +39,11 @@ export const metadata: Metadata = {
     'Live Voting',
   ],
   openGraph: {
-    title: 'DPSI Tech & Innovation Exhibition 2026',
+    title: 'DPSI Innovation Fest 2026',
     description:
       'Explore 44 breakthrough student inventions across 3 exhibition zones with live anti-cheat voting and an interactive 3D virtual floor plan.',
     url: 'https://dpsiexibition.pages.dev',
-    siteName: 'DPSI Tech & Innovation Exhibition',
+    siteName: 'DPSI Innovation Fest',
     images: [
       {
         url: '/dps_shield.png',
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DPSI Tech & Innovation Exhibition 2026',
+    title: 'DPSI Innovation Fest 2026',
     description:
       'Explore 44 breakthrough student inventions across 3 exhibition zones with live anti-cheat voting and an interactive 3D virtual floor plan.',
     images: ['/dps_shield.png'],

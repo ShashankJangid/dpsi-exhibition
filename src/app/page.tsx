@@ -1331,7 +1331,7 @@ export default function LandingPage() {
       }`}>
         <div className="py-2 overflow-hidden">
           <TextLoop
-            text="DPSI TECH & INNOVATION EXPO 2026 ✦ 44 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ VERIFIED COMMUNITY BALLOT"
+            text="DPSI Innovation Fest 2026 ✦ 44 STUDENT INVENTIONS ✦ PHYSICAL PROTOTYPES ✦ AI & COMPUTER VISION ✦ BUSINESS SUSTAINABILITY ✦ COMBAT ROBOTICS ✦ VERIFIED COMMUNITY BALLOT"
             shape="wave"
             speed={90}
             direction="forward"

@@ -107,7 +107,7 @@ export default function TwoDFallbackGrid() {
             <h2 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tight ${
               isLight ? 'text-slate-900' : 'text-white'
             }`}>
-              DPS Indirapuram Tech & Innovation Exhibition
+              DPS Indirapuram Innovation Fest
             </h2>
             <p className={`text-xs sm:text-sm leading-relaxed font-sans ${
               isLight ? 'text-slate-600' : 'text-slate-400'

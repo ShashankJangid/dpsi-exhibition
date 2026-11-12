@@ -944,7 +944,7 @@ function PassAndAttendanceContent() {
         scanMethod,
         hammingDistance,
         specialRole: {
-          title: 'DPSI TECH & INNOVATION EXHIBITION 2026',
+          title: 'DPSI INNOVATION FEST 2026',
           name: juryName,
           role: jurySpec,
           credentialId: juryId,

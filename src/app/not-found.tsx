@@ -53,7 +53,7 @@ export default function NotFound() {
         <div className="mt-8 pt-6 border-t border-slate-800 text-[11px] font-mono text-slate-500 flex items-center justify-center gap-2">
           <span>Delhi Public School Indirapuram</span>
           <span>•</span>
-          <span>Tech &amp; Innovation Expo 2026</span>
+          <span>DPSI Innovation Fest 2026</span>
         </div>
       </div>
     </main>
