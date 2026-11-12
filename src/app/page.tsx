@@ -20,6 +20,7 @@ import {
   Lock,
   LayoutGrid,
   Image as ImageIcon,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -37,6 +38,9 @@ import { EXHIBITION_GALLERY_ITEMS } from '@/components/ui/demo';
 import { playClick, playChime, triggerHaptic } from '@/lib/sound';
 import { subscribeToProjects, onFirebaseAuthStateChange, castVoteInFirebase, checkRedirectResult, subscribeToUserVotedProjects } from '@/lib/firebase';
 import { getDeviceFingerprint } from '@/lib/fingerprint';
+
+const FEEDBACK_FORM_URL =
+  'https://docs.google.com/forms/d/e/1FAIpQLSdtQ5KIuKxaQxw_BmHqx685x8NfV4pkJv4wC-c8oDNnGeuqZA/viewform';
 
 // React Bits Components loaded dynamically for SSR safety
 const GradientASCII = dynamic(() => import('@/components/reactbits/GradientASCII'), {
@@ -1691,6 +1695,70 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ─── EXHIBITION VISITOR & JURY FEEDBACK SECTION ─── */}
+      <section
+        id="feedback"
+        className={`scroll-mt-16 border-b py-12 transition-colors duration-300 ${
+          isLight ? 'border-slate-200/80 bg-white/35 backdrop-blur-sm' : 'border-[#30363d] bg-[#040711]'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div
+            className={`relative overflow-hidden rounded-2xl border p-6 sm:p-8 lg:p-10 transition-all ${
+              isLight
+                ? 'border-slate-300/80 bg-white/85 backdrop-blur-md shadow-xs'
+                : 'border-[#30363d] bg-[#0d1117]/90'
+            }`}
+          >
+            {/* Subtle Ambient Corner Highlight */}
+            <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-emerald-500/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-amber-500/10 blur-3xl" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>VISITOR &amp; JURY FEEDBACK</span>
+                </div>
+
+                <h2
+                  className={`text-2xl sm:text-3xl font-black uppercase font-sans tracking-tight ${
+                    isLight ? 'text-slate-800' : 'text-white'
+                  }`}
+                >
+                  Share Your Exhibition Experience
+                </h2>
+
+                <p
+                  className={`mt-2.5 text-xs sm:text-sm font-mono leading-relaxed ${
+                    isLight ? 'text-slate-600' : 'text-slate-400'
+                  }`}
+                >
+                  Loved our 44 student innovation showcases or the interactive 3D Virtual Hall? Submit quick feedback to help the DPS Indirapuram Organizing Committee celebrate young innovators and elevate future summits.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:items-end gap-2.5 shrink-0">
+                <a
+                  href={FEEDBACK_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => playClick()}
+                  className="inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl bg-[#238636] hover:bg-[#2ea043] text-white font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+                >
+                  <MessageSquarePlus className="w-4 h-4 shrink-0" />
+                  <span>Give Feedback</span>
+                  <ArrowUpRight className="w-4 h-4 shrink-0" />
+                </a>
+                <span className={`text-[11px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Official Google Form • Opens in new tab
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       </main>
 
       {/* ─── GITHUB UNIVERSE STYLE MINIMALIST FOOTER ─── */}
@@ -1714,7 +1782,7 @@ export default function LandingPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
             <Link href="/expo" className={`hover:underline ${isLight ? 'text-blue-600 font-semibold' : 'text-white'}`}>
               3D Floor Plan
             </Link>
@@ -1729,6 +1797,14 @@ export default function LandingPage() {
             </a>
             <a href="#schedule" className={`transition-colors ${isLight ? 'hover:text-slate-900' : 'hover:text-white'}`}>
               Schedule
+            </a>
+            <a
+              href={FEEDBACK_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`font-semibold transition-colors ${isLight ? 'text-emerald-700 hover:text-emerald-900' : 'text-[#3fb950] hover:text-emerald-300'}`}
+            >
+              Feedback ↗
             </a>
           </div>
         </div>
