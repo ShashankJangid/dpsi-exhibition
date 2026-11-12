@@ -299,7 +299,7 @@ export default function MobileNavMenu() {
           <ChevronRight className="w-5 h-5 text-amber-600 dark:text-amber-400" />
         </button>
 
-        {/* Exhibition Feedback Form Button */}
+        {/* Innovation Fest Feedback Button */}
         <a
           href={FEEDBACK_FORM_URL}
           target="_blank"
@@ -313,7 +313,7 @@ export default function MobileNavMenu() {
             </div>
             <div>
               <h4 className="text-xs font-black text-emerald-900 dark:text-emerald-300 uppercase tracking-wide">
-                Give Exhibition Feedback
+                Innovation Fest Feedback
               </h4>
               <p className="text-[11px] text-emerald-800/80 dark:text-emerald-200/70">Share visitor &amp; jury feedback form</p>
             </div>

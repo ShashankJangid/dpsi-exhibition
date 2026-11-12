@@ -30,6 +30,8 @@ import {
   LogOut,
   Sliders,
   Upload,
+  MessageSquareQuote,
+  ExternalLink,
 } from 'lucide-react';
 import jsQR from 'jsqr';
 import { detectTopotagFailsafe, matchTopotagBitmask } from '@/lib/topotagDetector';
@@ -48,6 +50,7 @@ import {
 } from '@/data/exhibitionRegistry';
 import { generateAppleCardSvg, generateMicroQrModules, generateTopotagCells } from '@/lib/badgeGenerator';
 import { playChime, triggerHaptic } from '@/lib/sound';
+import { FEEDBACK_FORM_URL, FEEDBACK_FORM_EMBED_URL } from '@/lib/utils';
 
 export type RoleType = 'EXHIBITOR' | 'JUDGE' | 'VIP' | 'STAFF' | 'INCHARGE' | 'VISITOR';
 export type A4LayoutMode = '8_PER_PAGE' | '4_PER_PAGE' | '1_PER_PAGE';
@@ -530,7 +533,8 @@ function PassAndAttendanceContent() {
   }, [searchParams]);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'pass' | 'attendance' | 'batch_print' | 'scanner'>('pass');
+  const [activeTab, setActiveTab] = useState<'pass' | 'attendance' | 'batch_print' | 'scanner' | 'feedback'>('pass');
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   // Student Innovator Pass State
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
@@ -944,7 +948,7 @@ function PassAndAttendanceContent() {
         scanMethod,
         hammingDistance,
         specialRole: {
-          title: 'DPSI INNOVATION FEST 2026',
+          title: 'DPSI INNOVATION FEST',
           name: juryName,
           role: jurySpec,
           credentialId: juryId,
@@ -1681,6 +1685,24 @@ function PassAndAttendanceContent() {
     };
   }, []);
 
+  // Close feedback modal on Escape key and prevent background scroll
+  useEffect(() => {
+    if (!isFeedbackModalOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFeedbackModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFeedbackModalOpen]);
+
   // Filtered attendance for Students
   const filteredAttendance = useMemo(() => {
     return attendanceList.filter((rec) => {
@@ -2114,7 +2136,7 @@ function PassAndAttendanceContent() {
                   </span>
                 </div>
                 <h1 className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-2.5 mt-0.5">
-                  <span>Tech &amp; Innovation Summit 2026</span>
+                  <span>DPSI INNOVATION FEST</span>
                   <span className="hidden sm:inline-flex items-center text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-300 border border-white/[0.1]">
                     CR-100 Credential Suite
                   </span>
@@ -2122,8 +2144,24 @@ function PassAndAttendanceContent() {
               </div>
             </div>
 
-            {isCodeUnlocked && (
+            {isCodeUnlocked ? (
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopCamera();
+                    setActiveTab('feedback');
+                  }}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-mono font-medium flex items-center gap-1.5 active:scale-95 transition-all ${
+                    activeTab === 'feedback'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-xs'
+                      : 'bg-white/[0.05] hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 border-white/[0.08] hover:border-amber-500/30'
+                  }`}
+                  title="Innovation Fest Feedback Form"
+                >
+                  <MessageSquareQuote className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">Feedback</span>
+                </button>
                 <span className={`px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-mono font-semibold border ${roleConfig.pillClass}`}>
                   <span className="hidden sm:inline">{roleConfig.label}</span>
                   <span className="sm:hidden">{currentRole}</span>
@@ -2136,6 +2174,18 @@ function PassAndAttendanceContent() {
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Lock</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFeedbackModalOpen(true)}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 text-xs font-mono font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-xs"
+                  title="Innovation Fest Feedback Form"
+                >
+                  <MessageSquareQuote className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Feedback Form</span>
                 </button>
               </div>
             )}
@@ -2297,6 +2347,29 @@ function PassAndAttendanceContent() {
                     </p>
                   </div>
                 </div>
+
+                {/* Direct Innovation Fest Feedback Callout */}
+                <div className="pt-4 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                      <MessageSquareQuote className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white">Innovation Fest Feedback</h4>
+                      <p className="text-[11px] text-slate-400 font-mono">
+                        Have comments or reviews for student booths? Submit feedback.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsFeedbackModalOpen(true)}
+                    className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all shrink-0"
+                  >
+                    <span>Open Form</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -2409,6 +2482,28 @@ function PassAndAttendanceContent() {
                       <span className="relative z-10">Live Scanner</span>
                     </button>
                   )}
+
+                  {/* Tab 5: Innovation Fest Feedback Form (Available for All Roles) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopCamera();
+                      setActiveTab('feedback');
+                    }}
+                    className={`relative shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors z-10 ${
+                      activeTab === 'feedback' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {activeTab === 'feedback' && (
+                      <motion.div
+                        layoutId="activeTabPill"
+                        className="absolute inset-0 bg-white/[0.1] rounded-xl shadow-sm border border-white/[0.12]"
+                        transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                      />
+                    )}
+                    <MessageSquareQuote className="w-4 h-4 relative z-10 text-amber-400" />
+                    <span className="relative z-10">Feedback Form</span>
+                  </button>
                 </div>
               </div>
 
@@ -4205,10 +4300,146 @@ function PassAndAttendanceContent() {
                   </div>
                 </div>
               )}
+
+              {/* ========================================================================= */}
+              {/* TAB 5: INNOVATION FEST FEEDBACK FORM (Google Forms Integration)           */}
+              {/* ========================================================================= */}
+              {activeTab === 'feedback' && (
+                <div className="space-y-4">
+                  {/* Feedback Header Banner */}
+                  <div className="bg-white/[0.03] p-4 sm:p-5 rounded-3xl border border-white/[0.08] backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                        <MessageSquareQuote className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-bold text-white tracking-tight">
+                            Innovation Fest Feedback
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold">
+                            Official Form
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 font-mono mt-0.5">
+                          Delhi Public School Indirapuram • DPSI Innovation Fest
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <a
+                        href={FEEDBACK_FORM_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 active:scale-95"
+                      >
+                        <span>Open in New Tab</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Embedded Google Form Iframe Container */}
+                  <div className="relative w-full rounded-3xl border border-white/[0.1] bg-[#070b13] overflow-hidden shadow-2xl p-1 sm:p-2">
+                    <div className="w-full bg-white rounded-2xl overflow-hidden min-h-[820px]">
+                      <iframe
+                        src={FEEDBACK_FORM_EMBED_URL}
+                        width="100%"
+                        height="860"
+                        frameBorder="0"
+                        marginHeight={0}
+                        marginWidth={0}
+                        className="w-full h-[860px] border-none block"
+                        title="DPSI Innovation Fest Feedback Form"
+                      >
+                        Loading Innovation Fest Feedback Form…
+                      </iframe>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 3. MODAL: INNOVATION FEST FEEDBACK DIALOG                                  */}
+      {/* ========================================================================= */}
+      {isFeedbackModalOpen && (
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsFeedbackModalOpen(false);
+          }}
+          className="no-print print:hidden fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200 pointer-events-auto overflow-y-auto"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Innovation Fest Feedback Form"
+            className="relative w-full max-w-3xl my-auto rounded-3xl border border-white/[0.12] bg-[#070b13] text-white shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/[0.08] bg-slate-950/80 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                  <MessageSquareQuote className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                    <span>Innovation Fest Feedback</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Official Form
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    Delhi Public School Indirapuram
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={FEEDBACK_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white border border-white/[0.08] text-xs font-mono flex items-center gap-1.5 transition-all"
+                  title="Open in new window"
+                >
+                  <span className="hidden sm:inline">Open External</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setIsFeedbackModalOpen(false)}
+                  aria-label="Close feedback modal"
+                  className="p-1.5 rounded-xl border border-white/[0.08] bg-white/[0.05] text-slate-400 hover:text-white transition-colors active:scale-95"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: Embedded Google Form */}
+            <div className="flex-1 overflow-y-auto bg-white p-1 sm:p-2 min-h-[600px]">
+              <iframe
+                src={FEEDBACK_FORM_EMBED_URL}
+                width="100%"
+                height="780"
+                frameBorder="0"
+                marginHeight={0}
+                marginWidth={0}
+                className="w-full h-[780px] border-none block"
+                title="DPSI Innovation Fest Feedback Form"
+              >
+                Loading Innovation Fest Feedback Form…
+              </iframe>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 2. DEDICATED PRINT MOUNT (Only visible during print, pure white paper) */}
