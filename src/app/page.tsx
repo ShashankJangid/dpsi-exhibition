@@ -64,7 +64,7 @@ const TechText = dynamic(() => import('@/components/reactbits/TechText'), {
   loading: () => (
     <div className="flex items-center justify-center w-full h-[300px]">
       <span className="text-4xl md:text-6xl font-black tracking-widest text-[#2a75d3] font-mono">
-        DPSI TECH EXPO
+        DPSI Innovation Fest
       </span>
     </div>
   ),
@@ -1199,7 +1199,7 @@ export default function LandingPage() {
               <span className="absolute bottom-2 right-3 text-[10px] font-mono text-slate-400 select-none pointer-events-none">＋</span>
 
               <TechText
-                text="DPSI TECH EXPO"
+                text="DPSI Innovation Fest"
                 color={isLight ? '#1d4ed8' : '#38bdf8'}
                 accentColor={isLight ? '#3b82f6' : '#60a5fa'}
                 fontFamily='"Space Grotesk", sans-serif'
