@@ -379,9 +379,9 @@ export const OFFICIAL_PROJECTS_CATALOG: OfficialProjectEntry[] = [
     "student_count": 5,
     "students": [
       "Riddhi Pandey (IX-L)",
-      "Saanvi Khanna (IX-L)",
+      "Mudit (IX-L)",
       "Darsh Aggarwal (IX-L)",
-      "Zarmin Fatema Abbas (IX-L)",
+      "Rakshita (IX-L)",
       "Vardaan Khokhar (IX-L)"
     ]
   },
@@ -1889,17 +1889,18 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "role": "EXHIBITOR",
     "pass_code": "987654",
     "project_number": 16,
-    "project_title": "Medical Kiosk Diagnostics",
+    "project_title": "Medical Kiosk & RouteWise",
     "solution_type": "Digital Solution",
     "mentor": "Shashank",
     "booths": [
-      "D07"
+      "D07",
+      "D10"
     ],
-    "booth_codes": "D07",
-    "venue_location": "Zone 2 • Booth D07"
+    "booth_codes": "D07, D10",
+    "venue_location": "Zone 2 • Booths D07 & D10"
   },
   {
-    "student_name": "Saanvi Khanna",
+    "student_name": "Mudit",
     "class_section": "IX-L",
     "role": "EXHIBITOR",
     "pass_code": "987654",
@@ -1947,7 +1948,7 @@ export const OFFICIAL_STUDENTS_ROSTER: StudentEntry[] = [
     "venue_location": "Zone 2 • Booths D07 & D10"
   },
   {
-    "student_name": "Zarmin Fatema Abbas",
+    "student_name": "Rakshita",
     "class_section": "IX-L",
     "role": "EXHIBITOR",
     "pass_code": "987654",

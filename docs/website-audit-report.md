@@ -390,7 +390,7 @@ To resolve all discrepancies, use this authoritative mapping table linking physi
 | **D07** | Zone 2 | Digital | Medical Kiosk Health Diagnostic Centre | 8 | Aarika Kapoor (8-E), Aarna Verma (8-E), Vedhika Dhawan (8-E) |
 | **D08** | Zone 2 | Digital | SchoolsOS: Cafeteria & Nutrition Management | 6 | Ananya Gaur (6-I), Anaya Danish (6-I), J. Chanakya Anand (6-I) |
 | **D09** | Zone 2 | Digital | SchoolsOS: Lost & Found Intelligence Network | 6 | Ananya Singh (6-I), Arham Singhal (6-I), Pihu Verma (6-I) |
-| **D10** | Zone 2 | Digital | Move Smarter: Landmark-Based Route Optimization | 9 | Saanvi Khanna (9-L), Zarmin Fatema Abbas (9-L), Vardaan Khokhar (9-L) |
+| **D10** | Zone 2 | Digital | Move Smarter: Landmark-Based Route Optimization | 9 | Mudit (9-L), Rakshita (9-L), Riddhi Pandey (9-L), Vardaan Khokhar (9-L) |
 | **D11** | Zone 2 | Digital | AI Exam Monitor & Proctoring Intelligence | 12 | Ranvijay Singh (12-E), Amber Datta (12-E), Sparsh Goel (12-E) |
 | **D12** | Zone 2 | Digital | Eagle's Eye Security & Surveillance System | 6 | Aavya Mishra (6-B), Myra Chaudhary (6-B), Arshita Shrivastava (6-B) |
 | **B01** | Zone 2 | Business | Zap Fit: AI Fitness App & Wellness Platform | 7 | Mohammad Zaid Khan (7-A), Anushka Gulati (7-A), Aryaman Soni (7-A) |

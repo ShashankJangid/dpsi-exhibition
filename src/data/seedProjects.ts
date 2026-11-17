@@ -503,8 +503,9 @@ export const SEED_PROJECTS: Project[] = [
     description: 'Pedestrian and EV routing algorithm utilizing prominent neighborhood visual landmarks rather than complex compass headings, ideal for senior citizens and school vans.',
     tagline: 'Intuitive landmark navigation engine for school transit and seniors',
     members: [
-      'Saanvi Khanna (9-L)',
-      'Zarmin Fatema Abbas (9-L)',
+      'Mudit (9-L)',
+      'Rakshita (9-L)',
+      'Riddhi Pandey (9-L)',
       'Vardaan Khokhar (9-L)',
     ],
     tech_stack: ['GraphHopper', 'Leaflet.js', 'GeoJSON', 'Python Flask'],

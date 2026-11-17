@@ -1,4 +1,4 @@
-# DPS Indirapuram Annual Tech & Innovation Exhibition 2026
+# DPS Indirapuram — DPSI Innovation Fest 2026
 ## Official CR-100 Pass Directory
 
 This directory contains the production-ready vector passes (SVG) for all **197 registered participants** across the 4 summit categories.
